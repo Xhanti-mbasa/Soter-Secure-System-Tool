@@ -1,4 +1,4 @@
-use std::fs;
+Vuse std::fs;
 use std::process::Command;
 
 fn detect_distro() -> String {
