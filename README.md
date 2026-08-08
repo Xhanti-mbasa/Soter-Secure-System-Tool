@@ -11,6 +11,4 @@ Soter is **not** an antivirus or SIEM system. It is an environment configuration
 🚧 **Active Development** — Expect daily commits and regular updates. Check back often for new features.
 
 Repo code :
-```bash 
 WeThinkCode verification code : WTC-3YALQEH6
-```
