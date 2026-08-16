@@ -6,6 +6,17 @@ Soter (Σωτήρ)—Greek for "savior" or "preserver"—automates hardened Linu
 
 Soter is **not** an antivirus or SIEM system. It is an environment configuration and recovery tool with optional scanning capabilities. Use it to establish a known-good security baseline, not to detect active threats.
 
+___
+### Installation guide to install NIX
+```bash
+yay -S nix
+cd ~/.config/nix/
+nvim nix.conf
+# Setup nix permissions
+experimental-features = nix-command flakes
+```
+___
+
 ## Status
 
 🚧 **Active Development** — Expect daily commits and regular updates. Check back often for new features.
