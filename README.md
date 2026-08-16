@@ -14,6 +14,12 @@ cd ~/.config/nix/
 nvim nix.conf
 # Setup nix permissions
 experimental-features = nix-command flakes
+
+#Test nix
+mkdir -p ~/myflake
+#git -C "/home/{your home directory}" add -N "myflake/flake.nix"
+cd ~/myflake && nix flake init
+nix run
 ```
 ___
 
