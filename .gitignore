@@ -1,1 +1,2 @@
-sysinfo/target/
+/target/
+**/target/
