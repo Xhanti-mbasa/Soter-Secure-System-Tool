@@ -1,0 +1,12 @@
+[package]
+name = "soter-cli"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "soter"
+path = "src/main.rs"
+
+[dependencies]
+soter-core = { path = "../soter-core" }
+soter-system = { path = "../soter-system" }
