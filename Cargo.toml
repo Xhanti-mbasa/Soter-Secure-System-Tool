@@ -1,0 +1,7 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/soter-cli",
+    "crates/soter-core",
+    "crates/soter-system",
+]
