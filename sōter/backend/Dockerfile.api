@@ -1,0 +1,8 @@
+FROM python:3.13.7-slim@sha256:7e5c53e40a443db2c5ce67737f14d97f864f01b8f6d52bf020733be6e016c447
+RUN groupadd -r secure && useradd -r -g secure -d /app secure
+WORKDIR /app
+COPY pyproject.toml README.md ./
+COPY secure ./secure
+RUN pip install --no-cache-dir .
+USER secure
+EXPOSE 8000
