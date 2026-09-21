@@ -63,20 +63,30 @@ pub fn remove_value(name: &str, key: &str) -> Result<(), String> {
     Ok(())
 }
 
+fn provision_rootfs(rootfs: &Path) -> Result<(), String> {
+    if rootfs.join("usr/bin/env").exists() { return Ok(()); }
+
+    let status = Command::new("pacstrap")
+        .args(["-c", "-G", "-M"])
+        .arg(rootfs)
+        .args(["base", "bash", "coreutils", "util-linux", "iproute2"])
+        .status()
+        .map_err(|e| format!("failed to start pacstrap: {e}; install arch-install-scripts to provision Soterspaces"))?;
+
+    if status.success() {
+        Ok(())
+    } else {
+        Err(format!("root filesystem provisioning failed with status {status}"))
+    }
+}
+
 pub fn enter_or_run(name: &str, command: &[String]) -> Result<i32, String> {
     if !exists(name)? { return Err(format!("soterspace '{name}' does not exist")); }
 
     let space = root().map_err(|e| e.to_string())?.join(name);
     let rootfs = space.join("root");
     let shell = env::var("SHELL").unwrap_or_else(|_| "/bin/sh".into());
-    let user = env::var("USER").unwrap_or_else(|_| "user".into());
-
-    if !rootfs.join("usr/bin/env").exists() {
-        return Err(format!(
-            "soterspace '{name}' has no root filesystem yet; provision {} before entering",
-            rootfs.display()
-        ));
-    }
+    provision_rootfs(&rootfs)?;
 
     let mut script = String::from("set -eu; mount --make-rprivate /; ");
     script.push_str(&format!(
