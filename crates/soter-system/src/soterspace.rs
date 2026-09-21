@@ -266,7 +266,7 @@ pub fn enter_or_run(name: &str, command: &[String]) -> Result<i32, String> {
                 let status = Command::new("sh")
                     .args(["-c", &format!("printf '%s\\n' {} | nft -f -", shell_quote(&nft_script))])
                     .status().map_err(|e| e.to_string())?;
-                if status.success() { Ok(()) } else { Err("install Soterspace nftables rules failed".into()) }
+                if status.success() { Ok::<(), String>(()) } else { Err::<(), String>("install Soterspace nftables rules failed".into()) }
             })?;
         fs::write(&gate, b"ready").map_err(|e| format!("release Soterspace network gate: {e}"))?;
         Ok(())
