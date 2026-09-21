@@ -1,4 +1,5 @@
-use std::{env, process};
+use std::{env, path::Path, process};
+use soter_system::soterspace;
 
 const USAGE: &str = r#"Soter — secure Linux workspace manager
 
@@ -114,5 +115,60 @@ fn main() {
         return;
     }
 
-    println!("{cli:?}");
+    let target = cli.arguments.first().cloned();
+
+    let result: Result<(), String> = if let Some(file) = &cli.restore {
+        soterspace::restore(Path::new(file)).map(|_| println!("Restored '{file}'."))
+    } else if cli.list {
+        soterspace::list().map(|spaces| {
+            if spaces.is_empty() { println!("No soterspaces."); }
+            else { for space in spaces { println!("{space}"); } }
+        })
+    } else if cli.create {
+        match target.as_deref() {
+            Some(name) => soterspace::create(name, cli.empty, cli.temporary)
+                .map(|space| println!("Created soterspace '{}' at {}.", space.name, space.path.display())),
+            None => Err("create requires a soterspace name".into()),
+        }
+    } else if cli.remove {
+        match target.as_deref() {
+            Some(name) => soterspace::remove(name).map(|_| println!("Removed soterspace '{name}'.")),
+            None => Err("remove requires a soterspace name".into()),
+        }
+    } else if cli.backup {
+        match target.as_deref() {
+            Some(name) => {
+                let filename = format!("{name}.soter");
+                soterspace::backup(name, Path::new(&filename))
+                    .map(|_| println!("Backed up '{name}' to '{filename}'."))
+            }
+            None => Err("backup requires a soterspace name".into()),
+        }
+    } else if let Some(name) = target.as_deref() {
+        if let Some(password) = &cli.passwd {
+            soterspace::set_value(name, "password", password).map(|_| println!("Password set for '{name}'."))
+        } else if cli.unlock {
+            soterspace::remove_value(name, "password").map(|_| println!("Password removed from '{name}'."))
+        } else if let Some(ssid) = &cli.network_ssid {
+            let value = format!("ssid={ssid}\npassword={}\n", cli.network_password.as_deref().unwrap_or(""));
+            soterspace::set_value(name, "network.conf", &value).map(|_| println!("Network configuration saved for '{name}'."))
+        } else if let Some(profile) = &cli.openvpn {
+            let value = format!("profile={profile}\nfail_closed={}\n", !cli.unsafe_network);
+            soterspace::set_value(name, "openvpn.conf", &value).map(|_| println!("OpenVPN configuration saved for '{name}'."))
+        } else if cli.modify {
+            Err("modify requires a setting such as --passwd, --network, or --openvpn".into())
+        } else {
+            let command = cli.arguments.iter().skip(1).cloned().collect::<Vec<_>>();
+            soterspace::enter_or_run(name, &command).and_then(|code| {
+                if code == 0 { Ok(()) } else { Err(format!("command exited with status {code}")) }
+            })
+        }
+    } else {
+        Err("no soterspace or operation specified".into())
+    };
+
+    if let Err(error) = result {
+        eprintln!("soter: {error}");
+        process::exit(1);
+    }
 }
