@@ -216,18 +216,90 @@ pub fn enter_or_run(name: &str, command: &[String]) -> Result<i32, String> {
     } else {
         unshare.arg("--map-root-user");
     }
-    let status = unshare
+    // Keep the namespace alive behind a small readiness gate. This gives the
+    // host side of Soter time to attach a veth endpoint before the chroot starts.
+    let gate = space.join("runtime/net-ready");
+    if gate.exists() {
+        fs::remove_file(&gate).map_err(|e| e.to_string())?;
+    }
+    let gated_script = format!(
+        "set -eu; while [ ! -e {gate} ]; do sleep 0.02; done; {script}",
+        gate = shell_quote(&gate.display().to_string()),
+        script = script,
+    );
+
+    let mut child = unshare
         .args(["--mount", "--pid", "--fork", "--uts", "--ipc", "--net"])
-        .arg("sh").arg("-c").arg(script)
-        .status()
-        .map_err(|e| format!("failed to start namespace runtime: {e}"));
+        .arg("sh").arg("-c").arg(gated_script)
+        .spawn()
+        .map_err(|e| format!("failed to start namespace runtime: {e}"))?;
+
+    let pid = child.id();
+    let host_if = format!("sth{}", pid);
+    let guest_if = format!("stg{}", pid);
+
+    let setup = (|| -> Result<(), String> {
+        run_checked(Command::new("ip").args(["link", "add", &host_if, "type", "veth", "peer", "name", &guest_if]),
+            "create Soterspace veth pair")?;
+        run_checked(Command::new("ip").args(["addr", "add", "10.200.0.1/24", "dev", &host_if]),
+            "address Soterspace host veth")?;
+        run_checked(Command::new("ip").args(["link", "set", &host_if, "up"]),
+            "bring Soterspace host veth up")?;
+        run_checked(Command::new("ip").args(["link", "set", &guest_if, "netns", &pid.to_string()]),
+            "move Soterspace veth into network namespace")?;
+        run_checked(Command::new("nsenter").args(["-t", &pid.to_string(), "-n", "ip", "link", "set", "lo", "up"]),
+            "bring Soterspace loopback up")?;
+        run_checked(Command::new("nsenter").args(["-t", &pid.to_string(), "-n", "ip", "addr", "add", "10.200.0.2/24", "dev", &guest_if]),
+            "address Soterspace guest veth")?;
+        run_checked(Command::new("nsenter").args(["-t", &pid.to_string(), "-n", "ip", "link", "set", &guest_if, "up"]),
+            "bring Soterspace guest veth up")?;
+        run_checked(Command::new("nsenter").args(["-t", &pid.to_string(), "-n", "ip", "route", "add", "default", "via", "10.200.0.1"]),
+            "add Soterspace default route")?;
+
+        // Use a Soter-owned nftables table. Do not modify the iptables-nft
+        // tables owned by UFW, Docker or Tailscale.
+        let nft_script = format!(
+            "table ip soter_{pid} {{ chain forward {{ type filter hook forward priority 10; policy accept; }} chain postrouting {{ type nat hook postrouting priority srcnat; policy accept; ip saddr 10.200.0.0/24 oifname \"wlan0\" masquerade }} }}"
+        );
+        run_checked(Command::new("nft").args(["-f", "-"]).stdin(std::process::Stdio::piped()),
+            "prepare Soterspace nftables table").or_else(|_| {
+                let status = Command::new("sh")
+                    .args(["-c", &format!("printf '%s\\n' {} | nft -f -", shell_quote(&nft_script))])
+                    .status().map_err(|e| e.to_string())?;
+                if status.success() { Ok(()) } else { Err("install Soterspace nftables rules failed".into()) }
+            })?;
+        fs::write(&gate, b"ready").map_err(|e| format!("release Soterspace network gate: {e}"))?;
+        Ok(())
+    })();
+
+    if let Err(error) = setup {
+        let _ = child.kill();
+        let _ = child.wait();
+        let _ = Command::new("ip").args(["link", "del", &host_if]).status();
+        let _ = Command::new("nft").args(["delete", "table", "ip", &format!("soter_{pid}")]).status();
+        for (_, target) in &pre_unshare_mounts { let _ = Command::new("umount").arg(target).status(); }
+        return Err(error);
+    }
+
+    let status = child.wait().map_err(|e| format!("failed waiting for Soterspace: {e}"))?;
+    let _ = Command::new("ip").args(["link", "del", &host_if]).status();
+    let _ = Command::new("nft").args(["delete", "table", "ip", &format!("soter_{pid}")]).status();
+    let _ = fs::remove_file(&gate);
 
     for (_, target) in &pre_unshare_mounts {
         let _ = Command::new("umount").arg(target).status();
     }
 
-    let status = status?;
     Ok(status.code().unwrap_or(1))
+}
+
+fn run_checked(command: &mut Command, action: &str) -> Result<(), String> {
+    let status = command.status().map_err(|e| format!("{action}: {e}"))?;
+    if status.success() {
+        Ok(())
+    } else {
+        Err(format!("{action} failed with status {status}"))
+    }
 }
 
 fn shell_quote(value: &str) -> String {
