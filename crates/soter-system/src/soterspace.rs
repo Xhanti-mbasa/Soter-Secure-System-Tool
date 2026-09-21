@@ -82,7 +82,7 @@ pub fn enter_or_run(name: &str, command: &[String]) -> Result<i32, String> {
 
     let mut script = String::from("set -eu; mount --make-rprivate /; ");
     script.push_str(&format!(
-        "mount -t overlay none -o lowerdir=/,upperdir={},workdir={} {}; ",
+        "mount -t overlay overlay -o userxattr,lowerdir=/,upperdir={},workdir={} {}; ",
         upper.display(), work.display(), merged.display()
     ));
     script.push_str(&format!(
