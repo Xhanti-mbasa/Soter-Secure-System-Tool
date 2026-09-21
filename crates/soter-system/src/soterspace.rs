@@ -135,20 +135,19 @@ pub fn enter_or_run(name: &str, command: &[String]) -> Result<i32, String> {
             rootfs.display()
         ));
     }
-    // Expose only the GUI sockets needed by desktop applications.
+    // Expose only the GUI runtime directory needed by desktop applications.
+    // Binding the runtime directory is more reliable than bind-mounting a
+    // Wayland socket file directly from inside the new user/mount namespace.
     if let (Some(runtime), Some(wayland)) = (&xdg_runtime_dir, &wayland_display) {
-        let host_socket = Path::new(runtime).join(wayland);
+        let host_runtime = Path::new(runtime);
+        let host_socket = host_runtime.join(wayland);
         if host_socket.exists() {
             let guest_runtime = rootfs.join(runtime.trim_start_matches('/'));
             fs::create_dir_all(&guest_runtime).map_err(|e| e.to_string())?;
-            let guest_socket = guest_runtime.join(wayland);
-            if !guest_socket.exists() {
-                fs::File::create(&guest_socket).map_err(|e| e.to_string())?;
-            }
             script.push_str(&format!(
                 "mount --bind {0} {1}; ",
-                shell_quote(&host_socket.display().to_string()),
-                shell_quote(&guest_socket.display().to_string())
+                shell_quote(&host_runtime.display().to_string()),
+                shell_quote(&guest_runtime.display().to_string())
             ));
         }
     }
