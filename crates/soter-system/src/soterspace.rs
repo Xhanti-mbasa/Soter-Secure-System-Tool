@@ -117,7 +117,8 @@ pub fn enter_or_run(name: &str, command: &[String]) -> Result<i32, String> {
 }
 
 fn shell_quote(value: &str) -> String {
-    format!("'{}'", value.replace('\\'', "'\\''"))
+    let escaped = value.replace("'", "'\\''");
+    format!("'{escaped}'")
 }
 
 pub fn backup(name: &str, destination: &Path) -> Result<(), String> {
