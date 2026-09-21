@@ -89,6 +89,11 @@ pub fn enter_or_run(name: &str, command: &[String]) -> Result<i32, String> {
     let display = env::var("DISPLAY").ok();
     let wayland_display = env::var("WAYLAND_DISPLAY").ok();
     let xdg_runtime_dir = env::var("XDG_RUNTIME_DIR").ok();
+    // When Soter is started through sudo, recover the desktop user's identity.
+    // That UID/GID must be mapped into the user namespace so Wayland's socket
+    // remains owned by, and accessible to, the same user inside the Soterspace.
+    let desktop_uid = env::var("SUDO_UID").ok().and_then(|v| v.parse::<u32>().ok());
+    let desktop_gid = env::var("SUDO_GID").ok().and_then(|v| v.parse::<u32>().ok());
     provision_rootfs(&rootfs)?;
 
     // Resolve Soter's Nix browser wrappers without hard-coding store hashes.
@@ -197,8 +202,17 @@ pub fn enter_or_run(name: &str, command: &[String]) -> Result<i32, String> {
         }
     }
 
-    let status = Command::new("unshare")
-        .args(["--user", "--map-root-user", "--mount", "--pid", "--fork", "--uts", "--ipc", "--net"])
+    let mut unshare = Command::new("unshare");
+    unshare.arg("--user");
+    if let (Some(uid), Some(gid)) = (desktop_uid, desktop_gid) {
+        unshare
+            .arg(format!("--map-users={uid},0,1"))
+            .arg(format!("--map-groups={gid},0,1"));
+    } else {
+        unshare.arg("--map-root-user");
+    }
+    let status = unshare
+        .args(["--mount", "--pid", "--fork", "--uts", "--ipc", "--net"])
         .arg("sh").arg("-c").arg(script)
         .status()
         .map_err(|e| format!("failed to start namespace runtime: {e}"));
