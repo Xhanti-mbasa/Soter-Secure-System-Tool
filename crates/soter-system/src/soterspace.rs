@@ -86,6 +86,9 @@ pub fn enter_or_run(name: &str, command: &[String]) -> Result<i32, String> {
     let space = root().map_err(|e| e.to_string())?.join(name);
     let rootfs = space.join("root");
     let shell = env::var("SHELL").unwrap_or_else(|_| "/bin/sh".into());
+    let display = env::var("DISPLAY").ok();
+    let wayland_display = env::var("WAYLAND_DISPLAY").ok();
+    let xdg_runtime_dir = env::var("XDG_RUNTIME_DIR").ok();
     provision_rootfs(&rootfs)?;
 
     // Resolve Soter's Nix browser wrappers without hard-coding store hashes.
@@ -132,11 +135,45 @@ pub fn enter_or_run(name: &str, command: &[String]) -> Result<i32, String> {
             rootfs.display()
         ));
     }
+    // Expose only the GUI sockets needed by desktop applications.
+    if let (Some(runtime), Some(wayland)) = (&xdg_runtime_dir, &wayland_display) {
+        let host_socket = Path::new(runtime).join(wayland);
+        if host_socket.exists() {
+            let guest_runtime = rootfs.join(runtime.trim_start_matches('/'));
+            fs::create_dir_all(&guest_runtime).map_err(|e| e.to_string())?;
+            let guest_socket = guest_runtime.join(wayland);
+            if !guest_socket.exists() {
+                fs::File::create(&guest_socket).map_err(|e| e.to_string())?;
+            }
+            script.push_str(&format!(
+                "mount --bind {0} {1}; ",
+                shell_quote(&host_socket.display().to_string()),
+                shell_quote(&guest_socket.display().to_string())
+            ));
+        }
+    }
+    if Path::new("/tmp/.X11-unix").is_dir() {
+        let guest_x11 = rootfs.join("tmp/.X11-unix");
+        fs::create_dir_all(&guest_x11).map_err(|e| e.to_string())?;
+        script.push_str(&format!(
+            "mount --bind /tmp/.X11-unix {0}; mount -o remount,bind,ro {0}; ",
+            shell_quote(&guest_x11.display().to_string())
+        ));
+    }
+
     script.push_str(&format!("hostname soter-{name}; "));
-    script.push_str(&format!(
-        "cd {0}; exec chroot . /usr/bin/env -i HOME=/root USER=root LOGNAME=root PATH=/opt/soter/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin SHELL={1} SOTERSPACE={2} ",
+    script.push_str(&format!("cd {0}; exec chroot . /usr/bin/env -i HOME=/root USER=root LOGNAME=root PATH=/opt/soter/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin SHELL={1} SOTERSPACE={2} ",
         rootfs.display(), shell, name
     ));
+    if let Some(value) = &display {
+        script.push_str(&format!("DISPLAY={} ", shell_quote(value)));
+    }
+    if let Some(value) = &wayland_display {
+        script.push_str(&format!("WAYLAND_DISPLAY={} ", shell_quote(value)));
+    }
+    if let Some(value) = &xdg_runtime_dir {
+        script.push_str(&format!("XDG_RUNTIME_DIR={} ", shell_quote(value)));
+    }
 
     if command.is_empty() {
         let inside_shell = if rootfs.join(shell.trim_start_matches('/')).exists() {
