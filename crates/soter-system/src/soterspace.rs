@@ -90,9 +90,15 @@ pub fn enter_or_run(name: &str, command: &[String]) -> Result<i32, String> {
 
     let mut script = String::from("set -eu; mount --make-rprivate /; ");
     script.push_str(&format!(
-        "mkdir -p {0}/proc {0}/tmp {0}/run {0}/dev; mount -t proc proc {0}/proc; ",
+        "mkdir -p {0}/proc {0}/tmp {0}/run {0}/dev {0}/nix/store; mount -t proc proc {0}/proc; ",
         rootfs.display()
     ));
+    if Path::new("/nix/store").is_dir() {
+        script.push_str(&format!(
+            "mount --bind /nix/store {0}/nix/store; mount -o remount,bind,ro {0}/nix/store; ",
+            rootfs.display()
+        ));
+    }
     script.push_str(&format!("hostname soter-{name}; "));
     script.push_str(&format!(
         "cd {0}; exec chroot . /usr/bin/env -i HOME=/root USER=root LOGNAME=root PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin SHELL={1} SOTERSPACE={2} ",
