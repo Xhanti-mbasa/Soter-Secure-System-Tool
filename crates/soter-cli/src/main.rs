@@ -126,8 +126,13 @@ fn main() {
         })
     } else if cli.create {
         match target.as_deref() {
-            Some(name) => soterspace::create(name, cli.empty, cli.temporary)
-                .map(|space| println!("Created soterspace '{}' at {}.", space.name, space.path.display())),
+            Some(name) => soterspace::create(name, cli.empty, cli.temporary).and_then(|space| {
+                println!("Created soterspace '{}' at {}.", space.name, space.path.display());
+                println!("Entering soterspace '{}'...", space.name);
+                soterspace::enter_or_run(&space.name, &[]).and_then(|code| {
+                    if code == 0 { Ok(()) } else { Err(format!("soterspace exited with status {code}")) }
+                })
+            }),
             None => Err("create requires a soterspace name".into()),
         }
     } else if cli.remove {
