@@ -205,9 +205,14 @@ pub fn enter_or_run(name: &str, command: &[String]) -> Result<i32, String> {
     let mut unshare = Command::new("unshare");
     unshare.arg("--user");
     if let (Some(uid), Some(gid)) = (desktop_uid, desktop_gid) {
+        // Keep namespace UID/GID 0 mapped to the privileged caller so mount,
+        // chroot, hostname, etc. still work, and additionally map the desktop
+        // user 1:1 so GUI sockets retain an accessible owner.
         unshare
-            .arg(format!("--map-users={uid},0,1"))
-            .arg(format!("--map-groups={gid},0,1"));
+            .arg("--map-users=0,0,1")
+            .arg(format!("--map-users={uid},{uid},1"))
+            .arg("--map-groups=0,0,1")
+            .arg(format!("--map-groups={gid},{gid},1"));
     } else {
         unshare.arg("--map-root-user");
     }
