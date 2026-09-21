@@ -37,7 +37,7 @@ impl Cli {
                 "-m" | "--modify" => cli.modify = true,
                 "-l" | "--list" => cli.list = true,
                 "-a" | "--all" => cli.all = true,
-                "-T" | "--temporary" => cli.temporary = true,
+                "-T" | "--temporary" => cli.temporary = true,\n                "-U" | "--unlock" => cli.unlock = true,\n                "--passwd" => cli.passwd = Some(args.next().ok_or("--passwd requires a password")?),
                 "-h" | "--human-readable" => cli.human_readable = true,
                 "-E" | "--extended-regexp" => cli.extended_regexp = true,
                 "--help" => { print!("{USAGE}"); process::exit(0); }
