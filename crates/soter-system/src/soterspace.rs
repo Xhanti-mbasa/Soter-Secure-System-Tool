@@ -135,20 +135,20 @@ pub fn enter_or_run(name: &str, command: &[String]) -> Result<i32, String> {
             rootfs.display()
         ));
     }
-    // Expose only the GUI runtime directory needed by desktop applications.
-    // Binding the runtime directory is more reliable than bind-mounting a
-    // Wayland socket file directly from inside the new user/mount namespace.
+    // Expose the Wayland socket by bind-mounting it before entering the
+    // user namespace. Some kernels reject bind mounts sourced from the host's
+    // per-user runtime directory after CLONE_NEWUSER has taken effect.
+    let mut pre_unshare_mounts: Vec<(PathBuf, PathBuf)> = Vec::new();
     if let (Some(runtime), Some(wayland)) = (&xdg_runtime_dir, &wayland_display) {
-        let host_runtime = Path::new(runtime);
-        let host_socket = host_runtime.join(wayland);
+        let host_socket = Path::new(runtime).join(wayland);
         if host_socket.exists() {
             let guest_runtime = rootfs.join(runtime.trim_start_matches('/'));
             fs::create_dir_all(&guest_runtime).map_err(|e| e.to_string())?;
-            script.push_str(&format!(
-                "mount --bind {0} {1}; ",
-                shell_quote(&host_runtime.display().to_string()),
-                shell_quote(&guest_runtime.display().to_string())
-            ));
+            let guest_socket = guest_runtime.join(wayland);
+            if !guest_socket.exists() {
+                fs::File::create(&guest_socket).map_err(|e| e.to_string())?;
+            }
+            pre_unshare_mounts.push((host_socket, guest_socket));
         }
     }
     if Path::new("/tmp/.X11-unix").is_dir() {
@@ -185,12 +185,29 @@ pub fn enter_or_run(name: &str, command: &[String]) -> Result<i32, String> {
         script.push_str(&command.iter().map(|a| shell_quote(a)).collect::<Vec<_>>().join(" "));
     }
 
+    for (source, target) in &pre_unshare_mounts {
+        let status = Command::new("mount")
+            .args(["--bind"])
+            .arg(source)
+            .arg(target)
+            .status()
+            .map_err(|e| format!("failed to expose GUI socket: {e}"))?;
+        if !status.success() {
+            return Err(format!("failed to expose GUI socket '{}'", source.display()));
+        }
+    }
+
     let status = Command::new("unshare")
         .args(["--user", "--map-root-user", "--mount", "--pid", "--fork", "--uts", "--ipc", "--net"])
         .arg("sh").arg("-c").arg(script)
         .status()
-        .map_err(|e| format!("failed to start namespace runtime: {e}"))?;
+        .map_err(|e| format!("failed to start namespace runtime: {e}"));
 
+    for (_, target) in &pre_unshare_mounts {
+        let _ = Command::new("umount").arg(target).status();
+    }
+
+    let status = status?;
     Ok(status.code().unwrap_or(1))
 }
 
