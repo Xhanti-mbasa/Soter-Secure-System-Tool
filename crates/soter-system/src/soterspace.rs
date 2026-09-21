@@ -88,6 +88,39 @@ pub fn enter_or_run(name: &str, command: &[String]) -> Result<i32, String> {
     let shell = env::var("SHELL").unwrap_or_else(|_| "/bin/sh".into());
     provision_rootfs(&rootfs)?;
 
+    // Resolve Soter's Nix browser wrappers without hard-coding store hashes.
+    let nix_profile = rootfs.join("opt/soter/bin");
+    fs::create_dir_all(&nix_profile).map_err(|e| e.to_string())?;
+    for (package, binary) in [
+        ("firefox-pentesting", "firefox"),
+        ("chromium-pentesting", "chromium"),
+    ] {
+        let output = Command::new("nix")
+            .args(["build", "--no-link", "--print-out-paths"])
+            .arg(format!(".#{package}"))
+            .output()
+            .map_err(|e| format!("failed to resolve Nix package '{package}': {e}"))?;
+        if !output.status.success() {
+            return Err(format!(
+                "failed to build Nix package '{package}': {}",
+                String::from_utf8_lossy(&output.stderr).trim()
+            ));
+        }
+        let store_path = String::from_utf8_lossy(&output.stdout)
+            .lines().next()
+            .ok_or_else(|| format!("Nix returned no store path for '{package}'"))?
+            .trim().to_string();
+        let link = nix_profile.join(binary);
+        if link.exists() || link.is_symlink() {
+            fs::remove_file(&link).map_err(|e| e.to_string())?;
+        }
+        #[cfg(unix)]
+        std::os::unix::fs::symlink(
+            format!("{store_path}/bin/{binary}"),
+            &link,
+        ).map_err(|e| e.to_string())?;
+    }
+
     let mut script = String::from("set -eu; mount --make-rprivate /; ");
     script.push_str(&format!(
         "mkdir -p {0}/proc {0}/tmp {0}/run {0}/dev {0}/nix/store; mount -t proc proc {0}/proc; ",
@@ -101,7 +134,7 @@ pub fn enter_or_run(name: &str, command: &[String]) -> Result<i32, String> {
     }
     script.push_str(&format!("hostname soter-{name}; "));
     script.push_str(&format!(
-        "cd {0}; exec chroot . /usr/bin/env -i HOME=/root USER=root LOGNAME=root PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin SHELL={1} SOTERSPACE={2} ",
+        "cd {0}; exec chroot . /usr/bin/env -i HOME=/root USER=root LOGNAME=root PATH=/opt/soter/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin SHELL={1} SOTERSPACE={2} ",
         rootfs.display(), shell, name
     ));
 
