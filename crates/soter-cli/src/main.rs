@@ -37,7 +37,7 @@ impl Cli {
                 "-m" | "--modify" => cli.modify = true,
                 "-l" | "--list" => cli.list = true,
                 "-a" | "--all" => cli.all = true,
-                "-T" | "--temporary" => cli.temporary = true,\n                "-U" | "--unlock" => cli.unlock = true,\n                "--passwd" => cli.passwd = Some(args.next().ok_or("--passwd requires a password")?),
+                "-T" | "--temporary" => cli.temporary = true,\n                "-U" | "--unlock" => cli.unlock = true,\n                "--passwd" => cli.passwd = Some(args.next().ok_or("--passwd requires a password")?),\n                "-s" | "--network" => {\n                    cli.network_ssid = Some(args.next().ok_or("--network requires an SSID")?);\n                    cli.network_password = Some(args.next().unwrap_or_default());\n                }
                 "-h" | "--human-readable" => cli.human_readable = true,
                 "-E" | "--extended-regexp" => cli.extended_regexp = true,
                 "--help" => { print!("{USAGE}"); process::exit(0); }
