@@ -259,7 +259,7 @@ pub fn enter_or_run(name: &str, command: &[String]) -> Result<i32, String> {
         // Use a Soter-owned nftables table. Do not modify the iptables-nft
         // tables owned by UFW, Docker or Tailscale.
         let nft_script = format!(
-            "table ip soter_{pid} {{ chain forward {{ type filter hook forward priority 10; policy accept; }} chain postrouting {{ type nat hook postrouting priority srcnat; policy accept; ip saddr 10.200.0.0/24 oifname \"wlan0\" masquerade }} }}"
+            "table ip soter_{pid} {{\n  chain forward {{\n    type filter hook forward priority 10; policy accept;\n  }}\n  chain postrouting {{\n    type nat hook postrouting priority srcnat; policy accept;\n    ip saddr 10.200.0.0/24 oifname \"wlan0\" masquerade\n  }}\n}}\n"
         );
         let nft_status = Command::new("nft")
             .args(["-f", "-"])
