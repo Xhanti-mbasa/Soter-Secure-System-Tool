@@ -8,7 +8,7 @@
     flake-utils.lib.eachDefaultSystem (system:
       let pkgs = nixpkgs.legacyPackages.${system};
       in {
-        packages.chromium-pentesting = pkgs.callPackage ./packages/chromium-pentesting.nix {};
+        packages.chromium-pentesting = pkgs.callPackage ./nix/chromium-pentesting.nix {};
         apps.chromium-pentesting = {
           type = "app";
           program = "${self.packages.${system}.chromium-pentesting}/bin/chromium-pentesting";
