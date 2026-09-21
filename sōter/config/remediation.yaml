@@ -1,5 +1,0 @@
-missing-csp:
-  business_summary: The site does not restrict which browser content sources may be loaded.
-  technical_summary: Content-Security-Policy was not detected.
-  remediation:
-    general: Define and test a restrictive Content-Security-Policy header before enforcing it.
