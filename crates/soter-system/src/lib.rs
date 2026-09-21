@@ -13,3 +13,5 @@ pub mod vpn;
 pub mod tooling;
 pub mod verification;
 pub mod recovery;
+
+pub mod soterspace;
