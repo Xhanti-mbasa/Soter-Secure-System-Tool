@@ -23,7 +23,7 @@ pub fn create(name: &str, empty: bool, temporary: bool) -> Result<Soterspace, St
     if !valid_name(name) { return Err("soterspace names may contain only letters, numbers, '-' and '_'".into()); }
     let path = root().map_err(|e| e.to_string())?.join(name);
     if path.exists() { return Err(format!("soterspace '{name}' already exists")); }
-    for dir in ["root", "overlay/upper", "overlay/work", "runtime"] {
+    for dir in ["root", "runtime"] {
         fs::create_dir_all(path.join(dir)).map_err(|e| e.to_string())?;
     }
     let metadata = format!("name={name}\nempty={empty}\ntemporary={temporary}\n");
@@ -67,42 +67,35 @@ pub fn enter_or_run(name: &str, command: &[String]) -> Result<i32, String> {
     if !exists(name)? { return Err(format!("soterspace '{name}' does not exist")); }
 
     let space = root().map_err(|e| e.to_string())?.join(name);
-    let merged = space.join("root");
-    let upper = space.join("overlay/upper");
-    let work = space.join("overlay/work");
-
-    // A Soterspace gets its own user, mount, PID, UTS, IPC and network namespaces.
-    // Its filesystem is a persistent overlay: the host root is the read-only lower
-    // layer and every write lands in this Soterspace's private upper layer.
+    let rootfs = space.join("root");
     let shell = env::var("SHELL").unwrap_or_else(|_| "/bin/sh".into());
-    let uid = Command::new("id").arg("-u").output().map_err(|e| e.to_string())?;
-    let gid = Command::new("id").arg("-g").output().map_err(|e| e.to_string())?;
-    let uid = String::from_utf8_lossy(&uid.stdout).trim().to_owned();
-    let gid = String::from_utf8_lossy(&gid.stdout).trim().to_owned();
+    let user = env::var("USER").unwrap_or_else(|_| "user".into());
+
+    if !rootfs.join("usr/bin/env").exists() {
+        return Err(format!(
+            "soterspace '{name}' has no root filesystem yet; provision {} before entering",
+            rootfs.display()
+        ));
+    }
 
     let mut script = String::from("set -eu; mount --make-rprivate /; ");
     script.push_str(&format!(
-        "mount -t overlay overlay -o userxattr,lowerdir=/,upperdir={},workdir={} {}; ",
-        upper.display(), work.display(), merged.display()
-    ));
-    script.push_str(&format!(
-        "mount --bind {0} {0}; mount -o remount,bind,rw {0}; ",
-        merged.display()
-    ));
-    script.push_str(&format!(
-        "mkdir -p {0}/proc {0}/tmp {0}/run; mount -t proc proc {0}/proc; ",
-        merged.display()
+        "mkdir -p {0}/proc {0}/tmp {0}/run {0}/dev; mount -t proc proc {0}/proc; ",
+        rootfs.display()
     ));
     script.push_str(&format!("hostname soter-{name}; "));
     script.push_str(&format!(
-        "cd {0}; exec chroot --userspec={1}:{2} . /usr/bin/env -i HOME=/home/{3} USER={3} LOGNAME={3} PATH=/usr/local/sbin:/usr/local/bin:/usr/bin:/bin SHELL={4} SOTERSPACE={5} ",
-        merged.display(), uid, gid,
-        env::var("USER").unwrap_or_else(|_| "user".into()),
-        shell, name
+        "cd {0}; exec chroot . /usr/bin/env -i HOME=/root USER=root LOGNAME=root PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin SHELL={1} SOTERSPACE={2} ",
+        rootfs.display(), shell, name
     ));
 
     if command.is_empty() {
-        script.push_str(&format!("{shell} -l"));
+        let inside_shell = if rootfs.join(shell.trim_start_matches('/')).exists() {
+            shell.clone()
+        } else {
+            "/bin/sh".into()
+        };
+        script.push_str(&format!("{inside_shell} -l"));
     } else {
         script.push_str(&command.iter().map(|a| shell_quote(a)).collect::<Vec<_>>().join(" "));
     }
