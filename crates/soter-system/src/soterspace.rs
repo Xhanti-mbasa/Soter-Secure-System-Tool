@@ -164,10 +164,26 @@ pub fn enter_or_run(name: &str, command: &[String], shell_override: Option<&str>
         ).map_err(|e| e.to_string())?;
     }
 
+    // Host-network mode should use the host's active resolver as well.
+    // Prepare a real file as the bind-mount target in case the rootfs shipped
+    // /etc/resolv.conf as a symlink.
+    let guest_resolv = rootfs.join("etc/resolv.conf");
+    fs::create_dir_all(rootfs.join("etc")).map_err(|e| e.to_string())?;
+    if guest_resolv.is_symlink() {
+        fs::remove_file(&guest_resolv).map_err(|e| e.to_string())?;
+    }
+    if !guest_resolv.exists() {
+        fs::File::create(&guest_resolv).map_err(|e| e.to_string())?;
+    }
+
     let mut script = String::from("set -eu; mount --make-rprivate /; ");
     script.push_str(&format!(
         "mkdir -p {0}/proc {0}/tmp {0}/run {0}/dev {0}/nix/store; mount -t proc proc {0}/proc; ",
         rootfs.display()
+    ));
+    script.push_str(&format!(
+        "mount --bind /etc/resolv.conf {0}; mount -o remount,bind,ro {0}; ",
+        shell_quote(&guest_resolv.display().to_string())
     ));
     if Path::new("/nix/store").is_dir() {
         script.push_str(&format!(
