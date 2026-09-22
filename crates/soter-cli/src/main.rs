@@ -16,7 +16,10 @@ Workspace options:
     -T, --temporary          Mark the soterspace as temporary
         --passwd PASSWORD    Set a soterspace password
     -U, --unlock             Remove a soterspace password
-    -s, --network SSID PASS  Configure Wi-Fi for a soterspace
+        --shell SHELL        Select the shell used inside a soterspace
+        --flakes PACKAGE...  Select Nix flake applications (firefox, chromium, ...)
+        --network MODE       Network mode: open or isolate
+        --network -l wifi    List host Wi-Fi networks
         --openvpn FILE       Attach an OpenVPN profile
         --unsafe             Relax strict network fail-closed behavior
         --backup             Back up a soterspace
@@ -35,6 +38,10 @@ Examples:
     soter -c lab             Create and enter 'lab'
     soter lab               Enter 'lab'
     soter -l                List soterspaces
+    soter --shell zsh lab    Enter 'lab' using zsh
+    soter --flakes firefox chromium lab
+    soter --network isolate lab
+    soter --network -l wifi
     soter lab -- ip addr     Run a command inside 'lab'
 "#;
 
@@ -51,8 +58,10 @@ struct Cli {
     human_readable: bool,
     extended_regexp: bool,
     passwd: Option<String>,
-    network_ssid: Option<String>,
-    network_password: Option<String>,
+    shell: Option<String>,
+    flakes: Vec<String>,
+    network_mode: Option<String>,
+    network_list: Option<String>,
     openvpn: Option<String>,
     unsafe_network: bool,
     backup: bool,
@@ -84,9 +93,29 @@ impl Cli {
                 "--passwd" => {
                     cli.passwd = Some(args.next().ok_or("--passwd requires a password")?);
                 }
-                "-s" | "--network" => {
-                    cli.network_ssid = Some(args.next().ok_or("--network requires an SSID")?);
-                    cli.network_password = Some(args.next().unwrap_or_default());
+                "--shell" => {
+                    cli.shell = Some(args.next().ok_or("--shell requires a shell")?);
+                }
+                "--flakes" => {
+                    while let Some(value) = args.peek() {
+                        if value.starts_with('-') || value == "help" {
+                            break;
+                        }
+                        cli.flakes.push(args.next().unwrap());
+                    }
+                    if cli.flakes.is_empty() {
+                        return Err("--flakes requires at least one package".into());
+                    }
+                }
+                "--network" => {
+                    let value = args.next().ok_or("--network requires 'open', 'isolate', or '-l wifi'")?;
+                    if value == "-l" || value == "--list" {
+                        cli.network_list = Some(args.next().ok_or("--network --list requires a category (for example: wifi)")?);
+                    } else if matches!(value.as_str(), "open" | "isolate") {
+                        cli.network_mode = Some(value);
+                    } else {
+                        return Err(format!("unknown network option: {value}; expected open, isolate, or -l wifi"));
+                    }
                 }
                 "--openvpn" => {
                     cli.openvpn = Some(args.next().ok_or("--openvpn requires a file")?);
@@ -141,7 +170,13 @@ fn main() {
 
     let target = cli.arguments.first().cloned();
 
-    let result: Result<(), String> = if let Some(file) = &cli.restore {
+    let result: Result<(), String> = if let Some(category) = &cli.network_list {
+        if category == "wifi" {
+            soterspace::list_wifi()
+        } else {
+            Err(format!("unknown network list category: {category}"))
+        }
+    } else if let Some(file) = &cli.restore {
         soterspace::restore(Path::new(file)).map(|_| println!("Restored '{file}'."))
     } else if cli.list {
         soterspace::list().map(|spaces| {
@@ -153,7 +188,7 @@ fn main() {
             Some(name) => soterspace::create(name, cli.empty, cli.temporary).and_then(|space| {
                 println!("Created soterspace '{}' at {}.", space.name, space.path.display());
                 println!("Entering soterspace '{}'...", space.name);
-                soterspace::enter_or_run(&space.name, &[]).and_then(|code| {
+                soterspace::enter_or_run(&space.name, &[], cli.shell.as_deref(), &cli.flakes, cli.network_mode.as_deref()).and_then(|code| {
                     if code == 0 { Ok(()) } else { Err(format!("soterspace exited with status {code}")) }
                 })
             }),
@@ -178,9 +213,6 @@ fn main() {
             soterspace::set_value(name, "password", password).map(|_| println!("Password set for '{name}'."))
         } else if cli.unlock {
             soterspace::remove_value(name, "password").map(|_| println!("Password removed from '{name}'."))
-        } else if let Some(ssid) = &cli.network_ssid {
-            let value = format!("ssid={ssid}\npassword={}\n", cli.network_password.as_deref().unwrap_or(""));
-            soterspace::set_value(name, "network.conf", &value).map(|_| println!("Network configuration saved for '{name}'."))
         } else if let Some(profile) = &cli.openvpn {
             let value = format!("profile={profile}\nfail_closed={}\n", !cli.unsafe_network);
             soterspace::set_value(name, "openvpn.conf", &value).map(|_| println!("OpenVPN configuration saved for '{name}'."))
@@ -188,7 +220,7 @@ fn main() {
             Err("modify requires a setting such as --passwd, --network, or --openvpn".into())
         } else {
             let command = cli.arguments.iter().skip(1).cloned().collect::<Vec<_>>();
-            soterspace::enter_or_run(name, &command).and_then(|code| {
+            soterspace::enter_or_run(name, &command, cli.shell.as_deref(), &cli.flakes, cli.network_mode.as_deref()).and_then(|code| {
                 if code == 0 { Ok(()) } else { Err(format!("command exited with status {code}")) }
             })
         }
