@@ -122,7 +122,7 @@ impl Cli {
                 }
                 "--scan" => cli.scan = true,
                 "--hash" => cli.hash = true,
-                "--network" => {
+                "-network" | "--network" => {
                     let value = args.next().ok_or("--network requires 'open', 'isolate', or '-l wifi'")?;
                     if value == "-l" || value == "--list" {
                         cli.network_list = Some(args.next().ok_or("--network --list requires a category (for example: wifi)")?);
