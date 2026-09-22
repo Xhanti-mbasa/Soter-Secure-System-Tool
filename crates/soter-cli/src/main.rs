@@ -17,7 +17,7 @@ Workspace options:
         --passwd PASSWORD    Set a soterspace password
     -U, --unlock             Remove a soterspace password
         --shell SHELL        Select the shell used inside a soterspace
-        --flakes PACKAGE...  Select Nix flake applications (firefox, chromium, ...)
+        --flakes PACKAGES    Select Nix apps, comma-separated (firefox,chromium)
         --network MODE       Network mode: open or isolate
         --network -l wifi    List host Wi-Fi networks
         --openvpn FILE       Attach an OpenVPN profile
@@ -39,7 +39,7 @@ Examples:
     soter lab               Enter 'lab'
     soter -l                List soterspaces
     soter --shell zsh lab    Enter 'lab' using zsh
-    soter --flakes firefox chromium lab
+    soter --flakes firefox,chromium lab
     soter --network isolate lab
     soter --network -l wifi
     soter lab -- ip addr     Run a command inside 'lab'
@@ -97,12 +97,12 @@ impl Cli {
                     cli.shell = Some(args.next().ok_or("--shell requires a shell")?);
                 }
                 "--flakes" => {
-                    while let Some(value) = args.peek() {
-                        if value.starts_with('-') || value == "help" {
-                            break;
-                        }
-                        cli.flakes.push(args.next().unwrap());
-                    }
+                    let value = args.next().ok_or("--flakes requires a package list (for example: firefox,chromium)")?;
+                    cli.flakes = value
+                        .split(',')
+                        .filter(|name| !name.is_empty())
+                        .map(str::to_string)
+                        .collect();
                     if cli.flakes.is_empty() {
                         return Err("--flakes requires at least one package".into());
                     }
