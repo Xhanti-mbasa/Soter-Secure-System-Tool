@@ -318,8 +318,16 @@ pub fn enter_or_run(name: &str, command: &[String], shell_override: Option<&str>
         }
         return Err(format!("failed to record Soterspace runtime pid: {error}"));
     }
-    fs::set_permissions(&pid_file, fs::Permissions::from_mode(0o600))
-        .map_err(|e| format!("failed to protect Soterspace runtime pid: {e}"))?;
+    if let Err(error) = fs::set_permissions(&pid_file, fs::Permissions::from_mode(0o600)) {
+        let group = format!("-{}", child.id());
+        let _ = Command::new("kill").args(["-TERM", "--", &group]).status();
+        let _ = child.wait();
+        let _ = fs::remove_file(&pid_file);
+        for (_, target) in &pre_unshare_mounts {
+            let _ = Command::new("umount").arg(target).status();
+        }
+        return Err(format!("failed to protect Soterspace runtime pid: {error}"));
+    }
 
     let status = child.wait().map_err(|e| format!("failed waiting for Soterspace: {e}"))?;
     let _ = fs::remove_file(&pid_file);
@@ -360,7 +368,15 @@ fn active_pid(name: &str) -> Result<Option<u32>, String> {
         .map_err(|e| format!("failed to check soterspace '{name}' runtime: {e}"))?
         .success();
 
-    if running {
+    // A stale pid file must never be allowed to signal an unrelated process
+    // group if the kernel later reuses the same PID.
+    let owned_runtime = fs::read(format!("/proc/{pid}/cmdline"))
+        .ok()
+        .map(|bytes| String::from_utf8_lossy(&bytes).replace('\0', " "))
+        .map(|cmdline| cmdline.contains("unshare") && cmdline.contains(&format!("soter-{name}")))
+        .unwrap_or(false);
+
+    if running && owned_runtime {
         Ok(Some(pid))
     } else {
         let _ = fs::remove_file(path);
@@ -368,7 +384,7 @@ fn active_pid(name: &str) -> Result<Option<u32>, String> {
     }
 }
 
-fn signal_space(name: &str, signal: &str, action: &str) -> Result<(), String> {
+fn signal_space(name: &str, signal: &str, action: &str, completed: &str) -> Result<(), String> {
     let pid = active_pid(name)?
         .ok_or_else(|| format!("soterspace '{name}' is not running"))?;
     let group = format!("-{pid}");
@@ -379,7 +395,7 @@ fn signal_space(name: &str, signal: &str, action: &str) -> Result<(), String> {
         .map_err(|e| format!("failed to {action} soterspace '{name}': {e}"))?;
 
     if status.success() {
-        println!("{action}d soterspace '{name}'.");
+        println!("{completed} soterspace '{name}'.");
         Ok(())
     } else {
         Err(format!("failed to {action} soterspace '{name}'"))
@@ -387,15 +403,15 @@ fn signal_space(name: &str, signal: &str, action: &str) -> Result<(), String> {
 }
 
 pub fn kill(name: &str) -> Result<(), String> {
-    signal_space(name, "-TERM", "kill")
+    signal_space(name, "-TERM", "kill", "Killed")
 }
 
 pub fn pause(name: &str) -> Result<(), String> {
-    signal_space(name, "-STOP", "pause")
+    signal_space(name, "-STOP", "pause", "Paused")
 }
 
 pub fn resume(name: &str) -> Result<(), String> {
-    signal_space(name, "-CONT", "resume")
+    signal_space(name, "-CONT", "resume", "Resumed")
 }
 
 fn shell_quote(value: &str) -> String {
