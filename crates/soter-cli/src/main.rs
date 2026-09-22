@@ -18,7 +18,7 @@ Workspace options:
     -U, --unlock             Remove a soterspace password
         --shell SHELL        Select the shell used inside a soterspace
         --flakes PACKAGES    Select Nix apps, comma-separated (firefox,chromium)
-        --network MODE       Network mode: open or isolate
+        --network open       Use the host network (default)
         --network -l wifi    List host Wi-Fi networks
         --openvpn FILE       Attach an OpenVPN profile
         --unsafe             Relax strict network fail-closed behavior
@@ -40,7 +40,7 @@ Examples:
     soter -l                List soterspaces
     soter --shell zsh lab    Enter 'lab' using zsh
     soter --flakes firefox,chromium lab
-    soter --network isolate lab
+    soter --network open lab
     soter --network -l wifi
     soter lab -- ip addr     Run a command inside 'lab'
 "#;
@@ -108,13 +108,15 @@ impl Cli {
                     }
                 }
                 "--network" => {
-                    let value = args.next().ok_or("--network requires 'open', 'isolate', or '-l wifi'")?;
+                    let value = args.next().ok_or("--network requires 'open' or '-l wifi'")?;
                     if value == "-l" || value == "--list" {
                         cli.network_list = Some(args.next().ok_or("--network --list requires a category (for example: wifi)")?);
-                    } else if matches!(value.as_str(), "open" | "isolate") {
+                    } else if value == "open" {
                         cli.network_mode = Some(value);
+                    } else if value == "isolate" {
+                        return Err("isolated networking is currently disabled; Soter uses the host network".into());
                     } else {
-                        return Err(format!("unknown network option: {value}; expected open, isolate, or -l wifi"));
+                        return Err(format!("unknown network option: {value}; expected open or -l wifi"));
                     }
                 }
                 "--openvpn" => {
