@@ -1,5 +1,5 @@
 use std::{env, path::Path, process};
-use soter_system::soterspace;
+use soter_system::{soterspace, tooling};
 
 const USAGE: &str = r#"Soter — secure Linux workspace manager
 
@@ -19,6 +19,7 @@ Workspace options:
         --shell SHELL        Select the shell used inside a soterspace
         --flakes PACKAGES    Select Nix apps, comma-separated (firefox,chromium)
         --save FLAKE         Prepare persistent session storage for a flake
+        --tools              Choose and install pentest tools into a Soterspace
         --scan               Run Soterspace security checks (all spaces if omitted)
         --hash               Create/compare the Soterspace core integrity hash
         --kill               Stop a running soterspace
@@ -47,6 +48,7 @@ Examples:
     soter --shell zsh lab    Enter 'lab' using zsh
     soter --flakes firefox,chromium lab
     soter --save firefox lab
+    soter --tools
     soter --scan lab
     soter --hash lab
     soter --pause lab
@@ -74,6 +76,7 @@ struct Cli {
     shell: Option<String>,
     flakes: Vec<String>,
     save_flake: Option<String>,
+    tools: bool,
     scan: bool,
     hash: bool,
     kill: bool,
@@ -129,6 +132,7 @@ impl Cli {
                 "--save" => {
                     cli.save_flake = Some(args.next().ok_or("--save requires a flake name")?);
                 }
+                "--tools" => cli.tools = true,
                 "--scan" => cli.scan = true,
                 "--hash" => cli.hash = true,
                 "--kill" => cli.kill = true,
@@ -199,7 +203,9 @@ fn main() {
 
     let target = cli.arguments.first().cloned();
 
-    let result: Result<(), String> = if let Some(category) = &cli.network_list {
+    let result: Result<(), String> = if cli.tools {
+        tooling::interactive_install()
+    } else if let Some(category) = &cli.network_list {
         if category == "wifi" {
             soterspace::list_wifi()
         } else {
