@@ -133,21 +133,18 @@ fn install_selected(name: &str, selected: &[ToolSpec]) -> Result<(), String> {
         name
     );
 
-    with_host_resolver(&rootfs, || {
-        let status = Command::new("arch-chroot")
-            .arg(&rootfs)
-            .arg("pacman")
-            .args(["-S", "--needed", "--noconfirm"])
-            .args(&packages)
-            .status()
-            .map_err(|e| format!("failed to start workspace package installation: {e}"))?;
+    let status = Command::new("pacstrap")
+        .args(["-c", "-G", "-M"])
+        .arg(&rootfs)
+        .args(&packages)
+        .status()
+        .map_err(|e| format!(
+            "failed to start workspace package installation: {e}; install arch-install-scripts"
+        ))?;
 
-        if status.success() {
-            Ok(())
-        } else {
-            Err(format!("workspace package installation failed with status {status}"))
-        }
-    })?;
+    if !status.success() {
+        return Err(format!("workspace package installation failed with status {status}"));
+    }
 
     clean_package_cache(&rootfs)?;
     let baseline_invalidated = soterspace::invalidate_core_hash(name)?;
@@ -181,9 +178,15 @@ pub fn create_case(space: &str, case_name: &str) -> Result<(), String> {
     }
 
     let rootfs = soterspace::rootfs_path(space)?;
-    ensure_security_workspace(&rootfs)?;
+    let soter_root = rootfs.join("root/soter");
+    let cases_root = soter_root.join("cases");
+    fs::create_dir_all(&cases_root).map_err(|e| e.to_string())?;
+    fs::set_permissions(&soter_root, fs::Permissions::from_mode(0o700))
+        .map_err(|e| e.to_string())?;
+    fs::set_permissions(&cases_root, fs::Permissions::from_mode(0o700))
+        .map_err(|e| e.to_string())?;
 
-    let case_root = rootfs.join("root/soter/cases").join(case_name);
+    let case_root = cases_root.join(case_name);
     if case_root.exists() {
         return Err(format!("case '{case_name}' already exists in soterspace '{space}'"));
     }
@@ -249,31 +252,6 @@ fn ensure_security_workspace(rootfs: &Path) -> Result<(), String> {
     }
 
     Ok(())
-}
-
-fn with_host_resolver<F>(rootfs: &Path, operation: F) -> Result<(), String>
-where
-    F: FnOnce() -> Result<(), String>,
-{
-    let guest = rootfs.join("etc/resolv.conf");
-    let original = fs::read(&guest).ok();
-    let host = fs::read("/etc/resolv.conf")
-        .map_err(|e| format!("failed to read host resolver configuration: {e}"))?;
-    fs::write(&guest, host)
-        .map_err(|e| format!("failed to provide host DNS to workspace installer: {e}"))?;
-
-    let result = operation();
-
-    match original {
-        Some(bytes) => {
-            let _ = fs::write(&guest, bytes);
-        }
-        None => {
-            let _ = fs::remove_file(&guest);
-        }
-    }
-
-    result
 }
 
 fn clean_package_cache(rootfs: &Path) -> Result<(), String> {
