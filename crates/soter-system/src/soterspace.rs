@@ -89,6 +89,7 @@ pub fn enter_or_run(name: &str, command: &[String]) -> Result<i32, String> {
     let display = env::var("DISPLAY").ok();
     let wayland_display = env::var("WAYLAND_DISPLAY").ok();
     let xdg_runtime_dir = env::var("XDG_RUNTIME_DIR").ok();
+    let term = env::var("TERM").ok();
     // When Soter is started through sudo, recover the desktop user's identity.
     // That UID/GID must be mapped into the user namespace so Wayland's socket
     // remains owned by, and accessible to, the same user inside the Soterspace.
@@ -104,7 +105,15 @@ pub fn enter_or_run(name: &str, command: &[String]) -> Result<i32, String> {
         ("chromium-pentesting", "chromium"),
     ] {
         let output = Command::new("nix")
-            .args(["build", "--no-link", "--print-out-paths"])
+            // Soter uses flakes itself, so do not depend on the host having
+            // these Nix features enabled globally.
+            .args([
+                "--extra-experimental-features",
+                "nix-command flakes",
+                "build",
+                "--no-link",
+                "--print-out-paths",
+            ])
             .arg(format!(".#{package}"))
             .output()
             .map_err(|e| format!("failed to resolve Nix package '{package}': {e}"))?;
@@ -177,6 +186,9 @@ pub fn enter_or_run(name: &str, command: &[String]) -> Result<i32, String> {
     }
     if let Some(value) = &xdg_runtime_dir {
         script.push_str(&format!("XDG_RUNTIME_DIR={} ", shell_quote(value)));
+    }
+    if let Some(value) = &term {
+        script.push_str(&format!("TERM={} ", shell_quote(value)));
     }
 
     if command.is_empty() {
@@ -289,8 +301,7 @@ pub fn enter_or_run(name: &str, command: &[String]) -> Result<i32, String> {
     }
 
     let status = child.wait().map_err(|e| format!("failed waiting for Soterspace: {e}"))?;
-    let _ = Command::new("ip").args(["link", "del", &host_if]).status();
-    let _ = Command::new("nft").args(["delete", "table", "ip", &format!("soter_{pid}")]).status();
+    cleanup_network(&host_if, pid);
     let _ = fs::remove_file(&gate);
 
     for (_, target) in &pre_unshare_mounts {
@@ -301,28 +312,20 @@ pub fn enter_or_run(name: &str, command: &[String]) -> Result<i32, String> {
 }
 
 fn cleanup_network(host_if: &str, pid: u32) {
-    let link_exists = Command::new("ip")
-        .args(["link", "show", "dev", host_if])
+    // Namespace teardown may already have removed the peer veth. Cleanup is
+    // intentionally best-effort and quiet: "already gone" is a clean state.
+    let _ = Command::new("ip")
+        .args(["link", "del", host_if])
         .stdout(std::process::Stdio::null())
         .stderr(std::process::Stdio::null())
-        .status()
-        .map(|status| status.success())
-        .unwrap_or(false);
-    if link_exists {
-        let _ = Command::new("ip").args(["link", "del", host_if]).status();
-    }
+        .status();
 
     let table = format!("soter_{pid}");
-    let table_exists = Command::new("nft")
-        .args(["list", "table", "ip", &table])
+    let _ = Command::new("nft")
+        .args(["delete", "table", "ip", &table])
         .stdout(std::process::Stdio::null())
         .stderr(std::process::Stdio::null())
-        .status()
-        .map(|status| status.success())
-        .unwrap_or(false);
-    if table_exists {
-        let _ = Command::new("nft").args(["delete", "table", "ip", &table]).status();
-    }
+        .status();
 }
 
 fn run_checked(command: &mut Command, action: &str) -> Result<(), String> {
