@@ -104,8 +104,12 @@ pub fn enter_or_run(name: &str, command: &[String], shell_override: Option<&str>
     // Resolve Soter's Nix browser wrappers without hard-coding store hashes.
     let nix_profile = rootfs.join("opt/soter/bin");
     fs::create_dir_all(&nix_profile).map_err(|e| e.to_string())?;
+    let available_flakes = [
+        ("firefox-pentesting", "firefox"),
+        ("chromium-pentesting", "chromium"),
+    ];
     let requested_flakes: Vec<(&str, &str)> = if flakes.is_empty() {
-        vec![("firefox-pentesting", "firefox"), ("chromium-pentesting", "chromium")]
+        available_flakes.to_vec()
     } else {
         flakes.iter().map(|name| match name.as_str() {
             "firefox" | "firefox-pentesting" => Ok(("firefox-pentesting", "firefox")),
@@ -113,6 +117,18 @@ pub fn enter_or_run(name: &str, command: &[String], shell_override: Option<&str>
             other => Err(format!("unknown Soter flake '{other}'")),
         }).collect::<Result<Vec<_>, _>>()?
     };
+
+    // /opt/soter/bin persists with the Soterspace. Remove managed launchers
+    // that were exposed by an earlier session but are not selected now.
+    for (_, binary) in available_flakes {
+        if !requested_flakes.iter().any(|(_, selected)| *selected == binary) {
+            let link = nix_profile.join(binary);
+            if link.exists() || link.is_symlink() {
+                fs::remove_file(&link).map_err(|e| e.to_string())?;
+            }
+        }
+    }
+
     for (package, binary) in requested_flakes {
         let output = Command::new("nix")
             // Soter uses flakes itself, so do not depend on the host having
