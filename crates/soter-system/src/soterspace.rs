@@ -240,9 +240,9 @@ pub fn enter_or_run(name: &str, command: &[String], shell_override: Option<&str>
         }
     }
 
-    let isolated_network = match network_mode.unwrap_or("isolate") {
-        "isolate" => true,
+    let isolated_network = match network_mode.unwrap_or("open") {
         "open" => false,
+        "isolate" => return Err("isolated networking is currently disabled; Soter uses the host network".into()),
         other => return Err(format!("unknown network mode '{other}'")),
     };
 
