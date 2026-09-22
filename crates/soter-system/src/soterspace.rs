@@ -80,12 +80,16 @@ fn provision_rootfs(rootfs: &Path) -> Result<(), String> {
     }
 }
 
-pub fn enter_or_run(name: &str, command: &[String]) -> Result<i32, String> {
+pub fn enter_or_run(name: &str, command: &[String], shell_override: Option<&str>, flakes: &[String], network_mode: Option<&str>) -> Result<i32, String> {
     if !exists(name)? { return Err(format!("soterspace '{name}' does not exist")); }
 
     let space = root().map_err(|e| e.to_string())?.join(name);
     let rootfs = space.join("root");
-    let shell = env::var("SHELL").unwrap_or_else(|_| "/bin/sh".into());
+    let shell = match shell_override {
+        Some(value) if value.starts_with('/') => value.to_string(),
+        Some(value) => format!("/bin/{value}"),
+        None => env::var("SHELL").unwrap_or_else(|_| "/bin/sh".into()),
+    };
     let display = env::var("DISPLAY").ok();
     let wayland_display = env::var("WAYLAND_DISPLAY").ok();
     let xdg_runtime_dir = env::var("XDG_RUNTIME_DIR").ok();
@@ -100,10 +104,16 @@ pub fn enter_or_run(name: &str, command: &[String]) -> Result<i32, String> {
     // Resolve Soter's Nix browser wrappers without hard-coding store hashes.
     let nix_profile = rootfs.join("opt/soter/bin");
     fs::create_dir_all(&nix_profile).map_err(|e| e.to_string())?;
-    for (package, binary) in [
-        ("firefox-pentesting", "firefox"),
-        ("chromium-pentesting", "chromium"),
-    ] {
+    let requested_flakes: Vec<(&str, &str)> = if flakes.is_empty() {
+        vec![("firefox-pentesting", "firefox"), ("chromium-pentesting", "chromium")]
+    } else {
+        flakes.iter().map(|name| match name.as_str() {
+            "firefox" | "firefox-pentesting" => Ok(("firefox-pentesting", "firefox")),
+            "chromium" | "chromium-pentesting" => Ok(("chromium-pentesting", "chromium")),
+            other => Err(format!("unknown Soter flake '{other}'")),
+        }).collect::<Result<Vec<_>, _>>()?
+    };
+    for (package, binary) in requested_flakes {
         let output = Command::new("nix")
             // Soter uses flakes itself, so do not depend on the host having
             // these Nix features enabled globally.
@@ -214,6 +224,12 @@ pub fn enter_or_run(name: &str, command: &[String]) -> Result<i32, String> {
         }
     }
 
+    let isolated_network = match network_mode.unwrap_or("isolate") {
+        "isolate" => true,
+        "open" => false,
+        other => return Err(format!("unknown network mode '{other}'")),
+    };
+
     let mut unshare = Command::new("unshare");
     unshare.arg("--user");
     if let (Some(uid), Some(gid)) = (desktop_uid, desktop_gid) {
@@ -234,15 +250,22 @@ pub fn enter_or_run(name: &str, command: &[String]) -> Result<i32, String> {
     if gate.exists() {
         fs::remove_file(&gate).map_err(|e| e.to_string())?;
     }
-    let gated_script = format!(
-        "set -eu; while [ ! -e {gate} ]; do sleep 0.02; done; {script}",
-        gate = shell_quote(&gate.display().to_string()),
-        script = script,
-    );
+    let runtime_script = if isolated_network {
+        format!(
+            "set -eu; while [ ! -e {gate} ]; do sleep 0.02; done; {script}",
+            gate = shell_quote(&gate.display().to_string()),
+            script = script,
+        )
+    } else {
+        script
+    };
 
+    unshare.args(["--mount", "--pid", "--fork", "--uts", "--ipc"]);
+    if isolated_network {
+        unshare.arg("--net");
+    }
     let mut child = unshare
-        .args(["--mount", "--pid", "--fork", "--uts", "--ipc", "--net"])
-        .arg("sh").arg("-c").arg(gated_script)
+        .arg("sh").arg("-c").arg(runtime_script)
         .spawn()
         .map_err(|e| format!("failed to start namespace runtime: {e}"))?;
 
@@ -250,7 +273,7 @@ pub fn enter_or_run(name: &str, command: &[String]) -> Result<i32, String> {
     let host_if = format!("sth{}", pid);
     let guest_if = format!("stg{}", pid);
 
-    let setup = (|| -> Result<(), String> {
+    let setup = if isolated_network { (|| -> Result<(), String> {
         run_checked(Command::new("ip").args(["link", "add", &host_if, "type", "veth", "peer", "name", &guest_if]),
             "create Soterspace veth pair")?;
         run_checked(Command::new("ip").args(["addr", "add", "10.200.0.1/24", "dev", &host_if]),
@@ -290,7 +313,7 @@ pub fn enter_or_run(name: &str, command: &[String]) -> Result<i32, String> {
         }
         fs::write(&gate, b"ready").map_err(|e| format!("release Soterspace network gate: {e}"))?;
         Ok(())
-    })();
+    })() } else { Ok(()) };
 
     if let Err(error) = setup {
         let _ = child.kill();
@@ -301,8 +324,10 @@ pub fn enter_or_run(name: &str, command: &[String]) -> Result<i32, String> {
     }
 
     let status = child.wait().map_err(|e| format!("failed waiting for Soterspace: {e}"))?;
-    cleanup_network(&host_if, pid);
-    let _ = fs::remove_file(&gate);
+    if isolated_network {
+        cleanup_network(&host_if, pid);
+        let _ = fs::remove_file(&gate);
+    }
 
     for (_, target) in &pre_unshare_mounts {
         let _ = Command::new("umount").arg(target).status();
@@ -356,4 +381,26 @@ pub fn restore(archive: &Path) -> Result<(), String> {
     let status = Command::new("tar").arg("-xf").arg(archive).arg("-C").arg(root)
         .status().map_err(|e| e.to_string())?;
     if status.success() { Ok(()) } else { Err("tar restore failed".into()) }
+}
+
+
+pub fn list_wifi() -> Result<(), String> {
+    let output = Command::new("nmcli")
+        .args(["-t", "-f", "SSID,SIGNAL,SECURITY", "device", "wifi", "list"])
+        .output()
+        .map_err(|e| format!("failed to list Wi-Fi networks with nmcli: {e}"))?;
+    if !output.status.success() {
+        return Err(format!(
+            "failed to list Wi-Fi networks: {}",
+            String::from_utf8_lossy(&output.stderr).trim()
+        ));
+    }
+    let text = String::from_utf8_lossy(&output.stdout);
+    if text.trim().is_empty() {
+        println!("No Wi-Fi networks found.");
+    } else {
+        println!("SSID:SIGNAL:SECURITY");
+        print!("{text}");
+    }
+    Ok(())
 }
