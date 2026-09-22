@@ -67,6 +67,22 @@ pub fn is_running(name: &str) -> Result<bool, String> {
     Ok(active_pid(name)?.is_some())
 }
 
+pub fn invalidate_core_hash(name: &str) -> Result<bool, String> {
+    if !exists(name)? {
+        return Err(format!("soterspace '{name}' does not exist"));
+    }
+    let baseline = root()
+        .map_err(|e| e.to_string())?
+        .join(name)
+        .join("integrity/core.sha256");
+    if baseline.exists() {
+        fs::remove_file(baseline).map_err(|e| e.to_string())?;
+        Ok(true)
+    } else {
+        Ok(false)
+    }
+}
+
 pub fn set_value(name: &str, key: &str, value: &str) -> Result<(), String> {
     let dir = root().map_err(|e| e.to_string())?.join(name);
     if !dir.exists() { return Err(format!("soterspace '{name}' does not exist")); }
