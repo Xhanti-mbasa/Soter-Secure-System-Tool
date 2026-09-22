@@ -20,6 +20,7 @@ Workspace options:
         --flakes PACKAGES    Select Nix apps, comma-separated (firefox,chromium)
         --save FLAKE         Prepare persistent session storage for a flake
         --tools              Choose and install pentest tools into a Soterspace
+        --case NAME          Create a secure investigation folder in a Soterspace
         --scan               Run Soterspace security checks (all spaces if omitted)
         --hash               Create/compare the Soterspace core integrity hash
         --kill               Stop a running soterspace
@@ -49,6 +50,7 @@ Examples:
     soter --flakes firefox,chromium lab
     soter --save firefox lab
     soter --tools
+    soter --case acme lab
     soter --scan lab
     soter --hash lab
     soter --pause lab
@@ -77,6 +79,7 @@ struct Cli {
     flakes: Vec<String>,
     save_flake: Option<String>,
     tools: bool,
+    case_name: Option<String>,
     scan: bool,
     hash: bool,
     kill: bool,
@@ -133,6 +136,9 @@ impl Cli {
                     cli.save_flake = Some(args.next().ok_or("--save requires a flake name")?);
                 }
                 "--tools" => cli.tools = true,
+                "--case" => {
+                    cli.case_name = Some(args.next().ok_or("--case requires a case name")?);
+                }
                 "--scan" => cli.scan = true,
                 "--hash" => cli.hash = true,
                 "--kill" => cli.kill = true,
@@ -205,6 +211,11 @@ fn main() {
 
     let result: Result<(), String> = if cli.tools {
         tooling::interactive_install()
+    } else if let Some(case_name) = &cli.case_name {
+        match target.as_deref() {
+            Some(name) => tooling::create_case(name, case_name),
+            None => Err("--case requires a Soterspace name, for example: soter --case acme lab".into()),
+        }
     } else if let Some(category) = &cli.network_list {
         if category == "wifi" {
             soterspace::list_wifi()
