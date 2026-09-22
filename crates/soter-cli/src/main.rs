@@ -18,7 +18,10 @@ Workspace options:
     -U, --unlock             Remove a soterspace password
         --shell SHELL        Select the shell used inside a soterspace
         --flakes PACKAGES    Select Nix apps, comma-separated (firefox,chromium)
-        --network open       Use the host network (default)
+        --save FLAKE         Prepare persistent session storage for a flake
+        --scan               Run Soterspace security checks (all spaces if omitted)
+        --hash               Create/compare the Soterspace core integrity hash
+        --network MODE       Network mode: open (host) or isolate (offline)
         --network -l wifi    List host Wi-Fi networks
         --openvpn FILE       Attach an OpenVPN profile
         --unsafe             Relax strict network fail-closed behavior
@@ -40,7 +43,11 @@ Examples:
     soter -l                List soterspaces
     soter --shell zsh lab    Enter 'lab' using zsh
     soter --flakes firefox,chromium lab
+    soter --save firefox lab
+    soter --scan lab
+    soter --hash lab
     soter --network open lab
+    soter --network isolate lab
     soter --network -l wifi
     soter lab -- ip addr     Run a command inside 'lab'
 "#;
@@ -60,6 +67,9 @@ struct Cli {
     passwd: Option<String>,
     shell: Option<String>,
     flakes: Vec<String>,
+    save_flake: Option<String>,
+    scan: bool,
+    hash: bool,
     network_mode: Option<String>,
     network_list: Option<String>,
     openvpn: Option<String>,
@@ -107,16 +117,21 @@ impl Cli {
                         return Err("--flakes requires at least one package".into());
                     }
                 }
+                "--save" => {
+                    cli.save_flake = Some(args.next().ok_or("--save requires a flake name")?);
+                }
+                "--scan" => cli.scan = true,
+                "--hash" => cli.hash = true,
                 "--network" => {
-                    let value = args.next().ok_or("--network requires 'open' or '-l wifi'")?;
+                    let value = args.next().ok_or("--network requires 'open', 'isolate', or '-l wifi'")?;
                     if value == "-l" || value == "--list" {
                         cli.network_list = Some(args.next().ok_or("--network --list requires a category (for example: wifi)")?);
-                    } else if value == "open" {
-                        cli.network_mode = Some(value);
-                    } else if value == "isolate" {
-                        return Err("isolated networking is currently disabled; Soter uses the host network".into());
+                    } else if value == "open" || value == "--open" {
+                        cli.network_mode = Some("open".into());
+                    } else if value == "isolate" || value == "--isolate" {
+                        cli.network_mode = Some("isolate".into());
                     } else {
-                        return Err(format!("unknown network option: {value}; expected open or -l wifi"));
+                        return Err(format!("unknown network option: {value}; expected open, isolate, or -l wifi"));
                     }
                 }
                 "--openvpn" => {
@@ -180,6 +195,10 @@ fn main() {
         }
     } else if let Some(file) = &cli.restore {
         soterspace::restore(Path::new(file)).map(|_| println!("Restored '{file}'."))
+    } else if cli.scan {
+        soterspace::scan(target.as_deref())
+    } else if cli.hash {
+        soterspace::hash_core(target.as_deref())
     } else if cli.list {
         soterspace::list().map(|spaces| {
             if spaces.is_empty() { println!("No soterspaces."); }
@@ -209,6 +228,11 @@ fn main() {
                     .map(|_| println!("Backed up '{name}' to '{filename}'."))
             }
             None => Err("backup requires a soterspace name".into()),
+        }
+    } else if let Some(flake) = &cli.save_flake {
+        match target.as_deref() {
+            Some(name) => soterspace::prepare_flake_sessions(name, flake),
+            None => Err("--save requires a soterspace name, for example: soter --save firefox lab".into()),
         }
     } else if let Some(name) = target.as_deref() {
         if let Some(password) = &cli.passwd {
