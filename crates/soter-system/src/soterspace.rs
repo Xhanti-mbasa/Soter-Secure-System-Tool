@@ -101,6 +101,15 @@ pub fn enter_or_run(name: &str, command: &[String], shell_override: Option<&str>
     let desktop_gid = env::var("SUDO_GID").ok().and_then(|v| v.parse::<u32>().ok());
     provision_rootfs(&rootfs)?;
 
+    // "open" shares the host network. "isolate" is deliberately simpler:
+    // create a fresh network namespace with loopback only and no veth/NAT,
+    // which makes the Soterspace offline rather than routing it separately.
+    let offline_network = match network_mode.unwrap_or("open") {
+        "open" => false,
+        "isolate" => true,
+        other => return Err(format!("unknown network mode '{other}'")),
+    };
+
     // Resolve Soter's Nix browser wrappers without hard-coding store hashes.
     let nix_profile = rootfs.join("opt/soter/bin");
     fs::create_dir_all(&nix_profile).map_err(|e| e.to_string())?;
@@ -164,27 +173,30 @@ pub fn enter_or_run(name: &str, command: &[String], shell_override: Option<&str>
         ).map_err(|e| e.to_string())?;
     }
 
-    // Host-network mode should use the host's active resolver as well.
-    // Prepare a real file as the bind-mount target in case the rootfs shipped
-    // /etc/resolv.conf as a symlink.
+    // Host-network mode uses the host's active resolver. Offline mode keeps
+    // the Soterspace resolver private and has no route to the host or Internet.
     let guest_resolv = rootfs.join("etc/resolv.conf");
-    fs::create_dir_all(rootfs.join("etc")).map_err(|e| e.to_string())?;
-    if guest_resolv.is_symlink() {
-        fs::remove_file(&guest_resolv).map_err(|e| e.to_string())?;
-    }
-    if !guest_resolv.exists() {
-        fs::File::create(&guest_resolv).map_err(|e| e.to_string())?;
+    if !offline_network {
+        fs::create_dir_all(rootfs.join("etc")).map_err(|e| e.to_string())?;
+        if guest_resolv.is_symlink() {
+            fs::remove_file(&guest_resolv).map_err(|e| e.to_string())?;
+        }
+        if !guest_resolv.exists() {
+            fs::File::create(&guest_resolv).map_err(|e| e.to_string())?;
+        }
     }
 
     let mut script = String::from("set -eu; mount --make-rprivate /; ");
     script.push_str(&format!(
-        "mkdir -p {0}/proc {0}/tmp {0}/run {0}/dev {0}/nix/store; mount -t proc proc {0}/proc; ",
+        "mkdir -p {0}/proc {0}/tmp {0}/run {0}/dev {0}/nix/store; mount -t proc proc {0}/proc; mount -t tmpfs -o mode=1777 tmpfs {0}/tmp; ",
         rootfs.display()
     ));
-    script.push_str(&format!(
-        "mount --bind /etc/resolv.conf {0}; mount -o remount,bind,ro {0}; ",
-        shell_quote(&guest_resolv.display().to_string())
-    ));
+    if !offline_network {
+        script.push_str(&format!(
+            "mount --bind /etc/resolv.conf {0}; mount -o remount,bind,ro {0}; ",
+            shell_quote(&guest_resolv.display().to_string())
+        ));
+    }
     if Path::new("/nix/store").is_dir() {
         script.push_str(&format!(
             "mount --bind /nix/store {0}/nix/store; mount -o remount,bind,ro {0}/nix/store; ",
@@ -256,12 +268,6 @@ pub fn enter_or_run(name: &str, command: &[String], shell_override: Option<&str>
         }
     }
 
-    let isolated_network = match network_mode.unwrap_or("open") {
-        "open" => false,
-        "isolate" => return Err("isolated networking is currently disabled; Soter uses the host network".into()),
-        other => return Err(format!("unknown network mode '{other}'")),
-    };
-
     let mut unshare = Command::new("unshare");
     unshare.arg("--user");
     if let (Some(uid), Some(gid)) = (desktop_uid, desktop_gid) {
@@ -276,122 +282,30 @@ pub fn enter_or_run(name: &str, command: &[String], shell_override: Option<&str>
     } else {
         unshare.arg("--map-root-user");
     }
-    // Keep the namespace alive behind a small readiness gate. This gives the
-    // host side of Soter time to attach a veth endpoint before the chroot starts.
-    let gate = space.join("runtime/net-ready");
-    if gate.exists() {
-        fs::remove_file(&gate).map_err(|e| e.to_string())?;
+
+    unshare.args(["--mount", "--pid", "--fork", "--uts", "--ipc"]);
+    if offline_network {
+        unshare.arg("--net");
     }
-    let runtime_script = if isolated_network {
-        format!(
-            "set -eu; while [ ! -e {gate} ]; do sleep 0.02; done; {script}",
-            gate = shell_quote(&gate.display().to_string()),
-            script = script,
-        )
+
+    let runtime_script = if offline_network {
+        format!("set -eu; ip link set lo up; {script}")
     } else {
         script
     };
 
-    unshare.args(["--mount", "--pid", "--fork", "--uts", "--ipc"]);
-    if isolated_network {
-        unshare.arg("--net");
-    }
     let mut child = unshare
         .arg("sh").arg("-c").arg(runtime_script)
         .spawn()
         .map_err(|e| format!("failed to start namespace runtime: {e}"))?;
 
-    let pid = child.id();
-    let host_if = format!("sth{}", pid);
-    let guest_if = format!("stg{}", pid);
-
-    let setup = if isolated_network { (|| -> Result<(), String> {
-        run_checked(Command::new("ip").args(["link", "add", &host_if, "type", "veth", "peer", "name", &guest_if]),
-            "create Soterspace veth pair")?;
-        run_checked(Command::new("ip").args(["addr", "add", "10.200.0.1/24", "dev", &host_if]),
-            "address Soterspace host veth")?;
-        run_checked(Command::new("ip").args(["link", "set", &host_if, "up"]),
-            "bring Soterspace host veth up")?;
-        run_checked(Command::new("ip").args(["link", "set", &guest_if, "netns", &pid.to_string()]),
-            "move Soterspace veth into network namespace")?;
-        run_checked(Command::new("nsenter").args(["-t", &pid.to_string(), "-n", "ip", "link", "set", "lo", "up"]),
-            "bring Soterspace loopback up")?;
-        run_checked(Command::new("nsenter").args(["-t", &pid.to_string(), "-n", "ip", "addr", "add", "10.200.0.2/24", "dev", &guest_if]),
-            "address Soterspace guest veth")?;
-        run_checked(Command::new("nsenter").args(["-t", &pid.to_string(), "-n", "ip", "link", "set", &guest_if, "up"]),
-            "bring Soterspace guest veth up")?;
-        run_checked(Command::new("nsenter").args(["-t", &pid.to_string(), "-n", "ip", "route", "add", "default", "via", "10.200.0.1"]),
-            "add Soterspace default route")?;
-
-        // Use a Soter-owned nftables table. Do not modify the iptables-nft
-        // tables owned by UFW, Docker or Tailscale.
-        let nft_script = format!(
-            "table ip soter_{pid} {{\n  chain forward {{\n    type filter hook forward priority 10; policy accept;\n  }}\n  chain postrouting {{\n    type nat hook postrouting priority srcnat; policy accept;\n    ip saddr 10.200.0.0/24 oifname \"wlan0\" masquerade\n  }}\n}}\n"
-        );
-        let nft_status = Command::new("nft")
-            .args(["-f", "-"])
-            .stdin(std::process::Stdio::piped())
-            .spawn()
-            .and_then(|mut nft| {
-                use std::io::Write;
-                nft.stdin.as_mut()
-                    .ok_or_else(|| io::Error::new(io::ErrorKind::BrokenPipe, "nft stdin unavailable"))?
-                    .write_all(nft_script.as_bytes())?;
-                nft.wait()
-            })
-            .map_err(|e| format!("install Soterspace nftables rules: {e}"))?;
-        if !nft_status.success() {
-            return Err(format!("install Soterspace nftables rules failed with status {nft_status}"));
-        }
-        fs::write(&gate, b"ready").map_err(|e| format!("release Soterspace network gate: {e}"))?;
-        Ok(())
-    })() } else { Ok(()) };
-
-    if let Err(error) = setup {
-        let _ = child.kill();
-        let _ = child.wait();
-        cleanup_network(&host_if, pid);
-        for (_, target) in &pre_unshare_mounts { let _ = Command::new("umount").arg(target).status(); }
-        return Err(error);
-    }
-
     let status = child.wait().map_err(|e| format!("failed waiting for Soterspace: {e}"))?;
-    if isolated_network {
-        cleanup_network(&host_if, pid);
-        let _ = fs::remove_file(&gate);
-    }
 
     for (_, target) in &pre_unshare_mounts {
         let _ = Command::new("umount").arg(target).status();
     }
 
     Ok(status.code().unwrap_or(1))
-}
-
-fn cleanup_network(host_if: &str, pid: u32) {
-    // Namespace teardown may already have removed the peer veth. Cleanup is
-    // intentionally best-effort and quiet: "already gone" is a clean state.
-    let _ = Command::new("ip")
-        .args(["link", "del", host_if])
-        .stdout(std::process::Stdio::null())
-        .stderr(std::process::Stdio::null())
-        .status();
-
-    let table = format!("soter_{pid}");
-    let _ = Command::new("nft")
-        .args(["delete", "table", "ip", &table])
-        .stdout(std::process::Stdio::null())
-        .stderr(std::process::Stdio::null())
-        .status();
-}
-
-fn run_checked(command: &mut Command, action: &str) -> Result<(), String> {
-    let status = command.status().map_err(|e| format!("{action}: {e}"))?;
-    if status.success() {
-        Ok(())
-    } else {
-        Err(format!("{action} failed with status {status}"))
-    }
 }
 
 fn shell_quote(value: &str) -> String {
