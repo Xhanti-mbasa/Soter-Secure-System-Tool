@@ -26,6 +26,16 @@ Workspace options:
     -h, --human-readable     Display output in a human-readable format
     -E, --extended-regexp    Interpret patterns as extended regular expressions
         --help               Display this help and exit
+        --version            Display the Soter version and exit
+
+Commands:
+    help                     Display this help and exit
+
+Examples:
+    soter -c lab             Create and enter 'lab'
+    soter lab               Enter 'lab'
+    soter -l                List soterspaces
+    soter lab -- ip addr     Run a command inside 'lab'
 "#;
 
 #[derive(Debug, Default)]
@@ -55,7 +65,7 @@ struct Cli {
 impl Cli {
     fn parse() -> Result<Self, String> {
         let mut cli = Self::default();
-        let mut args = env::args().skip(1);
+        let mut args = env::args().skip(1).peekable();
 
         while let Some(arg) = args.next() {
             match arg.as_str() {
@@ -94,6 +104,14 @@ impl Cli {
                     print!("{USAGE}");
                     process::exit(0);
                 }
+                "--version" => {
+                    println!("soter {}", env!("CARGO_PKG_VERSION"));
+                    process::exit(0);
+                }
+                "--" => {
+                    cli.arguments.extend(args);
+                    break;
+                }
                 _ if arg.starts_with('-') => return Err(format!("unknown option: {arg}")),
                 _ => cli.arguments.push(arg),
             }
@@ -112,6 +130,12 @@ fn main() {
 
     if env::args().len() == 1 {
         println!("Soter — secure Linux workspace manager");
+        println!("Try 'soter --help' to get started.");
+        return;
+    }
+
+    if cli.arguments.first().map(String::as_str) == Some("help") {
+        print!("{USAGE}");
         return;
     }
 
