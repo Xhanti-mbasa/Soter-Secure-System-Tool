@@ -2,7 +2,7 @@
 
 use std::{
     env, fs, io,
-    os::unix::fs::PermissionsExt,
+    os::unix::{fs::PermissionsExt, process::CommandExt},
     path::{Path, PathBuf},
     process::{Command, Stdio},
 };
@@ -278,10 +278,13 @@ pub fn enter_or_run(name: &str, command: &[String], shell_override: Option<&str>
         }
     }
 
-    // Start each Soterspace in its own session/process group so lifecycle
-    // commands can signal the whole workspace (shell + child processes).
-    let mut runtime = Command::new("setsid");
-    runtime.arg("unshare").arg("--user");
+    // Start each Soterspace in its own process group so lifecycle commands
+    // can signal the whole workspace (shell + child processes) without
+    // creating a new session. A new session would detach the shell from the
+    // terminal and break interactive job control.
+    let mut runtime = Command::new("unshare");
+    runtime.process_group(0);
+    runtime.arg("--user");
     if let (Some(uid), Some(gid)) = (desktop_uid, desktop_gid) {
         // Keep namespace UID/GID 0 mapped to the privileged caller so mount,
         // chroot, hostname, etc. still work, and additionally map the desktop
