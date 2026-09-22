@@ -56,6 +56,17 @@ pub fn exists(name: &str) -> Result<bool, String> {
     Ok(root().map_err(|e| e.to_string())?.join(name).is_dir())
 }
 
+pub fn rootfs_path(name: &str) -> Result<PathBuf, String> {
+    if !exists(name)? {
+        return Err(format!("soterspace '{name}' does not exist"));
+    }
+    Ok(root().map_err(|e| e.to_string())?.join(name).join("root"))
+}
+
+pub fn is_running(name: &str) -> Result<bool, String> {
+    Ok(active_pid(name)?.is_some())
+}
+
 pub fn set_value(name: &str, key: &str, value: &str) -> Result<(), String> {
     let dir = root().map_err(|e| e.to_string())?.join(name);
     if !dir.exists() { return Err(format!("soterspace '{name}' does not exist")); }
