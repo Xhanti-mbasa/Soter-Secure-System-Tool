@@ -1,0 +1,70 @@
+.TH soter 1 "2026-02-15" "soter" "User Commands"
+.SH NAME
+soter \- secure Linux workspace manager
+.SH SYNOPSIS
+.nf
+soter [OPTIONS] [COMMAND] [ARG...]
+.fi
+.SH DESCRIPTION
+soter manages secure Linux workspaces, called Soterspaces, and commands
+executed inside them.
+.SH OPTIONS
+.TP
+-c, --create
+Create a soterspace
+.TP
+-e, --empty
+Create the soterspace empty (combine as -ce)
+.TP
+-r, --remove
+Remove a soterspace
+.TP
+-m, --modify
+Modify a soterspace
+.TP
+-l, --list
+List soterspaces
+.TP
+-a, --all
+Include all soterspaces
+.TP
+-T, --temporary
+Mark the soterspace as temporary
+.TP
+-U, --unlock
+Remove a soterspace password
+.TP
+--passwd PASSWORD
+Set a soterspace password
+.TP
+-s, --network SSID PASS
+Configure Wi-Fi for a soterspace
+.TP
+--openvpn FILE
+Attach an OpenVPN profile
+.TP
+--unsafe
+Relax strict network fail-closed behavior
+.TP
+--backup
+Back up a soterspace
+.TP
+--bzip
+Compress a backup
+.TP
+--bunzip
+Decompress a backup
+.TP
+--restore FILE
+Restore a soterspace backup
+.TP
+-h, --human-readable
+Display output in a human-readable format
+.TP
+-E, --extended-regexp
+Interpret patterns as extended regular expressions
+.TP
+--help
+Display this help and exit
+.SH SEE ALSO
+.BR soterspace (7)
