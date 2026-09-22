@@ -229,9 +229,11 @@ pub fn enter_or_run(name: &str, command: &[String], shell_override: Option<&str>
     }
     if Path::new("/tmp/.X11-unix").is_dir() {
         let guest_x11 = rootfs.join("tmp/.X11-unix");
-        fs::create_dir_all(&guest_x11).map_err(|e| e.to_string())?;
+        // /tmp is mounted as a fresh tmpfs above, which hides any directory
+        // created in the persistent rootfs before the namespace starts.
+        // Recreate the X11 bind target inside that tmpfs before mounting it.
         script.push_str(&format!(
-            "mount --bind /tmp/.X11-unix {0}; mount -o remount,bind,ro {0}; ",
+            "mkdir -p {0}; mount --bind /tmp/.X11-unix {0}; mount -o remount,bind,ro {0}; ",
             shell_quote(&guest_x11.display().to_string())
         ));
     }
