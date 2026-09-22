@@ -87,6 +87,9 @@ fn provision_rootfs(rootfs: &Path) -> Result<(), String> {
 
 pub fn enter_or_run(name: &str, command: &[String], shell_override: Option<&str>, flakes: &[String], network_mode: Option<&str>) -> Result<i32, String> {
     if !exists(name)? { return Err(format!("soterspace '{name}' does not exist")); }
+    if active_pid(name)?.is_some() {
+        return Err(format!("soterspace '{name}' is already running"));
+    }
 
     let space = root().map_err(|e| e.to_string())?.join(name);
     let rootfs = space.join("root");
@@ -273,24 +276,26 @@ pub fn enter_or_run(name: &str, command: &[String], shell_override: Option<&str>
         }
     }
 
-    let mut unshare = Command::new("unshare");
-    unshare.arg("--user");
+    // Start each Soterspace in its own session/process group so lifecycle
+    // commands can signal the whole workspace (shell + child processes).
+    let mut runtime = Command::new("setsid");
+    runtime.arg("unshare").arg("--user");
     if let (Some(uid), Some(gid)) = (desktop_uid, desktop_gid) {
         // Keep namespace UID/GID 0 mapped to the privileged caller so mount,
         // chroot, hostname, etc. still work, and additionally map the desktop
         // user 1:1 so GUI sockets retain an accessible owner.
-        unshare
+        runtime
             .arg("--map-users=0,0,1")
             .arg(format!("--map-users={uid},{uid},1"))
             .arg("--map-groups=0,0,1")
             .arg(format!("--map-groups={gid},{gid},1"));
     } else {
-        unshare.arg("--map-root-user");
+        runtime.arg("--map-root-user");
     }
 
-    unshare.args(["--mount", "--pid", "--fork", "--uts", "--ipc"]);
+    runtime.args(["--mount", "--pid", "--fork", "--uts", "--ipc"]);
     if offline_network {
-        unshare.arg("--net");
+        runtime.arg("--net");
     }
 
     let runtime_script = if offline_network {
@@ -299,18 +304,98 @@ pub fn enter_or_run(name: &str, command: &[String], shell_override: Option<&str>
         script
     };
 
-    let mut child = unshare
+    let mut child = runtime
         .arg("sh").arg("-c").arg(runtime_script)
         .spawn()
         .map_err(|e| format!("failed to start namespace runtime: {e}"))?;
 
+    let pid_file = space.join("runtime/session.pid");
+    if let Err(error) = fs::write(&pid_file, format!("{}\n", child.id())) {
+        let _ = child.kill();
+        let _ = child.wait();
+        for (_, target) in &pre_unshare_mounts {
+            let _ = Command::new("umount").arg(target).status();
+        }
+        return Err(format!("failed to record Soterspace runtime pid: {error}"));
+    }
+    fs::set_permissions(&pid_file, fs::Permissions::from_mode(0o600))
+        .map_err(|e| format!("failed to protect Soterspace runtime pid: {e}"))?;
+
     let status = child.wait().map_err(|e| format!("failed waiting for Soterspace: {e}"))?;
+    let _ = fs::remove_file(&pid_file);
 
     for (_, target) in &pre_unshare_mounts {
         let _ = Command::new("umount").arg(target).status();
     }
 
     Ok(status.code().unwrap_or(1))
+}
+
+fn runtime_pid_path(name: &str) -> Result<PathBuf, String> {
+    Ok(root().map_err(|e| e.to_string())?.join(name).join("runtime/session.pid"))
+}
+
+fn active_pid(name: &str) -> Result<Option<u32>, String> {
+    if !exists(name)? {
+        return Err(format!("soterspace '{name}' does not exist"));
+    }
+
+    let path = runtime_pid_path(name)?;
+    if !path.exists() {
+        return Ok(None);
+    }
+
+    let value = fs::read_to_string(&path).map_err(|e| e.to_string())?;
+    let pid = value
+        .trim()
+        .parse::<u32>()
+        .map_err(|_| format!("invalid runtime pid for soterspace '{name}'"))?;
+    let group = format!("-{pid}");
+
+    let running = Command::new("kill")
+        .args(["-0", "--", &group])
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .status()
+        .map_err(|e| format!("failed to check soterspace '{name}' runtime: {e}"))?
+        .success();
+
+    if running {
+        Ok(Some(pid))
+    } else {
+        let _ = fs::remove_file(path);
+        Ok(None)
+    }
+}
+
+fn signal_space(name: &str, signal: &str, action: &str) -> Result<(), String> {
+    let pid = active_pid(name)?
+        .ok_or_else(|| format!("soterspace '{name}' is not running"))?;
+    let group = format!("-{pid}");
+
+    let status = Command::new("kill")
+        .args([signal, "--", &group])
+        .status()
+        .map_err(|e| format!("failed to {action} soterspace '{name}': {e}"))?;
+
+    if status.success() {
+        println!("{action}d soterspace '{name}'.");
+        Ok(())
+    } else {
+        Err(format!("failed to {action} soterspace '{name}'"))
+    }
+}
+
+pub fn kill(name: &str) -> Result<(), String> {
+    signal_space(name, "-TERM", "kill")
+}
+
+pub fn pause(name: &str) -> Result<(), String> {
+    signal_space(name, "-STOP", "pause")
+}
+
+pub fn resume(name: &str) -> Result<(), String> {
+    signal_space(name, "-CONT", "resume")
 }
 
 fn shell_quote(value: &str) -> String {
@@ -465,8 +550,8 @@ pub fn prepare_flake_sessions(name: &str, flake: &str) -> Result<(), String> {
     .map_err(|e| e.to_string())?;
 
     println!("Prepared persistent {flake} session storage for '{name}'.");
-    println!("Use {flake} -s<ID> for a full session, {flake} -se<ID> for extension-only state.");
-    println!("Use {flake} -l to list sessions and {flake} -rs<ID> to remove one.");
+    println!("Use {flake} -s:<ID> for a full session, {flake} -se:<ID> for extension-only state.");
+    println!("Use {flake} -l to list sessions and {flake} -rs:<ID> to remove one.");
     Ok(())
 }
 
