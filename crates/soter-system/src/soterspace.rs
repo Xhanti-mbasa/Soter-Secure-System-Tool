@@ -1,6 +1,11 @@
 //! Persistent Soterspace state and lifecycle operations.
 
-use std::{env, fs, io, path::{Path, PathBuf}, process::Command};
+use std::{
+    env, fs, io,
+    os::unix::fs::PermissionsExt,
+    path::{Path, PathBuf},
+    process::{Command, Stdio},
+};
 
 #[derive(Debug, Clone)]
 pub struct Soterspace {
@@ -311,6 +316,252 @@ pub fn enter_or_run(name: &str, command: &[String], shell_override: Option<&str>
 fn shell_quote(value: &str) -> String {
     let escaped = value.replace("'", "'\\''");
     format!("'{escaped}'")
+}
+
+
+fn selected_spaces(target: Option<&str>) -> Result<Vec<String>, String> {
+    if let Some(name) = target {
+        if !exists(name)? {
+            return Err(format!("soterspace '{name}' does not exist"));
+        }
+        Ok(vec![name.to_string()])
+    } else {
+        let spaces = list()?;
+        if spaces.is_empty() {
+            Err("no soterspaces found".into())
+        } else {
+            Ok(spaces)
+        }
+    }
+}
+
+fn compute_core_hash(rootfs: &Path) -> Result<String, String> {
+    let candidates = ["etc", "usr", "bin", "sbin", "lib", "lib64", "opt/soter/bin"];
+    let existing = candidates
+        .iter()
+        .copied()
+        .filter(|path| rootfs.join(path).exists())
+        .collect::<Vec<_>>();
+
+    if existing.is_empty() {
+        return Err("no core filesystem paths were found to hash".into());
+    }
+
+    let mut tar = Command::new("tar");
+    tar.current_dir(rootfs)
+        .args([
+            "--sort=name",
+            "--mtime=@0",
+            "--owner=0",
+            "--group=0",
+            "--numeric-owner",
+            "-cf",
+            "-",
+        ]);
+    for path in &existing {
+        tar.arg(path);
+    }
+
+    let mut tar_child = tar
+        .stdout(Stdio::piped())
+        .spawn()
+        .map_err(|e| format!("failed to start core hash archive: {e}"))?;
+    let tar_stdout = tar_child
+        .stdout
+        .take()
+        .ok_or_else(|| "failed to capture core hash archive".to_string())?;
+
+    let digest = Command::new("sha256sum")
+        .stdin(Stdio::from(tar_stdout))
+        .output()
+        .map_err(|e| format!("failed to run sha256sum: {e}"))?;
+    let tar_status = tar_child
+        .wait()
+        .map_err(|e| format!("failed waiting for core hash archive: {e}"))?;
+
+    if !tar_status.success() {
+        return Err(format!("core hash archive failed with status {tar_status}"));
+    }
+    if !digest.status.success() {
+        return Err(format!(
+            "sha256sum failed: {}",
+            String::from_utf8_lossy(&digest.stderr).trim()
+        ));
+    }
+
+    String::from_utf8_lossy(&digest.stdout)
+        .split_whitespace()
+        .next()
+        .map(str::to_string)
+        .ok_or_else(|| "sha256sum returned no digest".into())
+}
+
+pub fn hash_core(target: Option<&str>) -> Result<(), String> {
+    let mut mismatches = 0usize;
+
+    for name in selected_spaces(target)? {
+        let space = root().map_err(|e| e.to_string())?.join(&name);
+        let rootfs = space.join("root");
+        let digest = compute_core_hash(&rootfs)?;
+        let integrity_dir = space.join("integrity");
+        fs::create_dir_all(&integrity_dir).map_err(|e| e.to_string())?;
+        fs::set_permissions(&integrity_dir, fs::Permissions::from_mode(0o700))
+            .map_err(|e| e.to_string())?;
+        let baseline = integrity_dir.join("core.sha256");
+
+        if baseline.exists() {
+            let expected = fs::read_to_string(&baseline)
+                .map_err(|e| e.to_string())?
+                .trim()
+                .to_string();
+            if expected == digest {
+                println!("[PASS] {name}: core hash matches {digest}");
+            } else {
+                println!("[FAIL] {name}: core hash changed");
+                println!("       expected: {expected}");
+                println!("       current:  {digest}");
+                mismatches += 1;
+            }
+        } else {
+            fs::write(&baseline, format!("{digest}\n")).map_err(|e| e.to_string())?;
+            fs::set_permissions(&baseline, fs::Permissions::from_mode(0o600))
+                .map_err(|e| e.to_string())?;
+            println!("[BASELINE] {name}: stored core hash {digest}");
+        }
+    }
+
+    if mismatches == 0 {
+        Ok(())
+    } else {
+        Err(format!("{mismatches} Soterspace core integrity check(s) failed"))
+    }
+}
+
+pub fn prepare_flake_sessions(name: &str, flake: &str) -> Result<(), String> {
+    if !exists(name)? {
+        return Err(format!("soterspace '{name}' does not exist"));
+    }
+
+    let flake = match flake {
+        "firefox" | "firefox-pentesting" => "firefox",
+        "chromium" | "chromium-pentesting" => "chromium",
+        other => return Err(format!("unknown Soter flake '{other}'")),
+    };
+
+    let dir = root()
+        .map_err(|e| e.to_string())?
+        .join(name)
+        .join("root/var/lib/soter/flake-sessions")
+        .join(flake);
+    fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+    fs::set_permissions(&dir, fs::Permissions::from_mode(0o700))
+        .map_err(|e| e.to_string())?;
+    fs::write(
+        dir.join(".soter-managed"),
+        "version=1\nfull_sessions=true\nextension_sessions=true\n",
+    )
+    .map_err(|e| e.to_string())?;
+
+    println!("Prepared persistent {flake} session storage for '{name}'.");
+    println!("Use {flake} -s<ID> for a full session, {flake} -se<ID> for extension-only state.");
+    println!("Use {flake} -l to list sessions and {flake} -rs<ID> to remove one.");
+    Ok(())
+}
+
+pub fn scan(target: Option<&str>) -> Result<(), String> {
+    let mut failures = 0usize;
+
+    for name in selected_spaces(target)? {
+        let space = root().map_err(|e| e.to_string())?.join(&name);
+        let rootfs = space.join("root");
+        println!("Soterspace: {name}");
+
+        let integrity = space.join("integrity/core.sha256");
+        if integrity.exists() {
+            let expected = fs::read_to_string(&integrity)
+                .map_err(|e| e.to_string())?
+                .trim()
+                .to_string();
+            let current = compute_core_hash(&rootfs)?;
+            if expected == current {
+                println!("  [PASS] core filesystem matches the stored SHA-256 baseline");
+            } else {
+                println!("  [FAIL] core filesystem differs from the stored SHA-256 baseline");
+                failures += 1;
+            }
+        } else {
+            println!("  [WARN] no core hash baseline; run 'soter --hash {name}'");
+        }
+
+        let launcher_dir = rootfs.join("opt/soter/bin");
+        if launcher_dir.is_dir() {
+            for entry in fs::read_dir(&launcher_dir).map_err(|e| e.to_string())? {
+                let entry = entry.map_err(|e| e.to_string())?;
+                let path = entry.path();
+                let launcher = entry.file_name().to_string_lossy().to_string();
+                let metadata = fs::symlink_metadata(&path).map_err(|e| e.to_string())?;
+                if !metadata.file_type().is_symlink() {
+                    println!("  [FAIL] launcher '{launcher}' is not a managed symlink");
+                    failures += 1;
+                    continue;
+                }
+                let destination = fs::read_link(&path).map_err(|e| e.to_string())?;
+                if destination.starts_with("/nix/store/") {
+                    println!("  [PASS] launcher '{launcher}' points into /nix/store");
+                } else {
+                    println!(
+                        "  [FAIL] launcher '{launcher}' points outside /nix/store: {}",
+                        destination.display()
+                    );
+                    failures += 1;
+                }
+            }
+        }
+
+        for (flake, path) in [
+            ("firefox", rootfs.join("root/.mozilla/firefox")),
+            ("chromium", rootfs.join("root/.config/chromium")),
+        ] {
+            if path.exists() {
+                println!(
+                    "  [WARN] unmanaged persistent {flake} profile data exists at {}",
+                    path.strip_prefix(&rootfs).unwrap_or(&path).display()
+                );
+            }
+        }
+
+        let sessions = rootfs.join("var/lib/soter/flake-sessions");
+        if sessions.exists() {
+            let mode = fs::metadata(&sessions)
+                .map_err(|e| e.to_string())?
+                .permissions()
+                .mode()
+                & 0o777;
+            if mode & 0o077 == 0 {
+                println!("  [PASS] saved flake session storage is not group/world accessible");
+            } else {
+                println!("  [FAIL] saved flake session storage permissions are {:03o}", mode);
+                failures += 1;
+            }
+        }
+
+        if space.join("network.conf").exists() {
+            println!("  [WARN] legacy network.conf remains from the old routed isolation design");
+        }
+        if space.join("runtime/net-ready").exists() {
+            println!("  [WARN] stale runtime/net-ready marker remains from the old network design");
+        }
+
+        println!("  [INFO] default network mode is host-open");
+        println!("  [INFO] '--network isolate' creates an offline network namespace with no veth/NAT");
+        println!("  [INFO] hashes verify stored filesystem state; they cannot prove historical network traffic did not occur");
+    }
+
+    if failures == 0 {
+        Ok(())
+    } else {
+        Err(format!("{failures} security check(s) failed"))
+    }
 }
 
 pub fn backup(name: &str, destination: &Path) -> Result<(), String> {
