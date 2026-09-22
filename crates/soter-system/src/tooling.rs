@@ -150,6 +150,7 @@ fn install_selected(name: &str, selected: &[ToolSpec]) -> Result<(), String> {
     })?;
 
     clean_package_cache(&rootfs)?;
+    let baseline_invalidated = soterspace::invalidate_core_hash(name)?;
 
     println!("\nInstalled:");
     for tool in selected {
@@ -157,6 +158,10 @@ fn install_selected(name: &str, selected: &[ToolSpec]) -> Result<(), String> {
     }
     println!("Starter wordlist: /usr/share/wordlists/soter/common.txt");
     println!("Secure case directory: /root/soter/cases");
+    if baseline_invalidated {
+        println!("Integrity baseline cleared because this was an authorized system change.");
+        println!("Run 'soter --hash {name}' after you finish installing tools.");
+    }
     Ok(())
 }
 
