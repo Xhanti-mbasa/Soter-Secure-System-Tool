@@ -336,7 +336,7 @@ fn selected_spaces(target: Option<&str>) -> Result<Vec<String>, String> {
 }
 
 fn compute_core_hash(rootfs: &Path) -> Result<String, String> {
-    let candidates = ["etc", "usr", "bin", "sbin", "lib", "lib64", "opt/soter/bin"];
+    let candidates = ["etc", "usr", "bin", "sbin", "lib", "lib64"];
     let existing = candidates
         .iter()
         .copied()
@@ -448,12 +448,14 @@ pub fn prepare_flake_sessions(name: &str, flake: &str) -> Result<(), String> {
         other => return Err(format!("unknown Soter flake '{other}'")),
     };
 
-    let dir = root()
+    let sessions_root = root()
         .map_err(|e| e.to_string())?
         .join(name)
-        .join("root/var/lib/soter/flake-sessions")
-        .join(flake);
+        .join("root/var/lib/soter/flake-sessions");
+    let dir = sessions_root.join(flake);
     fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+    fs::set_permissions(&sessions_root, fs::Permissions::from_mode(0o700))
+        .map_err(|e| e.to_string())?;
     fs::set_permissions(&dir, fs::Permissions::from_mode(0o700))
         .map_err(|e| e.to_string())?;
     fs::write(
