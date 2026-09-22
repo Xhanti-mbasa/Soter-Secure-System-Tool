@@ -488,6 +488,7 @@ fn compute_core_hash(rootfs: &Path) -> Result<String, String> {
             "--owner=0",
             "--group=0",
             "--numeric-owner",
+            "--exclude=usr/share/wordlists/soter",
             "-cf",
             "-",
         ]);
