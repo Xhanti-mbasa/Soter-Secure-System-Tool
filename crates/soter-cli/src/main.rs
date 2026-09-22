@@ -21,6 +21,9 @@ Workspace options:
         --save FLAKE         Prepare persistent session storage for a flake
         --scan               Run Soterspace security checks (all spaces if omitted)
         --hash               Create/compare the Soterspace core integrity hash
+        --kill               Stop a running soterspace
+        --pause              Pause a running soterspace
+        --resume             Resume a paused soterspace
         --network MODE       Network mode: open (host) or isolate (offline)
         --network -l wifi    List host Wi-Fi networks
         --openvpn FILE       Attach an OpenVPN profile
@@ -46,6 +49,9 @@ Examples:
     soter --save firefox lab
     soter --scan lab
     soter --hash lab
+    soter --pause lab
+    soter --resume lab
+    soter --kill lab
     soter --network open lab
     soter --network isolate lab
     soter --network -l wifi
@@ -70,6 +76,9 @@ struct Cli {
     save_flake: Option<String>,
     scan: bool,
     hash: bool,
+    kill: bool,
+    pause: bool,
+    resume: bool,
     network_mode: Option<String>,
     network_list: Option<String>,
     openvpn: Option<String>,
@@ -122,6 +131,9 @@ impl Cli {
                 }
                 "--scan" => cli.scan = true,
                 "--hash" => cli.hash = true,
+                "--kill" => cli.kill = true,
+                "--pause" => cli.pause = true,
+                "--resume" => cli.resume = true,
                 "-network" | "--network" => {
                     let value = args.next().ok_or("--network requires 'open', 'isolate', or '-l wifi'")?;
                     if value == "-l" || value == "--list" {
@@ -199,6 +211,21 @@ fn main() {
         soterspace::scan(target.as_deref())
     } else if cli.hash {
         soterspace::hash_core(target.as_deref())
+    } else if cli.kill {
+        match target.as_deref() {
+            Some(name) => soterspace::kill(name),
+            None => Err("--kill requires a soterspace name".into()),
+        }
+    } else if cli.pause {
+        match target.as_deref() {
+            Some(name) => soterspace::pause(name),
+            None => Err("--pause requires a soterspace name".into()),
+        }
+    } else if cli.resume {
+        match target.as_deref() {
+            Some(name) => soterspace::resume(name),
+            None => Err("--resume requires a soterspace name".into()),
+        }
     } else if cli.list {
         soterspace::list().map(|spaces| {
             if spaces.is_empty() { println!("No soterspaces."); }
