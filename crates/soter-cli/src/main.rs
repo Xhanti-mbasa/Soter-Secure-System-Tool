@@ -7,7 +7,7 @@ Usage:
     soter [options] [soterspace] [command]...
 
 Workspace options:
-    -c, --create             Create a soterspace
+    -c, --create             Create a soterspace without entering it
     -e, --empty              Create the soterspace empty (combine as -ce)
     -r, --remove             Remove a soterspace
     -m, --modify             Modify a soterspace
@@ -17,7 +17,8 @@ Workspace options:
         --passwd PASSWORD    Set a soterspace password
     -U, --unlock             Remove a soterspace password
         --shell SHELL        Select the shell used inside a soterspace
-        --flakes PACKAGES    Select Nix apps, comma-separated (firefox,chromium)
+        --apps PACKAGES      Install Arch apps into an existing soterspace
+        --flakes PACKAGES    Add Nix browsers on entry (firefox,chromium)
         --save FLAKE         Prepare persistent session storage for a flake
         --tools              Choose and install pentest tools into a Soterspace
         --case NAME          Create a secure investigation folder in a Soterspace
@@ -43,11 +44,12 @@ Commands:
     help                     Display this help and exit
 
 Examples:
-    soter -c lab             Create and enter 'lab'
+    soter -c lab             Create 'lab'
     soter lab               Enter 'lab'
     soter -l                List soterspaces
     soter --shell zsh lab    Enter 'lab' using zsh
-    soter --flakes firefox,chromium lab
+    soter --apps curl,jq lab
+    soter --flakes firefox lab
     soter --save firefox lab
     soter --tools
     soter --case acme lab
@@ -77,6 +79,7 @@ struct Cli {
     passwd: Option<String>,
     shell: Option<String>,
     flakes: Vec<String>,
+    apps: Vec<String>,
     save_flake: Option<String>,
     tools: bool,
     case_name: Option<String>,
@@ -120,6 +123,13 @@ impl Cli {
                 }
                 "--shell" => {
                     cli.shell = Some(args.next().ok_or("--shell requires a shell")?);
+                }
+                "--apps" => {
+                    let value = args.next().ok_or("--apps requires a comma-separated package list")?;
+                    cli.apps = value.split(',').map(str::trim).map(str::to_string).collect();
+                    if cli.apps.iter().any(String::is_empty) {
+                        return Err("--apps requires nonempty comma-separated package names".into());
+                    }
                 }
                 "--flakes" => {
                     let value = args.next().ok_or("--flakes requires a package list (for example: firefox,chromium)")?;
@@ -211,6 +221,11 @@ fn main() {
 
     let result: Result<(), String> = if cli.tools {
         tooling::interactive_install()
+    } else if !cli.apps.is_empty() {
+        match target.as_deref() {
+            Some(name) => soterspace::install_apps(name, &cli.apps),
+            None => Err("--apps requires a soterspace name, for example: soter --apps curl,jq lab".into()),
+        }
     } else if let Some(case_name) = &cli.case_name {
         match target.as_deref() {
             Some(name) => tooling::create_case(name, case_name),
@@ -250,12 +265,9 @@ fn main() {
         })
     } else if cli.create {
         match target.as_deref() {
-            Some(name) => soterspace::create(name, cli.empty, cli.temporary).and_then(|space| {
+            Some(name) => soterspace::create(name, cli.empty, cli.temporary).map(|space| {
                 println!("Created soterspace '{}' at {}.", space.name, space.path.display());
-                println!("Entering soterspace '{}'...", space.name);
-                soterspace::enter_or_run(&space.name, &[], cli.shell.as_deref(), &cli.flakes, cli.network_mode.as_deref()).and_then(|code| {
-                    if code == 0 { Ok(()) } else { Err(format!("soterspace exited with status {code}")) }
-                })
+                println!("Enter it with 'soter {}' or install apps with 'soter --apps curl,jq {}'.", name, name);
             }),
             None => Err("create requires a soterspace name".into()),
         }
