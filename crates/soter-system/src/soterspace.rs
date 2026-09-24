@@ -13,8 +13,32 @@ pub struct Soterspace {
     pub path: PathBuf,
 }
 
+fn invoking_user_home() -> Option<PathBuf> {
+    let sudo_user = env::var("SUDO_USER").ok()?;
+    if sudo_user.is_empty() || sudo_user == "root" {
+        return None;
+    }
+
+    // sudo normally changes HOME to /root. Resolve the original caller from
+    // /etc/passwd so privileged Soter operations still use that user's state.
+    fs::read_to_string("/etc/passwd").ok()?.lines().find_map(|line| {
+        let mut fields = line.split(':');
+        let name = fields.next()?;
+        if name != sudo_user {
+            return None;
+        }
+        let _password = fields.next()?;
+        let _uid = fields.next()?;
+        let _gid = fields.next()?;
+        let _gecos = fields.next()?;
+        fields.next().map(PathBuf::from)
+    })
+}
+
 fn root() -> io::Result<PathBuf> {
-    let base = env::var_os("XDG_STATE_HOME").map(PathBuf::from)
+    let base = invoking_user_home()
+        .map(|home| home.join(".local/state"))
+        .or_else(|| env::var_os("XDG_STATE_HOME").map(PathBuf::from))
         .or_else(|| env::var_os("HOME").map(|h| PathBuf::from(h).join(".local/state")))
         .ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "HOME is not set"))?;
     Ok(base.join("soter/spaces"))
