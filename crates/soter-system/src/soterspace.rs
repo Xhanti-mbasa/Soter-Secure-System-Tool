@@ -185,12 +185,15 @@ pub fn install_apps(name: &str, packages: &[String]) -> Result<(), String> {
     }
     let rootfs = rootfs_path(name)?;
     provision_rootfs(&rootfs)?;
-    let status = Command::new("pacman")
-        .arg("--root").arg(&rootfs)
+    // Run pacman inside the guest. Host pacman drops downloads to the alpm
+    // user, which cannot traverse a Soterspace stored under /root.
+    // arch-chroot also supplies /dev and /proc for package hooks and GPG.
+    let status = Command::new("arch-chroot")
+        .arg(&rootfs).arg("pacman")
         .args(["-Syu", "--needed", "--noconfirm"])
         .args(packages)
         .status()
-        .map_err(|e| format!("failed to install workspace apps with pacman: {e}"))?;
+        .map_err(|e| format!("failed to install workspace apps with arch-chroot: {e}"))?;
     if !status.success() { return Err(format!("app installation failed with status {status}")); }
     let _ = invalidate_core_hash(name)?;
     println!("Installed {} into Soterspace '{name}'.", packages.join(", "));
@@ -233,10 +236,6 @@ pub fn enter_or_run(name: &str, command: &[String], shell_override: Option<&str>
     // Resolve Soter's Nix browser wrappers without hard-coding store hashes.
     let nix_profile = rootfs.join("opt/soter/bin");
     fs::create_dir_all(&nix_profile).map_err(|e| e.to_string())?;
-    let available_flakes = [
-        ("firefox-pentesting", "firefox"),
-        ("chromium-pentesting", "chromium"),
-    ];
     let requested_flakes: Vec<(&str, &str)> = {
         flakes.iter().map(|name| match name.as_str() {
             "firefox" | "firefox-pentesting" => Ok(("firefox-pentesting", "firefox")),
@@ -298,7 +297,7 @@ pub fn enter_or_run(name: &str, command: &[String], shell_override: Option<&str>
 
     let mut script = String::from("set -eu; mount --make-rprivate /; ");
     script.push_str(&format!(
-        "mkdir -p {0}/proc {0}/tmp {0}/run {0}/dev {0}/nix/store; mount -t proc proc {0}/proc; mount -t tmpfs -o mode=1777 tmpfs {0}/tmp; ",
+        "mkdir -p {0}/proc {0}/tmp {0}/run {0}/dev {0}/nix/store; mount -t proc proc {0}/proc; mount --rbind /dev {0}/dev; mount --make-rslave {0}/dev; mount -t tmpfs -o mode=1777 tmpfs {0}/tmp; ",
         rootfs.display()
     ));
     if !offline_network {
