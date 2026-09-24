@@ -200,6 +200,104 @@ pub fn install_apps(name: &str, packages: &[String]) -> Result<(), String> {
     Ok(())
 }
 
+// sudo normally strips XAUTHORITY. Read only the desktop session variable
+// from the parent shell (identified by SUDO_UID), without copying its whole
+// environment or exposing any other values inside the workspace.
+fn desktop_env(key: &str, uid: Option<u32>) -> Option<String> {
+    let uid = match uid {
+        Some(uid) => uid,
+        None => return env::var(key).ok().filter(|value| !value.is_empty()),
+    };
+    let mut pid = std::process::id();
+    for _ in 0..6 {
+        let status = fs::read_to_string(format!("/proc/{pid}/status")).ok()?;
+        let parent = status.lines().find_map(|line| {
+            line.strip_prefix("PPid:")?.trim().parse::<u32>().ok()
+        })?;
+        if parent <= 1 { break; }
+        let parent_status = fs::read_to_string(format!("/proc/{parent}/status")).ok()?;
+        let parent_uid = parent_status.lines().find_map(|line| {
+            line.strip_prefix("Uid:")?.split_whitespace().next()?.parse::<u32>().ok()
+        });
+        if parent_uid == Some(uid) {
+            let environ = fs::read(format!("/proc/{parent}/environ")).ok()?;
+            let prefix = format!("{key}=");
+            if let Some(value) = environ.split(|b| *b == 0)
+                .find_map(|entry| entry.strip_prefix(prefix.as_bytes()))
+                .and_then(|bytes| std::str::from_utf8(bytes).ok())
+            {
+                if !value.is_empty() { return Some(value.to_owned()); }
+            }
+        }
+        pid = parent;
+    }
+    env::var(key).ok().filter(|value| !value.is_empty())
+}
+
+struct SessionXAuthority(PathBuf);
+impl Drop for SessionXAuthority {
+    fn drop(&mut self) { let _ = fs::remove_file(&self.0); }
+}
+
+// Copy only the current display's X11 cookie into the guest. FamilyWild
+// makes it match Soter's different hostname without changing host X access.
+fn prepare_xauthority(rootfs: &Path, display: &str, uid: Option<u32>) -> Result<Option<SessionXAuthority>, String> {
+    let mut sources = Vec::new();
+    if let Some(path) = desktop_env("XAUTHORITY", uid) {
+        sources.push(PathBuf::from(path));
+    }
+    if let Some(home) = desktop_env("HOME", uid) {
+        sources.push(PathBuf::from(home).join(".Xauthority"));
+    }
+    if let Some(uid) = uid {
+        if let Ok(entries) = fs::read_dir(format!("/run/user/{uid}")) {
+            for entry in entries.flatten() {
+                if entry.file_name().to_string_lossy().starts_with("xauth_") {
+                    sources.push(entry.path());
+                }
+            }
+        }
+    }
+
+    for source in sources {
+        if !source.is_file() { continue; }
+        let output = match Command::new("xauth").arg("-f").arg(&source)
+            .arg("nlist").arg(display).output()
+        {
+            Ok(output) if output.status.success() => output,
+            _ => continue,
+        };
+        let records = String::from_utf8_lossy(&output.stdout).lines()
+            .filter_map(|line| {
+                let family = line.get(..4)?;
+                let rest = line.get(4..)?;
+                if !family.bytes().all(|byte| byte.is_ascii_hexdigit()) { return None; }
+                Some(format!("ffff{rest}\n"))
+            }).collect::<String>();
+        if records.is_empty() { continue; }
+
+        let guest_auth = rootfs.join("root/.soter-Xauthority");
+        if guest_auth.exists() || guest_auth.is_symlink() {
+            fs::remove_file(&guest_auth).map_err(|e| e.to_string())?;
+        }
+        let mut child = Command::new("xauth").arg("-f").arg(&guest_auth)
+            .args(["nmerge", "-"])
+            .stdin(Stdio::piped()).stdout(Stdio::null()).stderr(Stdio::null())
+            .spawn().map_err(|e| format!("failed to prepare X11 display credentials: {e}"))?;
+        use io::Write;
+        child.stdin.take().ok_or("failed to send X11 credentials")?
+            .write_all(records.as_bytes()).map_err(|e| e.to_string())?;
+        if !child.wait().map_err(|e| e.to_string())?.success() {
+            let _ = fs::remove_file(&guest_auth);
+            return Err("failed to prepare X11 display credentials".into());
+        }
+        fs::set_permissions(&guest_auth, fs::Permissions::from_mode(0o600))
+            .map_err(|e| format!("failed to protect X11 credentials: {e}"))?;
+        return Ok(Some(SessionXAuthority(guest_auth)));
+    }
+    Ok(None)
+}
+
 pub fn enter_or_run(name: &str, command: &[String], shell_override: Option<&str>, flakes: &[String], network_mode: Option<&str>) -> Result<i32, String> {
     if !exists(name)? { return Err(format!("soterspace '{name}' does not exist")); }
     if active_pid(name)?.is_some() {
@@ -227,6 +325,13 @@ pub fn enter_or_run(name: &str, command: &[String], shell_override: Option<&str>
     let desktop_uid = env::var("SUDO_UID").ok().and_then(|v| v.parse::<u32>().ok());
     let desktop_gid = env::var("SUDO_GID").ok().and_then(|v| v.parse::<u32>().ok());
     provision_rootfs(&rootfs)?;
+    let guest_xauth = match display.as_deref() {
+        Some(display) => prepare_xauthority(&rootfs, display, desktop_uid)?,
+        None => None,
+    };
+    if display.is_some() && guest_xauth.is_none() {
+        eprintln!("soter: X11 credentials unavailable; install xorg-xauth or pass the desktop XAUTHORITY with sudo --preserve-env");
+    }
 
     // "open" shares the host network. "isolate" is deliberately simpler:
     // create a fresh network namespace with loopback only and no veth/NAT,
@@ -349,6 +454,9 @@ pub fn enter_or_run(name: &str, command: &[String], shell_override: Option<&str>
     ));
     if let Some(value) = &display {
         script.push_str(&format!("DISPLAY={} ", shell_quote(value)));
+    }
+    if guest_xauth.is_some() {
+        script.push_str("XAUTHORITY=/root/.soter-Xauthority ");
     }
     if let Some(value) = &wayland_display {
         script.push_str(&format!("WAYLAND_DISPLAY={} ", shell_quote(value)));
