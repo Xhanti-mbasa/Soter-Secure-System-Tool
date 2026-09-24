@@ -216,7 +216,11 @@ pub fn enter_or_run(name: &str, command: &[String], shell_override: Option<&str>
     let display = env::var("DISPLAY").ok();
     let wayland_display = env::var("WAYLAND_DISPLAY").ok();
     let xdg_runtime_dir = env::var("XDG_RUNTIME_DIR").ok();
-    let term = env::var("TERM").ok();
+    // Minimal root filesystems do not usually ship Ghostty's terminfo.
+    // Use a widely available terminal entry for clear, editors, and prompts.
+    let term = env::var("TERM").ok().map(|value| {
+        if value == "xterm-ghostty" { "xterm-256color".into() } else { value }
+    });
     // When Soter is started through sudo, recover the desktop user's identity.
     // That UID/GID must be mapped into the user namespace so Wayland's socket
     // remains owned by, and accessible to, the same user inside the Soterspace.
