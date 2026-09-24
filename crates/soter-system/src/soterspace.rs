@@ -188,10 +188,12 @@ pub fn install_apps(name: &str, packages: &[String]) -> Result<(), String> {
     // Run pacman inside the guest. Host pacman drops downloads to the alpm
     // user, which cannot traverse a Soterspace stored under /root.
     // arch-chroot also supplies /dev and /proc for package hooks and GPG.
-    let status = Command::new("arch-chroot")
-        .arg(&rootfs).arg("pacman")
-        .args(["-Syu", "--needed", "--noconfirm"])
-        .args(packages)
+    // arch-chroot expects a mountpoint. Self-bind the root in a private mount
+    // namespace so it sees one without leaving mounts behind on the host.
+    let status = Command::new("unshare")
+        .args(["--mount", "--propagation", "private", "sh", "-c",
+            "set -eu; root=$1; shift; mount --bind \"$root\" \"$root\"; exec arch-chroot \"$root\" pacman -Syu --needed --noconfirm \"$@\"", "soter-pacman"])
+        .arg(&rootfs).args(packages)
         .status()
         .map_err(|e| format!("failed to install workspace apps with arch-chroot: {e}"))?;
     if !status.success() { return Err(format!("app installation failed with status {status}")); }
