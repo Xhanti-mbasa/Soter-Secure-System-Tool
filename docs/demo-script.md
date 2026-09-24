@@ -31,7 +31,7 @@ sudo soter demo -- curl --version
 sudo soter demo -- jq --version
 ```
 
-"I can also enter an interactive shell with `sudo soter demo`. When I exit, the workspace remains on disk. Named browser launchers can be added separately with `--flakes firefox` if Nix is installed; normal entry never builds Nix packages."
+"I can also enter an interactive shell with `sudo soter demo`. When I exit, the workspace remains on disk. Firefox is optional: I can install the Arch package with `sudo soter --apps firefox demo`, then run it inside. A separate `--flakes firefox` option builds a Nix launcher if Nix is installed."
 
 "Networking is a deliberate per-invocation choice. By default the workspace uses the host's network. With `--network isolate` it gets an offline network namespace. Here I inspect its routes. Empty output means it has no default route."
 
