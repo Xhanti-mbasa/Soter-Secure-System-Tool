@@ -28,17 +28,25 @@ pub fn create(name: &str, empty: bool, temporary: bool) -> Result<Soterspace, St
     if !valid_name(name) { return Err("soterspace names may contain only letters, numbers, '-' and '_'".into()); }
     let path = root().map_err(|e| e.to_string())?.join(name);
     if path.exists() { return Err(format!("soterspace '{name}' already exists")); }
-    for dir in ["root", "runtime"] {
-        fs::create_dir_all(path.join(dir)).map_err(|e| e.to_string())?;
+    fs::create_dir_all(path.parent().ok_or("invalid soterspace path")?).map_err(|e| e.to_string())?;
+    fs::create_dir(&path).map_err(|e| e.to_string())?;
+    let initialize = || -> io::Result<()> {
+        fs::create_dir(path.join("root"))?;
+        fs::create_dir(path.join("runtime"))?;
+        let metadata = format!("name={name}\nempty={empty}\ntemporary={temporary}\n");
+        fs::write(path.join("space.conf"), metadata)
+    };
+    if let Err(error) = initialize() {
+        let _ = fs::remove_dir_all(&path);
+        return Err(format!("failed to initialize soterspace '{name}': {error}"));
     }
-    let metadata = format!("name={name}\nempty={empty}\ntemporary={temporary}\n");
-    fs::write(path.join("space.conf"), metadata).map_err(|e| e.to_string())?;
     Ok(Soterspace { name: name.into(), path })
 }
 
 pub fn remove(name: &str) -> Result<(), String> {
+    if !exists(name)? { return Err(format!("soterspace '{name}' does not exist")); }
+    if is_running(name)? { return Err(format!("soterspace '{name}' is running; exit it before removing it")); }
     let path = root().map_err(|e| e.to_string())?.join(name);
-    if !path.exists() { return Err(format!("soterspace '{name}' does not exist")); }
     fs::remove_dir_all(path).map_err(|e| e.to_string())
 }
 
@@ -46,14 +54,17 @@ pub fn list() -> Result<Vec<String>, String> {
     let root = root().map_err(|e| e.to_string())?;
     if !root.exists() { return Ok(Vec::new()); }
     let mut names = fs::read_dir(root).map_err(|e| e.to_string())?
-        .filter_map(Result::ok).filter(|e| e.path().is_dir())
+        .filter_map(Result::ok).filter(|e| e.file_type().map(|t| t.is_dir()).unwrap_or(false) && e.path().join("space.conf").is_file())
         .filter_map(|e| e.file_name().into_string().ok()).collect::<Vec<_>>();
     names.sort();
     Ok(names)
 }
 
 pub fn exists(name: &str) -> Result<bool, String> {
-    Ok(root().map_err(|e| e.to_string())?.join(name).is_dir())
+    if !valid_name(name) { return Err("soterspace names may contain only letters, numbers, '-' and '_'".into()); }
+    let path = root().map_err(|e| e.to_string())?.join(name);
+    Ok(fs::symlink_metadata(&path).map(|m| m.file_type().is_dir()).unwrap_or(false)
+        && path.join("space.conf").is_file())
 }
 
 pub fn rootfs_path(name: &str) -> Result<PathBuf, String> {
@@ -84,12 +95,15 @@ pub fn invalidate_core_hash(name: &str) -> Result<bool, String> {
 }
 
 pub fn set_value(name: &str, key: &str, value: &str) -> Result<(), String> {
+    if !exists(name)? { return Err(format!("soterspace '{name}' does not exist")); }
+    if !matches!(key, "password" | "openvpn.conf") { return Err("unsupported setting".into()); }
     let dir = root().map_err(|e| e.to_string())?.join(name);
-    if !dir.exists() { return Err(format!("soterspace '{name}' does not exist")); }
     fs::write(dir.join(key), value).map_err(|e| e.to_string())
 }
 
 pub fn remove_value(name: &str, key: &str) -> Result<(), String> {
+    if !exists(name)? { return Err(format!("soterspace '{name}' does not exist")); }
+    if !matches!(key, "password" | "openvpn.conf") { return Err("unsupported setting".into()); }
     let path = root().map_err(|e| e.to_string())?.join(name).join(key);
     if path.exists() { fs::remove_file(path).map_err(|e| e.to_string())?; }
     Ok(())
@@ -110,6 +124,29 @@ fn provision_rootfs(rootfs: &Path) -> Result<(), String> {
     } else {
         Err(format!("root filesystem provisioning failed with status {status}"))
     }
+}
+
+/// Install native Arch packages into a Soterspace without touching the host package set.
+pub fn install_apps(name: &str, packages: &[String]) -> Result<(), String> {
+    if packages.is_empty() { return Err("choose at least one app".into()); }
+    if is_running(name)? { return Err(format!("soterspace '{name}' is running; exit it before installing apps")); }
+    for package in packages {
+        if package.is_empty() || !package.chars().all(|c| c.is_ascii_alphanumeric() || matches!(c, '-' | '_' | '.' | '+' | '@')) {
+            return Err(format!("invalid Arch package name '{package}'"));
+        }
+    }
+    let rootfs = rootfs_path(name)?;
+    provision_rootfs(&rootfs)?;
+    let status = Command::new("pacstrap")
+        .args(["-c", "-G", "-M"])
+        .arg(&rootfs)
+        .args(packages)
+        .status()
+        .map_err(|e| format!("failed to install apps with pacstrap: {e}; install arch-install-scripts"))?;
+    if !status.success() { return Err(format!("app installation failed with status {status}")); }
+    let _ = invalidate_core_hash(name)?;
+    println!("Installed {} into Soterspace '{name}'.", packages.join(", "));
+    Ok(())
 }
 
 pub fn enter_or_run(name: &str, command: &[String], shell_override: Option<&str>, flakes: &[String], network_mode: Option<&str>) -> Result<i32, String> {
@@ -152,9 +189,7 @@ pub fn enter_or_run(name: &str, command: &[String], shell_override: Option<&str>
         ("firefox-pentesting", "firefox"),
         ("chromium-pentesting", "chromium"),
     ];
-    let requested_flakes: Vec<(&str, &str)> = if flakes.is_empty() {
-        available_flakes.to_vec()
-    } else {
+    let requested_flakes: Vec<(&str, &str)> = {
         flakes.iter().map(|name| match name.as_str() {
             "firefox" | "firefox-pentesting" => Ok(("firefox-pentesting", "firefox")),
             "chromium" | "chromium-pentesting" => Ok(("chromium-pentesting", "chromium")),
@@ -162,16 +197,8 @@ pub fn enter_or_run(name: &str, command: &[String], shell_override: Option<&str>
         }).collect::<Result<Vec<_>, _>>()?
     };
 
-    // /opt/soter/bin persists with the Soterspace. Remove managed launchers
-    // that were exposed by an earlier session but are not selected now.
-    for (_, binary) in available_flakes {
-        if !requested_flakes.iter().any(|(_, selected)| *selected == binary) {
-            let link = nix_profile.join(binary);
-            if link.exists() || link.is_symlink() {
-                fs::remove_file(&link).map_err(|e| e.to_string())?;
-            }
-        }
-    }
+    // Existing launchers remain available on later entries. Browser builds
+    // happen only when --flakes explicitly requests them.
 
     for (package, binary) in requested_flakes {
         let output = Command::new("nix")
@@ -701,6 +728,8 @@ pub fn scan(target: Option<&str>) -> Result<(), String> {
 }
 
 pub fn backup(name: &str, destination: &Path) -> Result<(), String> {
+    if !exists(name)? { return Err(format!("soterspace '{name}' does not exist")); }
+    if is_running(name)? { return Err(format!("soterspace '{name}' is running; exit it before backing up")); }
     let source = root().map_err(|e| e.to_string())?.join(name);
     if !source.exists() { return Err(format!("soterspace '{name}' does not exist")); }
     let status = Command::new("tar").arg("-cf").arg(destination).arg("-C")
