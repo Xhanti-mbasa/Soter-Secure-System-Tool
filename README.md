@@ -139,6 +139,9 @@ Install Rust, `arch-install-scripts`, and `pacman` on an Arch-based host. Instal
 ```bash
 cargo build --release
 sudo install -Dm755 target/release/soter /usr/local/bin/soter
+sudo install -Dm644 completions/_soter /usr/local/share/zsh/site-functions/_soter
+rm -f ~/.zcompdump*
+exec zsh
 sudo soter -c lab
 sudo soter -l
 sudo soter --apps curl,jq lab
