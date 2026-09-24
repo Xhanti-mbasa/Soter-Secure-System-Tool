@@ -1,0 +1,50 @@
+#compdef soter
+# Zsh completion for Soter.
+
+_soter_spaces() {
+  local -a spaces
+  spaces=(${(f)"$(command soter -l 2>/dev/null)"})
+  (( ${#spaces} )) && _describe 'soterspace' spaces
+}
+
+_soter() {
+  local context state line
+  typeset -A opt_args
+
+  _arguments -C \
+    '(-c --create)'{-c,--create}'[create a SoterSpace]' \
+    '(-e --empty)'{-e,--empty}'[create an empty SoterSpace]' \
+    '(-r --remove)'{-r,--remove}'[remove a SoterSpace]' \
+    '(-m --modify)'{-m,--modify}'[modify a SoterSpace]' \
+    '(-l --list)'{-l,--list}'[list SoterSpaces]' \
+    '(-a --all)'{-a,--all}'[include all SoterSpaces]' \
+    '(-T --temporary)'{-T,--temporary}'[mark SoterSpace temporary]' \
+    '(-U --unlock)'{-U,--unlock}'[remove SoterSpace password]' \
+    '--passwd[set SoterSpace password]:password:' \
+    '--shell[select shell]:shell:(bash zsh sh)' \
+    '--apps[install Arch apps]:packages:' \
+    '--flakes[add Nix browsers]:packages:(firefox chromium)' \
+    '--save[prepare persistent flake session storage]:flake:(firefox chromium)' \
+    '--tools[choose and install pentest tools]' \
+    '--case[create investigation folder]:case name:' \
+    '--scan[run SoterSpace security checks]' \
+    '--hash[create or compare core integrity hash]' \
+    '--kill[stop a running SoterSpace]' \
+    '--pause[pause a running SoterSpace]' \
+    '--resume[resume a paused SoterSpace]' \
+    '--network[select network mode]:mode:(open isolate)' \
+    '--openvpn[attach OpenVPN profile]:profile:_files' \
+    '--unsafe[relax strict network fail-closed behavior]' \
+    '--backup[back up a SoterSpace]' \
+    '--bzip[compress a backup]' \
+    '--bunzip[decompress a backup]' \
+    '--restore[restore a SoterSpace backup]:backup:_files' \
+    '(-h --human-readable)'{-h,--human-readable}'[human-readable output]' \
+    '(-E --extended-regexp)'{-E,--extended-regexp}'[use extended regular expressions]' \
+    '--help[display help]' \
+    '--version[display version]' \
+    '1:soterspace:_soter_spaces' \
+    '*::command:_normal'
+}
+
+_soter "$@"

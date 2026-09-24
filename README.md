@@ -131,3 +131,27 @@ Features documented in the project may represent planned functionality and shoul
 ## License
 
 See the `LICENSE` file for licensing information.
+
+## Soterspace quick start (Arch or CachyOS)
+
+Install Rust, `arch-install-scripts`, and `pacman` on an Arch-based host. Install the release binary on your PATH to launch it as `soter`. Workspace entry and app installation need root:
+
+```bash
+cargo build --release
+sudo install -Dm755 target/release/soter /usr/local/bin/soter
+sudo install -Dm644 completions/_soter /usr/local/share/zsh/site-functions/_soter
+rm -f ~/.zcompdump*
+exec zsh
+sudo soter -c lab
+sudo soter -l
+sudo soter --apps curl,jq lab
+sudo soter lab -- curl --version
+sudo soter --network isolate lab -- ip route
+sudo soter -r lab
+```
+
+Creation records the workspace without entering it. The first app installation or entry provisions a fresh Arch root with `pacstrap` and copies the host's pacman configuration and repository files into it. Subsequent `--apps` and `--tools` installs run pacman through `arch-chroot` in that workspace, so pacman's downloader can write to its package database and cache. They do not install host packages. If an earlier failed bootstrap left files without package database records, Soter preserves the incomplete root and asks you to create a fresh Soterspace. Reinstalling packages with `yay` changes only the host; it cannot repair the workspace database. `--tools` offers an interactive menu for selected security tools. Browsers are optional apps: exit an active workspace, then run `sudo soter --apps firefox lab` to install native Firefox and `sudo soter lab -- firefox --version` to verify it. On X11 desktops, install `xorg-xauth` on the host so Soter can pass your display authorization into each GUI session; reopen the Soterspace after installing a browser. `--flakes firefox lab` explicitly builds a Nix browser and adds a launcher; ordinary entry leaves existing launchers in place and does not invoke Nix. The Nix browser workflow requires Nix and must be run from this repository so its `flake.nix` is available.
+
+Default networking shares the host network, including its DNS resolver. `--network isolate` creates an offline namespace with no veth or NAT; it does not provide a routed isolated Internet connection. This is a demonstration feature and has not been validated as a containment boundary for untrusted programs. The older routed-network DNS and veth cleanup issue describes a design that is no longer the default.
+
+See [the spoken demo script](docs/demo-script.md) for a presentation under five minutes.

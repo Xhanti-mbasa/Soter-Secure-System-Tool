@@ -1,0 +1,20 @@
+name: Rust workspace
+on:
+  push:
+  pull_request:
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo test --workspace
+      - name: Workspace create/list/remove smoke test
+        run: |
+          cargo build --workspace
+          export XDG_STATE_HOME="$RUNNER_TEMP/soter-ci"
+          target/debug/soter --create demo
+          test "$(target/debug/soter --list)" = "demo"
+          test -f "$XDG_STATE_HOME/soter/spaces/demo/space.conf"
+          target/debug/soter --remove demo
+          test "$(target/debug/soter --list)" = "No soterspaces."
