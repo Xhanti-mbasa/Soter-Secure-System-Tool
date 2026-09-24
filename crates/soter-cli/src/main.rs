@@ -199,6 +199,17 @@ impl Cli {
     }
 }
 
+fn is_root() -> bool {
+    std::fs::read_to_string("/proc/self/status")
+        .ok()
+        .and_then(|status| {
+            status.lines().find(|line| line.starts_with("Uid:")).and_then(|line| {
+                line.split_whitespace().nth(2)?.parse::<u32>().ok()
+            })
+        })
+        == Some(0)
+}
+
 fn main() {
     let cli = Cli::parse().unwrap_or_else(|error| {
         eprintln!("soter: {error}");
@@ -265,9 +276,12 @@ fn main() {
         })
     } else if cli.create {
         match target.as_deref() {
+            Some(name) if !is_root() => Err(format!(
+                "creating soterspace '{name}' requires root privileges. Try: sudo soter -c {name}"
+            )),
             Some(name) => soterspace::create(name, cli.empty, cli.temporary).map(|space| {
                 println!("Created soterspace '{}' at {}.", space.name, space.path.display());
-                println!("Enter it with 'soter {}' or install apps with 'soter --apps curl,jq {}'.", name, name);
+                println!("Enter it with 'sudo soter {}' or install apps with 'sudo soter --apps curl,jq {}'.", name, name);
             }),
             None => Err("create requires a soterspace name".into()),
         }
