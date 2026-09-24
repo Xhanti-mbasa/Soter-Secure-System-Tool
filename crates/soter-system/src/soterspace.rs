@@ -109,21 +109,69 @@ pub fn remove_value(name: &str, key: &str) -> Result<(), String> {
     Ok(())
 }
 
+fn validate_rootfs(rootfs: &Path) -> Result<(), String> {
+    // A failed pacstrap can leave package files behind without installing their
+    // database records. Installing over that root produces thousands of file
+    // conflicts, so refuse to reuse it and preserve the files for inspection.
+    let mut packages = vec!["filesystem"];
+    for (file, package) in [
+        ("usr/share/man/man3/OSSL_PARAM_get_uint64.3ssl.gz", "openssl"),
+        ("usr/share/man/man3/pcre2api.3.gz", "pcre2"),
+    ] {
+        if rootfs.join(file).exists() {
+            packages.push(package);
+        }
+    }
+    let output = Command::new("pacman")
+        .arg("--root").arg(rootfs).arg("-Q").args(&packages)
+        .output()
+        .map_err(|e| format!("failed to inspect the workspace package database: {e}"))?;
+    if !output.status.success() || !rootfs.join("usr/bin/env").is_file() {
+        return Err(format!(
+            "workspace root '{}' has files but its package database is incomplete; keep it for recovery and create a new Soterspace instead",
+            rootfs.display()
+        ));
+    }
+    Ok(())
+}
+
+fn configure_guest_pacman(rootfs: &Path) -> Result<(), String> {
+    let guest_conf = rootfs.join("etc/pacman.conf");
+    if !guest_conf.is_file() {
+        fs::copy("/etc/pacman.conf", &guest_conf)
+            .map_err(|e| format!("failed to configure workspace pacman: {e}"))?;
+    }
+    let guest_dir = rootfs.join("etc/pacman.d");
+    fs::create_dir_all(&guest_dir).map_err(|e| e.to_string())?;
+    // CachyOS and other Arch derivatives may include repository mirror files
+    // beyond the single mirrorlist that pacstrap copies by default.
+    let status = Command::new("cp")
+        .args(["-a", "-n", "/etc/pacman.d/."])
+        .arg(&guest_dir)
+        .status()
+        .map_err(|e| format!("failed to copy workspace pacman configuration: {e}"))?;
+    if !status.success() { return Err("failed to copy workspace pacman configuration".into()); }
+    Ok(())
+}
+
 fn provision_rootfs(rootfs: &Path) -> Result<(), String> {
-    if rootfs.join("usr/bin/env").exists() { return Ok(()); }
+    if fs::read_dir(rootfs).map_err(|e| e.to_string())?.next().is_some() {
+        validate_rootfs(rootfs)?;
+        return configure_guest_pacman(rootfs);
+    }
 
     let status = Command::new("pacstrap")
-        .args(["-c", "-G", "-M"])
+        .args(["-c", "-P"])
         .arg(rootfs)
         .args(["base", "bash", "coreutils", "util-linux", "iproute2"])
         .status()
         .map_err(|e| format!("failed to start pacstrap: {e}; install arch-install-scripts to provision Soterspaces"))?;
 
-    if status.success() {
-        Ok(())
-    } else {
-        Err(format!("root filesystem provisioning failed with status {status}"))
+    if !status.success() {
+        return Err(format!("root filesystem provisioning failed with status {status}; keep the partial root for inspection"));
     }
+    validate_rootfs(rootfs)?;
+    configure_guest_pacman(rootfs)
 }
 
 /// Install native Arch packages into a Soterspace without touching the host package set.
@@ -137,12 +185,12 @@ pub fn install_apps(name: &str, packages: &[String]) -> Result<(), String> {
     }
     let rootfs = rootfs_path(name)?;
     provision_rootfs(&rootfs)?;
-    let status = Command::new("pacstrap")
-        .args(["-c", "-G", "-M"])
-        .arg(&rootfs)
+    let status = Command::new("pacman")
+        .arg("--root").arg(&rootfs)
+        .args(["-Syu", "--needed", "--noconfirm"])
         .args(packages)
         .status()
-        .map_err(|e| format!("failed to install apps with pacstrap: {e}; install arch-install-scripts"))?;
+        .map_err(|e| format!("failed to install workspace apps with pacman: {e}"))?;
     if !status.success() { return Err(format!("app installation failed with status {status}")); }
     let _ = invalidate_core_hash(name)?;
     println!("Installed {} into Soterspace '{name}'.", packages.join(", "));
