@@ -134,18 +134,20 @@ See the `LICENSE` file for licensing information.
 
 ## Soterspace quick start (Arch or CachyOS)
 
-Install Rust and `arch-install-scripts`, then run `cargo build --workspace`. Workspace entry and app installation require root, so use `sudo` consistently for the commands below:
+Install Rust, `arch-install-scripts`, and `pacman` on an Arch-based host. Install the release binary on your PATH to launch it as `soter`. Workspace entry and app installation need root:
 
 ```bash
-sudo ./target/debug/soter -c lab
-sudo ./target/debug/soter -l
-sudo ./target/debug/soter --apps curl,jq lab
-sudo ./target/debug/soter lab -- curl --version
-sudo ./target/debug/soter --network isolate lab -- ip route
-sudo ./target/debug/soter -r lab
+cargo build --release
+sudo install -Dm755 target/release/soter /usr/local/bin/soter
+sudo soter -c lab
+sudo soter -l
+sudo soter --apps curl,jq lab
+sudo soter lab -- curl --version
+sudo soter --network isolate lab -- ip route
+sudo soter -r lab
 ```
 
-Creation records the workspace without entering it. The first app installation or entry provisions its Arch root filesystem using `pacstrap`. `--apps` installs Arch packages only inside the workspace root filesystem. `--tools` offers an interactive menu for selected security tools. `--flakes firefox lab` explicitly builds a Nix browser and adds a launcher; ordinary entry leaves existing launchers in place and does not invoke Nix. The Nix browser workflow requires Nix and must be run from this repository so its `flake.nix` is available.
+Creation records the workspace without entering it. The first app installation or entry provisions a fresh Arch root with `pacstrap` and copies the host's pacman configuration and repository files into it. Subsequent `--apps` and `--tools` installs use `pacman --root` inside that workspace. They do not install host packages. If an earlier failed bootstrap left files without package database records, Soter preserves the incomplete root and asks you to create a fresh Soterspace. Reinstalling packages with `yay` changes only the host; it cannot repair the workspace database. `--tools` offers an interactive menu for selected security tools. `--flakes firefox lab` explicitly builds a Nix browser and adds a launcher; ordinary entry leaves existing launchers in place and does not invoke Nix. The Nix browser workflow requires Nix and must be run from this repository so its `flake.nix` is available.
 
 Default networking shares the host network, including its DNS resolver. `--network isolate` creates an offline namespace with no veth or NAT; it does not provide a routed isolated Internet connection. This is a demonstration feature and has not been validated as a containment boundary for untrusted programs. The older routed-network DNS and veth cleanup issue describes a design that is no longer the default.
 
