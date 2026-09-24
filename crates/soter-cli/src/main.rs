@@ -314,6 +314,10 @@ fn main() {
             soterspace::set_value(name, "openvpn.conf", &value).map(|_| println!("OpenVPN configuration saved for '{name}'."))
         } else if cli.modify {
             Err("modify requires a setting such as --passwd, --network, or --openvpn".into())
+        } else if !is_root() {
+            Err(format!(
+                "entering soterspace '{name}' requires root privileges. Try: sudo soter {name}"
+            ))
         } else {
             let command = cli.arguments.iter().skip(1).cloned().collect::<Vec<_>>();
             soterspace::enter_or_run(name, &command, cli.shell.as_deref(), &cli.flakes, cli.network_mode.as_deref()).and_then(|code| {
