@@ -116,7 +116,7 @@ fn validate_rootfs(rootfs: &Path) -> Result<(), String> {
     let mut packages = vec!["filesystem"];
     for (file, package) in [
         ("usr/share/man/man3/OSSL_PARAM_get_uint64.3ssl.gz", "openssl"),
-        ("usr/share/man/man3/pcre2api.3.gz", "pcre2"),
+        ("usr/bin/pcre2-config", "pcre2"),
     ] {
         if rootfs.join(file).exists() {
             packages.push(package);
