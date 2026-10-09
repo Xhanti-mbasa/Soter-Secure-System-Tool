@@ -1,4 +1,16 @@
-# Sothis 0.2.0 validation
+# Sothis validation
+
+## Version 0.3.0
+
+- Official Parliament directory capture: 18 parties, 449 unique public representative IDs; explicit party codes, total count and duplicates validated. Individual party pages were observed to have missing/stale entries, so the combined public directory is the roster source.
+- June 2026 official public interests PDF parsed and 353 business extracts matched by party and name tokens. Business sections 1–4 retain PDF locators, capture times and SHA-256; residential-property sections are excluded from dossier extracts. Unmatched members retain an original register link.
+- Gwede Mantashe’s public Parliament page and government biography were retrieved. Minister/Deputy Minister/Deputy President rates and effective date were visually verified on PDF page 3 of Gazette 53965, Notice 7004 (16 January 2026). The app labels these as dated office rates, not verified personal pay.
+- 33 Python regression checks passed, including roster completeness, duplicate/unknown-party rejection, featured-member exclusion, member-page role isolation, failed-refresh preservation, changed-role salary handling, disclosure boundaries and topic/name matching.
+- Three Playwright suites passed: existing collection features, standalone discovery/tools and Party. Party exercised ANC search routing, representative filtering, dossier facts and provenance, category queries, export, investigation pinning, alerts, failed-refresh fallback, dossier-referenced originals in the evidence manifest and mobile width, through engine and native-bridge paths.
+- Java compiled against Android SDK 35; signed APK verification passed. Package `za.co.zalens`, versionCode 3, versionName 0.3.0, minSdk 26, targetSdk 35. Existing development signing key retained.
+- No physical Android device/emulator execution occurred in this environment. Native networking, notification delivery and background jobs still require device verification; the bridge tests exercise the interface contract.
+
+## Version 0.2.0
 
 Validated on 9 October 2026.
 

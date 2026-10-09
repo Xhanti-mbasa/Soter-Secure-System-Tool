@@ -2,11 +2,17 @@
 // Features shared by the native, disconnected Android client and the engine UI.
 const indexedSearch=search, originalTab=tab, originalDetail=detail, originalExport=exportCase;
 const transportAPI=api;
-api=async function(path,method='GET',data){const device=native()&&!state.connected&&/^\/api\/(discover|tenders|monitors|alerts)(?:$|\/)/.test(path);return transportAPI(device?path.replace('/api/','/api/device/'):path,method,data)};
+api=async function(path,method='GET',data){const device=native()&&!state.connected&&/^\/api\/(discover|tenders|monitors|alerts|parties|party|member)(?:$|\/)/.test(path);return transportAPI(device?path.replace('/api/','/api/device/'):path,method,data)};
 const publicPlatforms=['Instagram','Facebook','LinkedIn','X / Twitter','TikTok','YouTube'];
 Object.assign(state,{discovery:null,tenders:[],bidSelected:new Set(),tenderOffset:0,liveSerial:0});
 const reviewed=()=>readLocal('sothis-ownership',{});
 const evidenceFiles=()=>readLocal('sothis-evidence-files',[]);
+function evidenceForPins(pins){
+ const canonical=url=>{try{const u=new URL(url);u.hash='';return u.href}catch(e){return url}};
+ const urls=new Set();for(const d of pins){urls.add(canonical(d.url));for(const m of (d.text||'').matchAll(/^Source: (https?:\/\/\S+)/gm))urls.add(canonical(m[1]));}
+ return evidenceFiles().filter(f=>urls.has(canonical(f.url)));
+}
+
 const button=(label,action,cls='small')=>{const b=el('button',cls,label);b.type='button';b.onclick=action;return b};
 const field=(box,label,input)=>{const d=el('div','field');input.setAttribute('aria-label',label);d.append(el('label','',label),input);box.append(d);return input};
 const supported=()=>native()||state.connected;
@@ -71,6 +77,7 @@ function toolsHome(){
  ['Public web & social discovery','Retrieve indexed hits, compare profile candidates and record ownership decisions.',()=>{tab('search');$('search-mode').value='live'},'Search public web'],
  ['CIPC / BizProfile','Registration numbers are normalised. Authorised disclosures can be imported and monitored through your engine.',()=>{tab('search');$('search-mode').value='company'},'Company lookup'],
  ['eTenders','Live opportunities, award searches, notices and a bid preparation queue.',()=>openTenders('','open'),'Open tender workspace'],
+ ['Party','Browse public representatives and sourced member dossiers. Search a party, review disclosures and watch public mentions.',()=>tab('party'),'Open Party'],
  ['Government collectors','Choose jobs, tenders, e-services and departmental sources below. Collection progress appears while your engine runs.',()=>{$('source-query').focus();$('source-query').scrollIntoView({block:'center'})},'Choose collector']
  ]){const c=el('article','source');c.append(el('h3','',title),el('p','muted',description),button(label,action));grid.append(c)}box.append(grid);
  const header=el('div','sectionhead');header.append(el('h2','','Alerts & triggers'),button('New alert',()=>editMonitor(),'primary'));box.append(header);
@@ -87,7 +94,7 @@ async function loadMonitoring(){
  }catch(e){$('monitor-list').replaceChildren(el('div','note error',e.message))}
 }
 function editMonitor(rule){
- const box=modal(rule?'Edit monitoring rule':'Create alert');const query=el('input');query.value=rule?.query||$('query').value.trim();query.setAttribute('aria-label','Alert query');field(box,'Person, business number or keyword',query);
+ const box=modal(rule?.id?'Edit monitoring rule':'Create alert');const query=el('input');query.value=rule?.query||$('query').value.trim();query.setAttribute('aria-label','Alert query');field(box,'Person, business number or keyword',query);
  box.append(el('h3','','Services to watch'));const choices={};for(const [id,label]of [['web','Public web'],['social','Social profile candidates'],['government','Government web'],['cipc','CIPC disclosures imported into engine'],['tenders','New open tender notices']]){const l=el('label','trigger'),c=el('input');c.type='checkbox';c.checked=rule?rule.services.includes(id):id==='web';choices[id]=c;l.append(c,el('span','',label));box.append(l)}
  const condition=el('select');option(condition,'new_hit','New matching record or profile');option(condition,'changed_hit','Changed text in a previously seen record');condition.value=rule?.condition||'new_hit';field(box,'Trigger condition',condition);
  const required=el('input');required.value=rule?.required_text||'';required.placeholder='Optional extra phrase';field(box,'Only alert when result also contains',required);
@@ -116,8 +123,8 @@ function renderBids(){const box=$('bid-queue');box.replaceChildren();const bids=
  for(const b of bids){const c=el('div','case');c.append(el('h3','',b.notice.tender_No+' · '+b.company.name),el('p','muted',b.status+' · '+b.checked.length+'/'+b.checklist.length+' checks complete'),button('Open bid pack',()=>editBid(b)));box.append(c)}}
 function editBid(b){const box=modal('Bid pack · '+b.notice.tender_No);box.append(el('p','muted',b.notice.description),el('p','mono muted',b.company.number+' · '+b.company.name));const checked=new Set(b.checked);for(const [i,label]of b.checklist.entries()){const l=el('label','trigger'),c=el('input');c.type='checkbox';c.checked=checked.has(i);c.onchange=()=>c.checked?checked.add(i):checked.delete(i);l.append(c,el('span','',label));box.append(l)}const notes=el('textarea');notes.value=b.notes;field(box,'Bid-specific preparation notes',notes);const receipt=el('input');receipt.value=b.receipt;field(box,'Official submission receipt / reference',receipt);
  box.append(button(b.notice.eSubmission?'Open portal eSubmission':'Open specified submission instructions',()=>openExternal(submissionURL(b.notice))),button('Save bid pack',()=>{const bids=readLocal('sothis-bids',[]),updated={...b,checked:[...checked],notes:notes.value,receipt:receipt.value,status:receipt.value.trim()?'submitted (researcher recorded)':'draft'};saveLocal('sothis-bids',bids.map(x=>x.id===b.id?updated:x));closeDetail();renderBids();toast('Bid pack saved')}));}
-exportCase=async function(c){await originalExport(c);$('dialog').append(button('Download evidence bundle',async()=>{try{const report=state.connected?(await api('/api/cases/'+c.id+'/export')).content:offlineReport(c);const pins=(c.pins||[]).map(id=>state.docs.get(id)).filter(Boolean);const bundle={title:c.title,report,documents:pins,account_reviews:reviewed(),verification_notes:readLocal('sothis-review-notes',{}),evidence:evidenceFiles().filter(x=>pins.some(p=>p.url===x.url))};if(native()&&Native.bundle)Native.bundle('sothis-evidence.zip',JSON.stringify(bundle));else saveReport('sothis-evidence.json',JSON.stringify(bundle,null,2),'application/json')}catch(e){noticeDialog(e.message)}}));};
-const previousReport=offlineReport;offlineReport=function(c){return previousReport(c).replace('This brief contains selected evidence from a bundled/cached snapshot.','This brief contains selected government or public search-index evidence. Downloaded originals are listed separately.')+'\n\n## Local evidence archive\n\n'+evidenceFiles().filter(f=>(c.pins||[]).some(id=>state.docs.get(id)?.url===f.url)).map(f=>f.url+'\nRetrieved: '+f.retrieved_at+'\nOriginal SHA-256: '+f.sha256+'\nBytes: '+f.bytes).join('\n\n')};
+exportCase=async function(c){await originalExport(c);$('dialog').append(button('Download evidence bundle',async()=>{try{const report=state.connected?(await api('/api/cases/'+c.id+'/export')).content:offlineReport(c);const pins=(c.pins||[]).map(id=>state.docs.get(id)).filter(Boolean);const bundle={title:c.title,report,documents:pins,account_reviews:reviewed(),verification_notes:readLocal('sothis-review-notes',{}),evidence:evidenceForPins(pins)};if(native()&&Native.bundle)Native.bundle('sothis-evidence.zip',JSON.stringify(bundle));else saveReport('sothis-evidence.json',JSON.stringify(bundle,null,2),'application/json')}catch(e){noticeDialog(e.message)}}));};
+const previousReport=offlineReport;offlineReport=function(c){return previousReport(c).replace('This brief contains selected evidence from a bundled/cached snapshot.','This brief contains selected government or public search-index evidence. Downloaded originals are listed separately.')+'\n\n## Local evidence archive\n\n'+evidenceForPins((c.pins||[]).map(id=>state.docs.get(id)).filter(Boolean)).map(f=>f.url+'\nRetrieved: '+f.retrieved_at+'\nOriginal SHA-256: '+f.sha256+'\nBytes: '+f.bytes).join('\n\n')};
 tab=function(name){originalTab(name);if(name==='sources')toolsHome();if(name==='tenders')renderBids();document.querySelector('[data-tab=sources]').classList.toggle('active',name==='sources'||name==='tenders');};
 
 async function textHash(value){if(native()&&Native.sha256)return Native.sha256(value);if(crypto.subtle){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(value));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}return 'Hash unavailable on this device';}

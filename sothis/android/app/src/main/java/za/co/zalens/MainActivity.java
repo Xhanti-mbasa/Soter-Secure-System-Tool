@@ -121,6 +121,10 @@ public final class MainActivity extends Activity {
                 return new String(out.toByteArray(), StandardCharsets.UTF_8);
             } catch (Exception e) { return "{\"documents\":[],\"sources\":[]}"; }
         }
+        @JavascriptInterface public String partySnapshot() {
+            try { return PartyServices.snapshot(MainActivity.this); }
+            catch(Exception e) { return "{\"parties\":[],\"profiles\":{},\"remuneration_schedules\":[]}"; }
+        }
         @JavascriptInterface public String configure(String value, String token) {
             try {
                 value=value.trim().replaceAll("/+$", "");

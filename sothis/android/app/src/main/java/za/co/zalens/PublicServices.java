@@ -74,13 +74,19 @@ public final class PublicServices {
             .put("content_hash",hash(title+"\n"+description)).put("acquisition","search_index");
     }
     public JSONObject discover(String query,String scope,boolean fresh) throws Exception {
+        return discover(query,scope,fresh,"");
+    }
+    public JSONObject discover(String query,String scope,boolean fresh,String topic) throws Exception {
         query=query.trim();if(query.length()<2||query.length()>160)throw new IOException("Enter 2–160 characters");
         if(!Arrays.asList("all","social","government","company").contains(scope))throw new IOException("Unsupported search scope");
-        String cacheKey="cache-"+hash(query.toLowerCase(Locale.US)+scope);String cache=prefs.getString(cacheKey,"");
+        String topicTerms=topic.equals("education")?"(education OR university OR qualifications OR degree)":topic.equals("remuneration")?"(salary OR salaries OR remuneration)":topic.equals("news")?"news":"";
+        if(!topic.isEmpty()&&topicTerms.isEmpty())throw new IOException("Unsupported discovery topic");
+        String cacheKey="cache-"+hash(query.toLowerCase(Locale.US)+scope+topic);String cache=prefs.getString(cacheKey,"");
         if(!fresh&&!cache.isEmpty()&&System.currentTimeMillis()-prefs.getLong(cacheKey+"-time",0)<300000)return new JSONObject(cache).put("cached",true);
         String reg=registration(query),q=(reg.isEmpty()?query:reg).replace("\"","");
         String social="(site:instagram.com OR site:facebook.com OR site:linkedin.com/in OR site:x.com OR site:twitter.com OR site:tiktok.com/@ OR site:youtube.com/@)";
         List<String> queries=new ArrayList<>();queries.add(q+(scope.equals("social")?" "+social:scope.equals("government")?" (site:gov.za OR site:parliament.gov.za)":scope.equals("company")?" (company OR CIPC OR enterprise)":""));
+        if(!topicTerms.isEmpty())queries.set(0,queries.get(0)+" "+topicTerms);
         // One public request per search avoids multiplying best-effort provider traffic.
         Map<String,JSONObject> hits=new LinkedHashMap<>();JSONArray statuses=new JSONArray();
         for(String search:queries) {
@@ -108,7 +114,7 @@ public final class PublicServices {
             statuses.put(new JSONObject().put("service","eTenders supplier index").put("status","completed").put("retrieved",companies.length()));
         } catch(Exception e) {statuses.put(new JSONObject().put("service","eTenders supplier index").put("status","unavailable").put("detail",e.getMessage()));}
         List<JSONObject> sorted=new ArrayList<>(hits.values());Collections.sort(sorted,new Comparator<JSONObject>(){public int compare(JSONObject a,JSONObject b){return b.optInt("match_score")-a.optInt("match_score");}});JSONArray results=new JSONArray();int accounts=0;for(JSONObject h:sorted){results.put(h);if(!h.isNull("platform"))accounts++;}
-        JSONObject result=new JSONObject().put("query",query).put("registration_number",reg.isEmpty()?JSONObject.NULL:reg).put("results",results).put("hit_count",results.length()).put("account_count",accounts).put("companies",companies).put("statuses",statuses).put("retrieved_at",stamp()).put("cached",false)
+        JSONObject result=new JSONObject().put("query",query).put("topic",topic).put("registration_number",reg.isEmpty()?JSONObject.NULL:reg).put("results",results).put("hit_count",results.length()).put("account_count",accounts).put("companies",companies).put("statuses",statuses).put("retrieved_at",stamp()).put("cached",false)
             .put("cipc",new JSONObject().put("status","authorised_access_required").put("url","https://www.bizportal.gov.za/").put("detail","BizProfile requires login. Import an authorised disclosure; a missing public hit does not mean the company is unregistered."))
             .put("coverage","Counts describe retrieved unique hits and profile candidates. Index coverage is incomplete. Account ownership needs your review.");
         if(!fresh)prefs.edit().putString(cacheKey,result.toString()).putLong(cacheKey+"-time",System.currentTimeMillis()).apply();return result;
@@ -163,7 +169,10 @@ public final class PublicServices {
     }
     public String execute(String route,String method,String body) throws Exception {
         JSONObject data=new JSONObject(body);
-        if(route.equals("/api/discover")&&method.equals("POST"))return discover(data.optString("query"),data.optString("scope","all"),false).toString();
+        if(route.equals("/api/parties")&&method.equals("GET"))return new PartyServices(context).catalog().toString();
+        if(route.equals("/api/party")&&method.equals("POST"))return new PartyServices(context).party(data.optString("code"),data.optBoolean("refresh",false)).toString();
+        if(route.equals("/api/member")&&method.equals("POST"))return new PartyServices(context).member(data.optString("id"),data.optBoolean("refresh",false)).toString();
+        if(route.equals("/api/discover")&&method.equals("POST"))return discover(data.optString("query"),data.optString("scope","all"),false,data.optString("topic","")).toString();
         if(route.equals("/api/tenders")&&method.equals("POST"))return tenders(data.optString("query"),data.optString("status","open"),data.optInt("start",0),data.optString("search_by","keyword")).toString();
         if(route.equals("/api/monitors"))return method.equals("GET")?rules().toString():saveRule(data).toString();
         if(route.equals("/api/monitors/check")&&method.equals("POST"))return check(data.optString("id")).toString();

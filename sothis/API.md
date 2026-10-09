@@ -42,3 +42,12 @@ Monitor JSON: optional `id` to update, `query`, `services` from `web|social|gove
 Import accepts optional `record_key` (1–80 alphanumeric/underscore/hyphen characters) to distinguish disclosures sharing a portal source URL. The resulting `#sothis-import-...` anchor is explicitly local provenance, not an official CIPC ID.
 
 Evidence JSON: `url`. The engine enforces public-host, robots and bounded fetch rules, archives raw bytes and returns SHA-256, MIME, length and retrieval time. Android has a separate native `/api/device/evidence` route with a 16 MiB limit, public-address/HTTPS redirect checks and a device-private archive. Native `/api/device/discover`, `/tenders`, `/monitors`, `/monitors/check` and `/alerts` bypass unavailable engine configuration for phone-local services. These routes are a bridge contract, not exposed engine endpoints. Native ZIP export includes only selected archived originals. Device rules use JobScheduler and optional notifications; they do not synchronize with engine rules.
+
+## Party (0.3.0)
+
+- `GET /api/parties?q=ANC`: filter the captured party catalog. Returns codes, names, member counts, capture times, sources and coverage.
+- `POST /api/party` with `{"code":"ANC","refresh":false}`: the selected public representative roster. With `refresh:true`, retrieve Parliament’s public member directory, validate its count/IDs/party codes and replace that party’s roster only after a complete successful parse. `refresh_unavailable` returns the preserved roster and failure detail.
+- `POST /api/member` with `{"id":"5975","refresh":true}`: public member summary, source/capture dates, matched dated business-interest extract, any sourced public biography entries, applicable dated executive salary schedule, and register links. Membership differences are flagged. Unknown IDs/codes are refused; callers cannot supply an arbitrary source URL.
+- `POST /api/discover` also accepts `topic:"education"`, `"remuneration"`, `"news"` or an empty string. Topic terms change the provider query; identity relevance is matched against the person’s name. Topics have distinct five-minute caches.
+
+Android supports the same Party operations through `/api/device/parties`, `/api/device/party` and `/api/device/member`, without an engine. A failed refresh does not turn a saved member list into a false zero-result roster. Public representatives’ published party fields are used; political affiliation is not inferred from news mentions.

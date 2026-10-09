@@ -93,16 +93,19 @@ def normalize_hit(hit,query):
 class PublicServices:
     def __init__(self, reader=None):
         self.read=reader or read;self.cache={};self.lock=threading.Lock()
-    def discover(self,query,scope='all',fresh=False):
+    def discover(self,query,scope='all',fresh=False,topic=''):
         query=text(query)[:160]
         if len(query)<2:raise ValueError('Enter at least two characters')
         if scope not in ('all','social','government','company'):raise ValueError('Unknown discovery scope')
-        key=(query.casefold(),scope)
+        topics={'':'', 'education':'(education OR university OR qualifications OR degree)', 'remuneration':'(salary OR salaries OR remuneration)', 'news':'news'}
+        if topic not in topics:raise ValueError('Unknown discovery topic')
+        key=(query.casefold(),scope,topic)
         with self.lock:cached=self.cache.get(key)
         if cached and not fresh and time.time()-cached[0]<300:return {**cached[1],'cached':True}
         reg=registration(query);q=(reg or query).replace('"','')
         social='(site:instagram.com OR site:facebook.com OR site:linkedin.com/in OR site:x.com OR site:twitter.com OR site:tiktok.com/@ OR site:youtube.com/@)'
         queries=[q] if scope=='all' else [q+' '+social] if scope=='social' else [q+' (site:gov.za OR site:parliament.gov.za)'] if scope=='government' else [q+' (company OR CIPC OR enterprise)']
+        if topic:queries=[search+' '+topics[topic] for search in queries]
         key_api=os.getenv('SOTHIS_BRAVE_API_KEY','');hits={};statuses=[]
         for search in queries:
             try:
@@ -130,7 +133,7 @@ class PublicServices:
                 companies=[{'record':x,'source_url':TENDERPORTAL,'authority':'eTenders supplier index; not a CIPC registration certificate'} for x in rows if re.sub(r'\D','',reg) in re.sub(r'\D','',json.dumps(x))][:20] if isinstance(rows,list) else []
                 statuses.append({'service':'eTenders supplier index','status':'completed','retrieved':len(companies)})
             except Exception as e:statuses.append({'service':'eTenders supplier index','status':'unavailable','detail':str(e)[:240]})
-        result=dict(query=query,registration_number=reg,results=sorted(hits.values(),key=lambda r:-r['match_score']),
+        result=dict(query=query,topic=topic,registration_number=reg,results=sorted(hits.values(),key=lambda r:-r['match_score']),
             hit_count=len(hits),account_count=sum(bool(r['platform']) for r in hits.values()),statuses=statuses,
             companies=companies,cipc={'status':'authorised_access_required','url':BIZPORTAL,
              'detail':'BizProfile requires login. Import an authorised disclosure to search and monitor CIPC records in your engine.'},

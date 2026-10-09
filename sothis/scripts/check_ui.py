@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run both UI suites against an isolated seeded engine in one process context."""
+"""Run UI suites against an isolated seeded engine in one process context."""
 import argparse,json,os,subprocess,tempfile,threading,zipfile
 from pathlib import Path
 import sys
@@ -20,5 +20,5 @@ with tempfile.TemporaryDirectory() as tmp:
  env={**os.environ,'PLAYWRIGHT_MODULE':args.playwright}
  if chrome:env['CHROME_EXECUTABLE']=chrome
  try:
-  for suite in ('ui_smoke.cjs','features_smoke.cjs'):subprocess.run(['node',str(ROOT/'tests'/suite)],env=env,check=True,timeout=110,cwd=ROOT)
+  for suite in ('ui_smoke.cjs','features_smoke.cjs','party_smoke.cjs'):subprocess.run(['node',str(ROOT/'tests'/suite)],env=env,check=True,timeout=110,cwd=ROOT)
  finally:server.shutdown();server.server_close()

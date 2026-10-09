@@ -2,13 +2,14 @@
 
 South African public-records research: an Android client and an independent document-collection/search engine. The Android app uses a bundled local interface, with a native bridge for engine connections, browser handoff, sharing, and file export.
 
-Version **0.2.0** fixes the snapshot-only search limitation. A name or registration-number search defaults to live public discovery. Android performs public discovery and eTenders queries directly without a hosted engine; an engine still provides government collection, shared evidence and server monitoring.
+Version **0.3.0** adds Party search and sourced public representative dossiers. Version 0.2.0 fixed the snapshot-only search limitation. A name or registration-number search defaults to live public discovery. Android performs public discovery and eTenders queries directly without a hosted engine; an engine still provides government collection, shared evidence and server monitoring.
 
 ## Install and use
 
-Install `releases/sothis-0.2.0.apk` on Android 8.0+. It uses the same package and development signing key as 0.1.0, so it can update that installation while retaining app data. The signing key is excluded from Git.
+Install `releases/sothis-0.3.0.apk` on Android 8.0+. It uses the same package and development signing key as 0.1.0 and 0.2.0, so it can update that installation while retaining app data. The signing key is excluded from Git.
 
 - **Search:** choose Live public web, Social profiles, Live government web, Companies / CIPC, or Saved government collection. Live results show retrieved unique hits, profile candidates, name-match ranking, provider availability, retrieval dates and a platform footprint. Account ownership requires a saved researcher decision. Posts, share links and TikTok discovery pages are not counted as accounts.
+- **Party:** search ANC, DA, EFF or another listed party from Search or the Party tab. Browse the captured Parliament roster, filter representatives by name, refresh the official directory, and open member dossiers. Profiles retrieve current public member pages and group live mentions into government, news, remuneration, education, business and social categories. Pin/export a sourced dossier or create a mention alert.
 - **Company lookup:** slash, hyphen, spaced and compact enterprise numbers are normalised. Public web and eTenders supplier-index results appear when available. CIPC access is explicitly shown as requiring login. Add an authorised company disclosure, keep business activities/status with provenance, search imported records, and use the company name for supplier award searches.
 - **Tools:** public discovery, company lookup, eTenders and the national/provincial source directory. Select up to ten public collectors for jobs, tenders, e-services or departmental sites. Engine progress shows the source, URL, request count and indexed passages.
 - **Alerts:** choose web, social profiles, government web, imported CIPC disclosures or open tender notices; select new-hit or changed-text conditions, an optional required phrase and interval. Check now, pause/resume and view the inbox. First successful checks establish baselines. Enable Android notifications from Tools.
@@ -22,6 +23,20 @@ The app uses internet access, optional notification permission and a persisted A
 ## Included engine foundations
 
 National government plus all nine provinces, HTML/text-bearing PDF ingestion, per-source allowlists/path scopes, robots.txt checks, bounded crawling, SQLite FTS5 search, date/source/category/province filters, PDF page references, version history, raw archives, hashes and traceable report exports. Device and engine investigations/monitoring rules remain separate. There is no automatic migration when connecting or disconnecting.
+
+## Party sources and coverage
+
+The bundled directory captures **18 parties and 449 Parliament-listed representatives** on 9 October 2026. It covers the published National Assembly/NCOP directory, not every party member nationwide or all provincial/local officeholders. Counts describe the captured directory and are not election seat totals. The primary roster is https://www.parliament.gov.za/members-of-parliament ; its embedded public member JSON gives explicit party codes. Some individual party pages are absent or stale, so they are not used to invent missing members. Refresh validates total count, unique IDs and known party codes before replacing the selected roster. Errors keep the prior capture and display the failure.
+
+The June 2026 public members’ interests register supplies **353 matched business-interest extracts** in this capture. Matching requires an explicit party and the same name tokens, allowing the register’s surname-first ordering. Unmatched members link to the public register for manual review. Extracts retain PDF page ranges, capture date and text hash and include shares, outside remunerated work, directorships/partnerships and consultancies. Residential property/contact details are not included in these extracts. This is a dated self-declaration, not a CIPC certificate or proof of every current company relationship. Original registers: https://www.parliament.gov.za/register-members-Interests .
+
+Gwede Mantashe’s example profile contains public education statements and historical business roles paraphrased from his government biography, with source links. Other members load their public roles from Parliament on opening; the Public education category searches for additional published biographies/qualifications. Private schooling records are not provided. Historical roles stay separate from dated declarations and unverified web mentions.
+
+Executive remuneration uses an explicitly dated gazetted office schedule (published 16 January 2026, effective 1 April 2025), matched only to an explicit Minister, Deputy Minister or Deputy President title. These are annual office remuneration figures, not personal payslips or a claim about subsequent rates. No ordinary MP salary is guessed from a roster entry; unmatched offices link to the official determinations. Gazette: https://www.gov.za/sites/default/files/gcis_document/202601/53965gon7004.pdf . Live Salary records searches can find later material for review.
+
+Phone rosters/member summaries and dossier evidence persist locally. The engine keeps refreshed party data for its running session; restart returns to the bundled capture. Web grouping is a text-based suggestion, not verified identity or affiliation. Party alerts monitor public mentions through the existing selected services; they are not a comprehensive party membership-change feed. Dossiers export source links, capture dates, salary period, declaration page locators and retrieved mentions. Evidence bundles include downloaded originals referenced by the selected dossier.
+
+To update the next APK’s capture, run `python3 scripts/update_party_snapshot.py`. To rebuild business-interest extracts as well, provide `--interests-pdf /path/to/official-register.pdf`; verify the register URL/period constants before using a newer publication. The script validates public roster data and does not import private records.
 
 ## Start the engine
 

@@ -9,6 +9,7 @@ from pathlib import Path
 from .connectors import Connector
 from .core import now, digest
 from .services import PublicServices, Monitoring
+from .parties import PartyService
 
 class LensServer(ThreadingHTTPServer):
     daemon_threads = True
@@ -21,6 +22,7 @@ class LensServer(ThreadingHTTPServer):
         self.job = None
         self.job_lock = threading.Lock()
         self.services = PublicServices()
+        self.parties = PartyService()
         self.monitoring = Monitoring(store,self.services)
 
     def server_close(self):
@@ -66,7 +68,7 @@ class Handler(BaseHTTPRequestHandler):
                     if not isinstance(data,dict): raise ValueError('JSON object required')
                 else: data = {}
                 return self.api(method,path,urllib.parse.parse_qs(parsed.query),data)
-            if method == 'GET' and self.server.web_dir and path in ('/','/index.html','/snapshot.json','/features.js'):
+            if method == 'GET' and self.server.web_dir and path in ('/','/index.html','/snapshot.json','/features.js','/parties.js','/party-data.json'):
                 name = 'index.html' if path in ('/','/index.html') else path.lstrip('/')
                 file = self.server.web_dir/name
                 if file.exists():
@@ -79,9 +81,15 @@ class Handler(BaseHTTPRequestHandler):
     def api(self, method, path, params, data):
         store = self.server.store
         if method == 'GET' and path == '/api/health':
-            return self.send(200,{'ok':True,'version':'0.2.0',**store.stats()})
+            return self.send(200,{'ok':True,'version':'0.3.0',**store.stats()})
+        if path == '/api/parties' and method == 'GET':
+            return self.send(200,self.server.parties.catalog(params.get('q',[''])[0]))
+        if path == '/api/party' and method == 'POST':
+            return self.send(200,self.server.parties.party(data.get('code',''),data.get('refresh') is True))
+        if path == '/api/member' and method == 'POST':
+            return self.send(200,self.server.parties.member(data.get('id',''),data.get('refresh') is True))
         if path == '/api/discover' and method == 'POST':
-            result = self.server.services.discover(data.get('query',''),data.get('scope','all'))
+            result = self.server.services.discover(data.get('query',''),data.get('scope','all'),topic=data.get('topic',''))
             # Persist index metadata as evidence, distinct from downloaded originals.
             from .connectors import source_record
             source = source_record('Public web discovery','https://search.brave.com/','National','news')
