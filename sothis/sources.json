@@ -1,0 +1,4139 @@
+[
+  {
+    "id": "a9b4a568f0bed28b",
+    "name": "South African Government",
+    "url": "https://www.gov.za/",
+    "province": "National",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.gov.za",
+      "gov.za"
+    ],
+    "seeds": [
+      "https://www.gov.za/"
+    ],
+    "status": "not_indexed",
+    "seeds_override": false
+  },
+  {
+    "id": "db36fef61c266b24",
+    "name": "Government news and speeches",
+    "url": "https://www.gov.za/news",
+    "province": "National",
+    "category": "news",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.gov.za",
+      "gov.za"
+    ],
+    "seeds": [
+      "https://www.gov.za/news"
+    ],
+    "status": "not_indexed",
+    "path_prefixes": [
+      "/news"
+    ]
+  },
+  {
+    "id": "1767247fe20628af",
+    "name": "The Presidency",
+    "url": "https://www.thepresidency.gov.za/",
+    "province": "National",
+    "category": "news",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.thepresidency.gov.za",
+      "thepresidency.gov.za"
+    ],
+    "seeds": [
+      "https://www.thepresidency.gov.za/"
+    ],
+    "status": "not_indexed"
+  },
+  {
+    "id": "25fc4247ec15d5a5",
+    "name": "Parliament — interests register",
+    "url": "https://www.parliament.gov.za/register-members-Interests",
+    "province": "National",
+    "category": "interests",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.parliament.gov.za",
+      "parliament.gov.za"
+    ],
+    "seeds": [
+      "https://www.parliament.gov.za/register-members-Interests"
+    ],
+    "status": "not_indexed",
+    "path_prefixes": [
+      "/register-members-Interests"
+    ]
+  },
+  {
+    "id": "6b04c782aad1dbcf",
+    "name": "DPSA vacancy circulars",
+    "url": "https://www.dpsa.gov.za/newsroom/psvc/",
+    "province": "National",
+    "category": "jobs",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.dpsa.gov.za",
+      "dpsa.gov.za"
+    ],
+    "seeds": [
+      "https://www.dpsa.gov.za/newsroom/psvc/"
+    ],
+    "status": "not_indexed",
+    "path_prefixes": [
+      "/newsroom/psvc/",
+      "/dpsa2g/documents/vacancies/2026/"
+    ]
+  },
+  {
+    "id": "2d5a923ccd48d871",
+    "name": "Government jobs",
+    "url": "https://www.gov.za/government-jobs-week",
+    "province": "National",
+    "category": "jobs",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.gov.za",
+      "gov.za"
+    ],
+    "seeds": [
+      "https://www.gov.za/government-jobs-week"
+    ],
+    "status": "not_indexed",
+    "path_prefixes": [
+      "/government-jobs-week"
+    ]
+  },
+  {
+    "id": "ca0b4b89abea2404",
+    "name": "Government Printing Works — eGazettes",
+    "url": "https://www.gpwonline.co.za/egazettes/",
+    "province": "National",
+    "category": "gazettes",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.gpwonline.co.za",
+      "gpwonline.co.za"
+    ],
+    "seeds": [
+      "https://www.gpwonline.co.za/egazettes/"
+    ],
+    "status": "not_indexed",
+    "path_prefixes": [
+      "/egazettes/"
+    ]
+  },
+  {
+    "id": "599427bd90a5d821",
+    "name": "Remuneration Commission",
+    "url": "https://www.remcommission.gov.za/",
+    "province": "National",
+    "category": "remuneration",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.remcommission.gov.za",
+      "remcommission.gov.za"
+    ],
+    "seeds": [
+      "https://www.remcommission.gov.za/"
+    ],
+    "status": "not_indexed"
+  },
+  {
+    "id": "fb92189a29c69aef",
+    "name": "National Treasury",
+    "url": "https://www.treasury.gov.za/",
+    "province": "National",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.treasury.gov.za",
+      "treasury.gov.za"
+    ],
+    "seeds": [
+      "https://www.treasury.gov.za/"
+    ],
+    "status": "not_indexed"
+  },
+  {
+    "id": "b83798795a350f48",
+    "name": "eTenders public opportunities",
+    "url": "https://www.etenders.gov.za/Home/opportunities",
+    "province": "National",
+    "category": "tenders",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.etenders.gov.za",
+      "etenders.gov.za"
+    ],
+    "seeds": [
+      "https://www.etenders.gov.za/Home/opportunities"
+    ],
+    "status": "not_indexed",
+    "path_prefixes": [
+      "/Home/opportunities"
+    ]
+  },
+  {
+    "id": "46e73dd854c604a6",
+    "name": "CIPC / BizProfile",
+    "url": "https://www.bizportal.gov.za/",
+    "province": "National",
+    "category": "company",
+    "access": "login_required",
+    "enabled": false,
+    "adapter": "manual_import",
+    "allowed_hosts": [
+      "www.bizportal.gov.za",
+      "bizportal.gov.za"
+    ],
+    "seeds": [
+      "https://www.bizportal.gov.za/"
+    ],
+    "status": "not_indexed",
+    "access_note": "CIPC requires login for BizProfile. Open in browser, then import an authorised record. No public API assumed.",
+    "access_evidence": "https://eservices.cipc.co.za/Search.aspx"
+  },
+  {
+    "id": "c52c51a451a2b026",
+    "name": "SAnews",
+    "url": "https://www.sanews.gov.za/",
+    "province": "National",
+    "category": "news",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.sanews.gov.za",
+      "sanews.gov.za"
+    ],
+    "seeds": [
+      "https://www.sanews.gov.za/"
+    ],
+    "status": "not_indexed"
+  },
+  {
+    "id": "28a195ea78efc5a7",
+    "name": "Auditor-General South Africa",
+    "url": "https://www.agsa.co.za/",
+    "province": "National",
+    "category": "government",
+    "access": "review_required",
+    "enabled": false,
+    "adapter": "manual_import",
+    "allowed_hosts": [
+      "www.agsa.co.za",
+      "agsa.co.za"
+    ],
+    "seeds": [
+      "https://www.agsa.co.za/"
+    ],
+    "status": "not_indexed"
+  },
+  {
+    "id": "d18fb39be34d2490",
+    "name": "Electoral Commission",
+    "url": "https://www.elections.org.za/",
+    "province": "National",
+    "category": "government",
+    "access": "review_required",
+    "enabled": false,
+    "adapter": "manual_import",
+    "allowed_hosts": [
+      "www.elections.org.za",
+      "elections.org.za"
+    ],
+    "seeds": [
+      "https://www.elections.org.za/"
+    ],
+    "status": "not_indexed"
+  },
+  {
+    "id": "48d72f552c86d4ab",
+    "name": "Parliamentary Monitoring Group",
+    "url": "https://pmg.org.za/",
+    "province": "National",
+    "category": "government",
+    "access": "review_required",
+    "enabled": false,
+    "adapter": "manual_import",
+    "allowed_hosts": [
+      "pmg.org.za",
+      "www.pmg.org.za"
+    ],
+    "seeds": [
+      "https://pmg.org.za/"
+    ],
+    "status": "not_indexed"
+  },
+  {
+    "id": "84c43d38cdde75a9",
+    "name": "SAFLII court judgments",
+    "url": "https://www.saflii.org/",
+    "province": "National",
+    "category": "courts",
+    "access": "review_required",
+    "enabled": false,
+    "adapter": "manual_import",
+    "allowed_hosts": [
+      "www.saflii.org",
+      "saflii.org"
+    ],
+    "seeds": [
+      "https://www.saflii.org/"
+    ],
+    "status": "not_indexed"
+  },
+  {
+    "id": "9612a75bd17f3c99",
+    "name": "Basic Education",
+    "url": "https://www.education.gov.za/",
+    "province": "National",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.education.gov.za",
+      "education.gov.za"
+    ],
+    "seeds": [
+      "https://www.education.gov.za/"
+    ],
+    "status": "not_indexed"
+  },
+  {
+    "id": "00901b3552863b87",
+    "name": "Higher Education and Training",
+    "url": "https://www.dhet.gov.za/",
+    "province": "National",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.dhet.gov.za",
+      "dhet.gov.za"
+    ],
+    "seeds": [
+      "https://www.dhet.gov.za/"
+    ],
+    "status": "not_indexed"
+  },
+  {
+    "id": "762427d9eab08c5e",
+    "name": "Health",
+    "url": "https://www.health.gov.za/",
+    "province": "National",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.health.gov.za",
+      "health.gov.za"
+    ],
+    "seeds": [
+      "https://www.health.gov.za/"
+    ],
+    "status": "not_indexed"
+  },
+  {
+    "id": "c2a2a5ace014c61f",
+    "name": "Justice",
+    "url": "https://www.justice.gov.za/",
+    "province": "National",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.justice.gov.za",
+      "justice.gov.za"
+    ],
+    "seeds": [
+      "https://www.justice.gov.za/"
+    ],
+    "status": "not_indexed"
+  },
+  {
+    "id": "55247044184b91c9",
+    "name": "Home Affairs",
+    "url": "https://www.dha.gov.za/",
+    "province": "National",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.dha.gov.za",
+      "dha.gov.za"
+    ],
+    "seeds": [
+      "https://www.dha.gov.za/"
+    ],
+    "status": "not_indexed"
+  },
+  {
+    "id": "b193450fa8708b34",
+    "name": "Employment and Labour",
+    "url": "https://www.labour.gov.za/",
+    "province": "National",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.labour.gov.za",
+      "labour.gov.za"
+    ],
+    "seeds": [
+      "https://www.labour.gov.za/"
+    ],
+    "status": "not_indexed"
+  },
+  {
+    "id": "908c15dff80343d6",
+    "name": "Social Development",
+    "url": "https://www.dsd.gov.za/",
+    "province": "National",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.dsd.gov.za",
+      "dsd.gov.za"
+    ],
+    "seeds": [
+      "https://www.dsd.gov.za/"
+    ],
+    "status": "not_indexed"
+  },
+  {
+    "id": "9c97cb4852bd13cd",
+    "name": "Transport",
+    "url": "https://www.transport.gov.za/",
+    "province": "National",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.transport.gov.za",
+      "transport.gov.za"
+    ],
+    "seeds": [
+      "https://www.transport.gov.za/"
+    ],
+    "status": "not_indexed"
+  },
+  {
+    "id": "2655ff9c3613a101",
+    "name": "Tourism",
+    "url": "https://www.tourism.gov.za/",
+    "province": "National",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.tourism.gov.za",
+      "tourism.gov.za"
+    ],
+    "seeds": [
+      "https://www.tourism.gov.za/"
+    ],
+    "status": "not_indexed"
+  },
+  {
+    "id": "6b088201385166f3",
+    "name": "Trade Industry and Competition",
+    "url": "https://www.thedtic.gov.za/",
+    "province": "National",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.thedtic.gov.za",
+      "thedtic.gov.za"
+    ],
+    "seeds": [
+      "https://www.thedtic.gov.za/"
+    ],
+    "status": "not_indexed"
+  },
+  {
+    "id": "53739a54176f4750",
+    "name": "Cooperative Governance",
+    "url": "https://www.cogta.gov.za/",
+    "province": "National",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.cogta.gov.za",
+      "cogta.gov.za"
+    ],
+    "seeds": [
+      "https://www.cogta.gov.za/"
+    ],
+    "status": "not_indexed"
+  },
+  {
+    "id": "4e60ae8f8bd4759b",
+    "name": "Statistics South Africa",
+    "url": "https://www.statssa.gov.za/",
+    "province": "National",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.statssa.gov.za",
+      "statssa.gov.za"
+    ],
+    "seeds": [
+      "https://www.statssa.gov.za/"
+    ],
+    "status": "not_indexed"
+  },
+  {
+    "id": "9a77f8e3e40fdc66",
+    "name": "Public Service Commission",
+    "url": "https://www.psc.gov.za/",
+    "province": "National",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.psc.gov.za",
+      "psc.gov.za"
+    ],
+    "seeds": [
+      "https://www.psc.gov.za/"
+    ],
+    "status": "not_indexed"
+  },
+  {
+    "id": "c2e94dd8f0696d6a",
+    "name": "Government Communication and Information System",
+    "url": "https://www.gcis.gov.za/",
+    "province": "National",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.gcis.gov.za",
+      "gcis.gov.za"
+    ],
+    "seeds": [
+      "https://www.gcis.gov.za/"
+    ],
+    "status": "not_indexed"
+  },
+  {
+    "id": "627435504b0b3f46",
+    "name": "Eastern Cape government",
+    "url": "https://ecprov.gov.za/",
+    "province": "Eastern Cape",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "ecprov.gov.za",
+      "www.ecprov.gov.za"
+    ],
+    "seeds": [
+      "https://ecprov.gov.za/"
+    ],
+    "status": "not_indexed"
+  },
+  {
+    "id": "40834d993118569e",
+    "name": "Free State government",
+    "url": "https://www.freestateonline.fs.gov.za/",
+    "province": "Free State",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.freestateonline.fs.gov.za",
+      "freestateonline.fs.gov.za"
+    ],
+    "seeds": [
+      "https://www.freestateonline.fs.gov.za/"
+    ],
+    "status": "not_indexed"
+  },
+  {
+    "id": "b2cb24a193d6e109",
+    "name": "Gauteng government",
+    "url": "https://www.gauteng.gov.za/",
+    "province": "Gauteng",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.gauteng.gov.za",
+      "gauteng.gov.za"
+    ],
+    "seeds": [
+      "https://www.gauteng.gov.za/"
+    ],
+    "status": "not_indexed"
+  },
+  {
+    "id": "24d70a1d00d003a6",
+    "name": "KwaZulu-Natal government",
+    "url": "https://www.kznonline.gov.za/",
+    "province": "KwaZulu-Natal",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.kznonline.gov.za",
+      "kznonline.gov.za"
+    ],
+    "seeds": [
+      "https://www.kznonline.gov.za/"
+    ],
+    "status": "not_indexed"
+  },
+  {
+    "id": "842583494c119ab5",
+    "name": "Limpopo government",
+    "url": "https://www.limpopo.gov.za/",
+    "province": "Limpopo",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.limpopo.gov.za",
+      "limpopo.gov.za"
+    ],
+    "seeds": [
+      "https://www.limpopo.gov.za/"
+    ],
+    "status": "not_indexed"
+  },
+  {
+    "id": "1b0c150b893cfd62",
+    "name": "Mpumalanga government",
+    "url": "https://www.mpumalanga.gov.za/",
+    "province": "Mpumalanga",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.mpumalanga.gov.za",
+      "mpumalanga.gov.za"
+    ],
+    "seeds": [
+      "https://www.mpumalanga.gov.za/"
+    ],
+    "status": "not_indexed"
+  },
+  {
+    "id": "9e8d74a0c165bd94",
+    "name": "North West government",
+    "url": "https://www.nwpg.gov.za/",
+    "province": "North West",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.nwpg.gov.za",
+      "nwpg.gov.za"
+    ],
+    "seeds": [
+      "https://www.nwpg.gov.za/"
+    ],
+    "status": "not_indexed"
+  },
+  {
+    "id": "337c619f7dc250ed",
+    "name": "Northern Cape government",
+    "url": "https://www.northern-cape.gov.za/",
+    "province": "Northern Cape",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.northern-cape.gov.za",
+      "northern-cape.gov.za"
+    ],
+    "seeds": [
+      "https://www.northern-cape.gov.za/"
+    ],
+    "status": "not_indexed"
+  },
+  {
+    "id": "5420714c80b96f43",
+    "name": "Western Cape government",
+    "url": "https://www.westerncape.gov.za/",
+    "province": "Western Cape",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.westerncape.gov.za",
+      "westerncape.gov.za"
+    ],
+    "seeds": [
+      "https://www.westerncape.gov.za/"
+    ],
+    "status": "not_indexed"
+  },
+  {
+    "id": "5146f3461ba3852c",
+    "name": "Western Cape jobs and tenders",
+    "url": "https://www.westerncape.gov.za/jobs-bursaries-and-tenders",
+    "province": "Western Cape",
+    "category": "jobs",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.westerncape.gov.za",
+      "westerncape.gov.za"
+    ],
+    "seeds": [
+      "https://www.westerncape.gov.za/jobs-bursaries-and-tenders"
+    ],
+    "status": "not_indexed",
+    "path_prefixes": [
+      "/jobs-bursaries-and-tenders"
+    ]
+  },
+  {
+    "id": "51637dc267d21173",
+    "name": "City of Cape Town",
+    "url": "https://www.capetown.gov.za/",
+    "province": "Western Cape",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.capetown.gov.za",
+      "capetown.gov.za"
+    ],
+    "seeds": [
+      "https://www.capetown.gov.za/media-and-news/council-speech-by-mayor-geordin-hill-lewis/",
+      "https://www.capetown.gov.za/media-and-news/mayor-unveils-vision-for-new-bridge-and-neighbourhood-to-replace-cape-town-s-unfinished-highways/"
+    ],
+    "status": "not_indexed"
+  },
+  {
+    "id": "9d171460ccc94d47",
+    "name": "GCIS — Cape Town public office directory",
+    "url": "https://www.gov.za/about-government/contact-directory/city-cape-town-metropolitan-municipality/geordin-hill-lewis-mr",
+    "province": "Western Cape",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.gov.za",
+      "gov.za"
+    ],
+    "seeds": [
+      "https://www.gov.za/about-government/contact-directory/city-cape-town-metropolitan-municipality/geordin-hill-lewis-mr"
+    ],
+    "status": "not_indexed",
+    "path_prefixes": [
+      "/about-government/contact-directory/city-cape-town-metropolitan-municipality/geordin-hill-lewis-mr"
+    ]
+  },
+  {
+    "id": "055df81c727d1969",
+    "name": "GCIS — City of Cape Town directory",
+    "url": "https://www.gov.za/about-government/contact-directory/wc-municipalities/city-cape-town-metropolitan-municipality",
+    "province": "Western Cape",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.gov.za",
+      "gov.za"
+    ],
+    "seeds": [
+      "https://www.gov.za/about-government/contact-directory/wc-municipalities/city-cape-town-metropolitan-municipality"
+    ],
+    "status": "not_indexed",
+    "path_prefixes": [
+      "/about-government/contact-directory/wc-municipalities/city-cape-town-metropolitan-municipality",
+      "/about-government/contact-directory/city-cape-town-metropolitan-municipality/"
+    ]
+  },
+  {
+    "id": "1e35416d01ccc62d",
+    "name": "Municipal remuneration notice 7159 (2026)",
+    "url": "https://www.gov.za/documents/notices/remuneration-public-office-bearers-act-determination-upper-limits-salaries-27",
+    "province": "National",
+    "category": "remuneration",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.gov.za",
+      "gov.za"
+    ],
+    "seeds": [
+      "https://www.gov.za/documents/notices/remuneration-public-office-bearers-act-determination-upper-limits-salaries-27",
+      "https://www.gov.za/sites/default/files/gcis_document/202602/54179gon7159.pdf"
+    ],
+    "status": "not_indexed",
+    "path_prefixes": [
+      "/documents/notices/remuneration-public-office-bearers-act-determination-upper-limits-salaries-27",
+      "/sites/default/files/gcis_document/202602/54179gon7159.pdf"
+    ]
+  },
+  {
+    "id": "a2ecf9fafa9c47bb",
+    "name": "Presidency — office-bearer salary determination",
+    "url": "https://thepresidency.gov.za/president-ramaphosa-determines-salary-increment-public-office-bearers",
+    "province": "National",
+    "category": "remuneration",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "thepresidency.gov.za",
+      "www.thepresidency.gov.za"
+    ],
+    "seeds": [
+      "https://thepresidency.gov.za/president-ramaphosa-determines-salary-increment-public-office-bearers"
+    ],
+    "status": "not_indexed",
+    "path_prefixes": [
+      "/president-ramaphosa-determines-salary-increment-public-office-bearers"
+    ]
+  },
+  {
+    "id": "3c51089087b33744",
+    "name": "Eastern Cape Provincial Government",
+    "url": "https://ecprov.gov.za/",
+    "province": "Eastern Cape",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "ecprov.gov.za",
+      "www.ecprov.gov.za"
+    ],
+    "seeds": [
+      "https://ecprov.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "9ba97370e1fc26a9",
+    "name": "Department of Cooperative Governance and Traditional Affairs",
+    "url": "https://www.eccogta.gov.za/",
+    "province": "Eastern Cape",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.eccogta.gov.za",
+      "eccogta.gov.za"
+    ],
+    "seeds": [
+      "https://www.eccogta.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "65aa207aa9394fbb",
+    "name": "Department of Education",
+    "url": "https://eceducation.gov.za/",
+    "province": "Eastern Cape",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "eceducation.gov.za",
+      "www.eceducation.gov.za"
+    ],
+    "seeds": [
+      "https://eceducation.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "763a3f0479fcb0ea",
+    "name": "Department of Health",
+    "url": "https://www.echealth.gov.za/",
+    "province": "Eastern Cape",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.echealth.gov.za",
+      "echealth.gov.za"
+    ],
+    "seeds": [
+      "https://www.echealth.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "2338faa07c0c8ac4",
+    "name": "Department of Human Settlements",
+    "url": "https://www.ecdhs.gov.za/",
+    "province": "Eastern Cape",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.ecdhs.gov.za",
+      "ecdhs.gov.za"
+    ],
+    "seeds": [
+      "https://www.ecdhs.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "369ade5b4402957b",
+    "name": "Department of Public Works and Infrastructure",
+    "url": "https://www.ecdpw.gov.za/",
+    "province": "Eastern Cape",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.ecdpw.gov.za",
+      "ecdpw.gov.za"
+    ],
+    "seeds": [
+      "https://www.ecdpw.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "c770fde245dd7433",
+    "name": "Department of Rural Development and Agrarian Reform",
+    "url": "http://www.drdar.gov.za/",
+    "province": "Eastern Cape",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.drdar.gov.za",
+      "drdar.gov.za"
+    ],
+    "seeds": [
+      "http://www.drdar.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "30d6d7d9239fc569",
+    "name": "Department of Safety and Liaison",
+    "url": "http://www.safetyec.gov.za/",
+    "province": "Eastern Cape",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.safetyec.gov.za",
+      "safetyec.gov.za"
+    ],
+    "seeds": [
+      "http://www.safetyec.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "d29056b1599ebace",
+    "name": "Department of Social Development",
+    "url": "http://www.ecdsd.gov.za/",
+    "province": "Eastern Cape",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.ecdsd.gov.za",
+      "ecdsd.gov.za"
+    ],
+    "seeds": [
+      "http://www.ecdsd.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "2e4b779b69d28e02",
+    "name": "Department of Sport, Recreation, Arts and Culture",
+    "url": "https://www.ecsrac.gov.za/",
+    "province": "Eastern Cape",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.ecsrac.gov.za",
+      "ecsrac.gov.za"
+    ],
+    "seeds": [
+      "https://www.ecsrac.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "3fd01a06f2ff4591",
+    "name": "Department of Transport",
+    "url": "https://www.ectransport.gov.za/",
+    "province": "Eastern Cape",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.ectransport.gov.za",
+      "ectransport.gov.za"
+    ],
+    "seeds": [
+      "https://www.ectransport.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "68cb4c6455234f48",
+    "name": "Eastern Cape Provincial Treasury",
+    "url": "https://www.ectreasury.gov.za/",
+    "province": "Eastern Cape",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.ectreasury.gov.za",
+      "ectreasury.gov.za"
+    ],
+    "seeds": [
+      "https://www.ectreasury.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "97cad759a346097e",
+    "name": "Free State Provincial Government",
+    "url": "https://www.freestateonline.fs.gov.za/",
+    "province": "Free State",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.freestateonline.fs.gov.za",
+      "freestateonline.fs.gov.za"
+    ],
+    "seeds": [
+      "https://www.freestateonline.fs.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "8e389fdde5bbfff3",
+    "name": "Office  of the Premier",
+    "url": "https://www.premier.fs.gov.za/",
+    "province": "Free State",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.premier.fs.gov.za",
+      "premier.fs.gov.za"
+    ],
+    "seeds": [
+      "https://www.premier.fs.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "54227d0936f8ac8c",
+    "name": "Department of Agriculture and Rural Development",
+    "url": "https://www.ard.fs.gov.za/",
+    "province": "Free State",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.ard.fs.gov.za",
+      "ard.fs.gov.za"
+    ],
+    "seeds": [
+      "https://www.ard.fs.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "431e7fab3ea6c8b4",
+    "name": "Department of Cooperative Governance and Traditional Affairs",
+    "url": "https://www.cogta.fs.gov.za/",
+    "province": "Free State",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.cogta.fs.gov.za",
+      "cogta.fs.gov.za"
+    ],
+    "seeds": [
+      "https://www.cogta.fs.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "1874532d1b3ee94d",
+    "name": "Department of Economic Development, Small Business Development, Tourism and Environmental Affairs",
+    "url": "http://www.edtea.fs.gov.za/",
+    "province": "Free State",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.edtea.fs.gov.za",
+      "edtea.fs.gov.za"
+    ],
+    "seeds": [
+      "http://www.edtea.fs.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "296ef007e27d1e97",
+    "name": "Department of Education",
+    "url": "https://www.education.fs.gov.za/",
+    "province": "Free State",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.education.fs.gov.za",
+      "education.fs.gov.za"
+    ],
+    "seeds": [
+      "https://www.education.fs.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "e5415fb12194e26a",
+    "name": "Department of Health",
+    "url": "https://www.health.fs.gov.za/",
+    "province": "Free State",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.health.fs.gov.za",
+      "health.fs.gov.za"
+    ],
+    "seeds": [
+      "https://www.health.fs.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "1b729871c77a8851",
+    "name": "Department of Human Settlements",
+    "url": "https://www.humansettlements.fs.gov.za/",
+    "province": "Free State",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.humansettlements.fs.gov.za",
+      "humansettlements.fs.gov.za"
+    ],
+    "seeds": [
+      "https://www.humansettlements.fs.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "961b3735caddd646",
+    "name": "Department of Police, Roads and Transport",
+    "url": "https://www.policeroadstransport.fs.gov.za/",
+    "province": "Free State",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.policeroadstransport.fs.gov.za",
+      "policeroadstransport.fs.gov.za"
+    ],
+    "seeds": [
+      "https://www.policeroadstransport.fs.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "79afd5438f59ead9",
+    "name": "Department of Public Works and Infrastructure",
+    "url": "https://www.publicworks.fs.gov.za/",
+    "province": "Free State",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.publicworks.fs.gov.za",
+      "publicworks.fs.gov.za"
+    ],
+    "seeds": [
+      "https://www.publicworks.fs.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "38f6ba87c61cd19f",
+    "name": "Department of Social Development",
+    "url": "https://www.socdev.fs.gov.za/",
+    "province": "Free State",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.socdev.fs.gov.za",
+      "socdev.fs.gov.za"
+    ],
+    "seeds": [
+      "https://www.socdev.fs.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "da31c00a74969972",
+    "name": "Department of Sports, Arts, Culture and Recreation",
+    "url": "https://www.sacr.fs.gov.za/",
+    "province": "Free State",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.sacr.fs.gov.za",
+      "sacr.fs.gov.za"
+    ],
+    "seeds": [
+      "https://www.sacr.fs.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "26350ceba7723591",
+    "name": "Free State Provincial Treasury",
+    "url": "https://www.treasury.fs.gov.za/",
+    "province": "Free State",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.treasury.fs.gov.za",
+      "treasury.fs.gov.za"
+    ],
+    "seeds": [
+      "https://www.treasury.fs.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "1d7634f9e4089992",
+    "name": "Gauteng Provincial Government",
+    "url": "http://www.gauteng.gov.za/Pages/index.aspx",
+    "province": "Gauteng",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.gauteng.gov.za",
+      "gauteng.gov.za"
+    ],
+    "seeds": [
+      "http://www.gauteng.gov.za/Pages/index.aspx"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review",
+    "path_prefixes": [
+      "/Pages/index.aspx"
+    ]
+  },
+  {
+    "id": "04efef65b3b8616e",
+    "name": "Office of the Premier",
+    "url": "https://www.gauteng.gov.za/Departments/DepartmentDetails/CPM-001009",
+    "province": "Gauteng",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.gauteng.gov.za",
+      "gauteng.gov.za"
+    ],
+    "seeds": [
+      "https://www.gauteng.gov.za/Departments/DepartmentDetails/CPM-001009"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review",
+    "path_prefixes": [
+      "/Departments/DepartmentDetails/CPM-001009"
+    ]
+  },
+  {
+    "id": "d19dd4ac43d21895",
+    "name": "Department of Agriculture and Rural Development",
+    "url": "https://www.gauteng.gov.za/Departments/DepartmentDetails/CPM-001000",
+    "province": "Gauteng",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.gauteng.gov.za",
+      "gauteng.gov.za"
+    ],
+    "seeds": [
+      "https://www.gauteng.gov.za/Departments/DepartmentDetails/CPM-001000"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review",
+    "path_prefixes": [
+      "/Departments/DepartmentDetails/CPM-001000"
+    ]
+  },
+  {
+    "id": "0d8dc1a0983a7873",
+    "name": "Department of Cooperative Governance and Traditional Affairs",
+    "url": "https://www.gauteng.gov.za/Departments/DepartmentDetails/CPM-001002",
+    "province": "Gauteng",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.gauteng.gov.za",
+      "gauteng.gov.za"
+    ],
+    "seeds": [
+      "https://www.gauteng.gov.za/Departments/DepartmentDetails/CPM-001002"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review",
+    "path_prefixes": [
+      "/Departments/DepartmentDetails/CPM-001002"
+    ]
+  },
+  {
+    "id": "a428a2521c6085f5",
+    "name": "Department of Community Safety",
+    "url": "https://www.gauteng.gov.za/Departments/DepartmentDetails/CPM-001001",
+    "province": "Gauteng",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.gauteng.gov.za",
+      "gauteng.gov.za"
+    ],
+    "seeds": [
+      "https://www.gauteng.gov.za/Departments/DepartmentDetails/CPM-001001"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review",
+    "path_prefixes": [
+      "/Departments/DepartmentDetails/CPM-001001"
+    ]
+  },
+  {
+    "id": "8b0f20729c68e675",
+    "name": "Department of e-Government",
+    "url": "https://www.gauteng.gov.za/Departments/DepartmentDetails/CPM-001005",
+    "province": "Gauteng",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.gauteng.gov.za",
+      "gauteng.gov.za"
+    ],
+    "seeds": [
+      "https://www.gauteng.gov.za/Departments/DepartmentDetails/CPM-001005"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review",
+    "path_prefixes": [
+      "/Departments/DepartmentDetails/CPM-001005"
+    ]
+  },
+  {
+    "id": "9c2621dbcda34955",
+    "name": "Department of Economic Development",
+    "url": "https://www.gauteng.gov.za/Departments/DepartmentDetails/CPM-001003",
+    "province": "Gauteng",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.gauteng.gov.za",
+      "gauteng.gov.za"
+    ],
+    "seeds": [
+      "https://www.gauteng.gov.za/Departments/DepartmentDetails/CPM-001003"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review",
+    "path_prefixes": [
+      "/Departments/DepartmentDetails/CPM-001003"
+    ]
+  },
+  {
+    "id": "5e5c5dfc0be3f899",
+    "name": "Department of Education",
+    "url": "https://www.gauteng.gov.za/Departments/DepartmentDetails/CPM-001004",
+    "province": "Gauteng",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.gauteng.gov.za",
+      "gauteng.gov.za"
+    ],
+    "seeds": [
+      "https://www.gauteng.gov.za/Departments/DepartmentDetails/CPM-001004"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review",
+    "path_prefixes": [
+      "/Departments/DepartmentDetails/CPM-001004"
+    ]
+  },
+  {
+    "id": "a64a08b02b9ee454",
+    "name": "Department of Health",
+    "url": "https://www.gauteng.gov.za/Departments/DepartmentDetails/CPM-001006",
+    "province": "Gauteng",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.gauteng.gov.za",
+      "gauteng.gov.za"
+    ],
+    "seeds": [
+      "https://www.gauteng.gov.za/Departments/DepartmentDetails/CPM-001006"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review",
+    "path_prefixes": [
+      "/Departments/DepartmentDetails/CPM-001006"
+    ]
+  },
+  {
+    "id": "1d4f335793db50fc",
+    "name": "Department of Human Settlements",
+    "url": "https://www.gauteng.gov.za/Departments/DepartmentDetails/CPM-001007",
+    "province": "Gauteng",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.gauteng.gov.za",
+      "gauteng.gov.za"
+    ],
+    "seeds": [
+      "https://www.gauteng.gov.za/Departments/DepartmentDetails/CPM-001007"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review",
+    "path_prefixes": [
+      "/Departments/DepartmentDetails/CPM-001007"
+    ]
+  },
+  {
+    "id": "1ddabc7283583611",
+    "name": "Department of Infrastructure Development",
+    "url": "https://www.gauteng.gov.za/Departments/DepartmentDetails/CPM-001008",
+    "province": "Gauteng",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.gauteng.gov.za",
+      "gauteng.gov.za"
+    ],
+    "seeds": [
+      "https://www.gauteng.gov.za/Departments/DepartmentDetails/CPM-001008"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review",
+    "path_prefixes": [
+      "/Departments/DepartmentDetails/CPM-001008"
+    ]
+  },
+  {
+    "id": "aa65acd47c025d10",
+    "name": "Department of Roads and Transport",
+    "url": "https://www.gauteng.gov.za/Departments/DepartmentDetails/CPM-001010",
+    "province": "Gauteng",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.gauteng.gov.za",
+      "gauteng.gov.za"
+    ],
+    "seeds": [
+      "https://www.gauteng.gov.za/Departments/DepartmentDetails/CPM-001010"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review",
+    "path_prefixes": [
+      "/Departments/DepartmentDetails/CPM-001010"
+    ]
+  },
+  {
+    "id": "dcf60bf0fa31aa9c",
+    "name": "D",
+    "url": "http://www.socdev.gpg.gov.za/http;//www.gauteng.gov.za",
+    "province": "Gauteng",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.socdev.gpg.gov.za",
+      "socdev.gpg.gov.za"
+    ],
+    "seeds": [
+      "http://www.socdev.gpg.gov.za/http;//www.gauteng.gov.za"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review",
+    "path_prefixes": [
+      "/http;//www.gauteng.gov.za"
+    ]
+  },
+  {
+    "id": "44b2aa19fc8f7a0d",
+    "name": "epartment of Social Development",
+    "url": "https://www.gauteng.gov.za/Departments/DepartmentDetails/CPM-001011",
+    "province": "Gauteng",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.gauteng.gov.za",
+      "gauteng.gov.za"
+    ],
+    "seeds": [
+      "https://www.gauteng.gov.za/Departments/DepartmentDetails/CPM-001011"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review",
+    "path_prefixes": [
+      "/Departments/DepartmentDetails/CPM-001011"
+    ]
+  },
+  {
+    "id": "b6830de066a88aa6",
+    "name": "Department of Sport, Arts, Culture and Recreation",
+    "url": "https://www.gauteng.gov.za/Departments/DepartmentDetails/CPM-001012",
+    "province": "Gauteng",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.gauteng.gov.za",
+      "gauteng.gov.za"
+    ],
+    "seeds": [
+      "https://www.gauteng.gov.za/Departments/DepartmentDetails/CPM-001012"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review",
+    "path_prefixes": [
+      "/Departments/DepartmentDetails/CPM-001012"
+    ]
+  },
+  {
+    "id": "deae4ab5a6d1a93f",
+    "name": "Gauteng Provincial Treasury",
+    "url": "https://www.gauteng.gov.za/Departments/DepartmentDetails/CPM-001013",
+    "province": "Gauteng",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.gauteng.gov.za",
+      "gauteng.gov.za"
+    ],
+    "seeds": [
+      "https://www.gauteng.gov.za/Departments/DepartmentDetails/CPM-001013"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review",
+    "path_prefixes": [
+      "/Departments/DepartmentDetails/CPM-001013"
+    ]
+  },
+  {
+    "id": "5c06bdb50c483270",
+    "name": "Gauteng Provincial Legislature",
+    "url": "https://gpl.gov.za/",
+    "province": "Gauteng",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "gpl.gov.za",
+      "www.gpl.gov.za"
+    ],
+    "seeds": [
+      "https://gpl.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "c681b5563072cd86",
+    "name": "KwaZulu-Natal Provincial Government",
+    "url": "http://www.kznonline.gov.za/",
+    "province": "KwaZulu-Natal",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.kznonline.gov.za",
+      "kznonline.gov.za"
+    ],
+    "seeds": [
+      "http://www.kznonline.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "5ae730ca19f6a546",
+    "name": "Provincial Legislature",
+    "url": "https://kznlegislature.gov.za/",
+    "province": "KwaZulu-Natal",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "kznlegislature.gov.za",
+      "www.kznlegislature.gov.za"
+    ],
+    "seeds": [
+      "https://kznlegislature.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "3e18fd8df3871ae4",
+    "name": "Office of the Premier",
+    "url": "http://www.kznonline.gov.za/",
+    "province": "KwaZulu-Natal",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.kznonline.gov.za",
+      "kznonline.gov.za"
+    ],
+    "seeds": [
+      "http://www.kznonline.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "a80a5a1990dae7fb",
+    "name": "Department of Agriculture and Rural Development",
+    "url": "https://www.kzndard.gov.za/",
+    "province": "KwaZulu-Natal",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.kzndard.gov.za",
+      "kzndard.gov.za"
+    ],
+    "seeds": [
+      "https://www.kzndard.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "a9ced3d8df15f50b",
+    "name": "Department of Arts and Culture",
+    "url": "https://www.kzndsr.gov.za/",
+    "province": "KwaZulu-Natal",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.kzndsr.gov.za",
+      "kzndsr.gov.za"
+    ],
+    "seeds": [
+      "https://www.kzndsr.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "53396cf52b1431bc",
+    "name": "Department of Community Safety and Liaison",
+    "url": "http://www.kzncomsafety.gov.za/",
+    "province": "KwaZulu-Natal",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.kzncomsafety.gov.za",
+      "kzncomsafety.gov.za"
+    ],
+    "seeds": [
+      "http://www.kzncomsafety.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "59c065c9a518618c",
+    "name": "Department of Cooperative Governance and Traditional Affairs",
+    "url": "https://www.kzncogta.gov.za/",
+    "province": "KwaZulu-Natal",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.kzncogta.gov.za",
+      "kzncogta.gov.za"
+    ],
+    "seeds": [
+      "https://www.kzncogta.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "c42518c7eeeb9b2c",
+    "name": "Department of Economic Development, Tourism and Environmental Affairs",
+    "url": "https://www.kznedtea.gov.za/",
+    "province": "KwaZulu-Natal",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.kznedtea.gov.za",
+      "kznedtea.gov.za"
+    ],
+    "seeds": [
+      "https://www.kznedtea.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "f375b11fbf2384a3",
+    "name": "Department of Education",
+    "url": "https://www.kzneducation.gov.za/",
+    "province": "KwaZulu-Natal",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.kzneducation.gov.za",
+      "kzneducation.gov.za"
+    ],
+    "seeds": [
+      "https://www.kzneducation.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "1a08a0298d59387c",
+    "name": "Department of Health",
+    "url": "http://www.kznhealth.gov.za/",
+    "province": "KwaZulu-Natal",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.kznhealth.gov.za",
+      "kznhealth.gov.za"
+    ],
+    "seeds": [
+      "http://www.kznhealth.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "1de504963700acf9",
+    "name": "Department of Human Settlements",
+    "url": "http://www.kznonline.gov.za/index.php?option=com_content&view=article&id=170&Itemid=507",
+    "province": "KwaZulu-Natal",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.kznonline.gov.za",
+      "kznonline.gov.za"
+    ],
+    "seeds": [
+      "http://www.kznonline.gov.za/index.php?option=com_content&view=article&id=170&Itemid=507"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review",
+    "path_prefixes": [
+      "/index.php"
+    ]
+  },
+  {
+    "id": "874e5a199931bd57",
+    "name": "Department of Public Works",
+    "url": "https://www.kznworks.gov.za/",
+    "province": "KwaZulu-Natal",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.kznworks.gov.za",
+      "kznworks.gov.za"
+    ],
+    "seeds": [
+      "https://www.kznworks.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "6027ec316bedc8f3",
+    "name": "Department of Social Development",
+    "url": "https://www.kzndsd.gov.za/",
+    "province": "KwaZulu-Natal",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.kzndsd.gov.za",
+      "kzndsd.gov.za"
+    ],
+    "seeds": [
+      "https://www.kzndsd.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "8b60789140f5a2b0",
+    "name": "Department of Sport and Recreation",
+    "url": "https://www.kzndsr.gov.za/",
+    "province": "KwaZulu-Natal",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.kzndsr.gov.za",
+      "kzndsr.gov.za"
+    ],
+    "seeds": [
+      "https://www.kzndsr.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "ebc63680f1d12aed",
+    "name": "Department of Transport",
+    "url": "http://www.kzntransport.gov.za/",
+    "province": "KwaZulu-Natal",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.kzntransport.gov.za",
+      "kzntransport.gov.za"
+    ],
+    "seeds": [
+      "http://www.kzntransport.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "eb7cff2d70651241",
+    "name": "Provincial Planning Commission",
+    "url": "http://www.kznppc.gov.za/",
+    "province": "KwaZulu-Natal",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.kznppc.gov.za",
+      "kznppc.gov.za"
+    ],
+    "seeds": [
+      "http://www.kznppc.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "30d92d286c88ac06",
+    "name": "Provincial Treasury",
+    "url": "https://www.kzntreasury.gov.za/",
+    "province": "KwaZulu-Natal",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.kzntreasury.gov.za",
+      "kzntreasury.gov.za"
+    ],
+    "seeds": [
+      "https://www.kzntreasury.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "6596645a76f509ea",
+    "name": "Limpopo Provincial Government",
+    "url": "https://www.limpopo.gov.za/",
+    "province": "Limpopo",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.limpopo.gov.za",
+      "limpopo.gov.za"
+    ],
+    "seeds": [
+      "https://www.limpopo.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "0fadb0a8d9530773",
+    "name": "Department of Agriculture and Rural Development",
+    "url": "https://www.ldard.gov.za/",
+    "province": "Limpopo",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.ldard.gov.za",
+      "ldard.gov.za"
+    ],
+    "seeds": [
+      "https://www.ldard.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "e418de58b7aa79e7",
+    "name": "Department of Cooperative Governance, Human Settlements and Traditional Affairs",
+    "url": "https://www.coghsta.limpopo.gov.za/",
+    "province": "Limpopo",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.coghsta.limpopo.gov.za",
+      "coghsta.limpopo.gov.za"
+    ],
+    "seeds": [
+      "https://www.coghsta.limpopo.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "625f6c546dcd1f08",
+    "name": "Department of Economic Development, Environment and Tourism",
+    "url": "http://www.ledet.gov.za/",
+    "province": "Limpopo",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.ledet.gov.za",
+      "ledet.gov.za"
+    ],
+    "seeds": [
+      "http://www.ledet.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "f16d479b47835e7d",
+    "name": "Department of Education",
+    "url": "https://www.edu.limpopo.gov.za/",
+    "province": "Limpopo",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.edu.limpopo.gov.za",
+      "edu.limpopo.gov.za"
+    ],
+    "seeds": [
+      "https://www.edu.limpopo.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "3dda32043581677e",
+    "name": "Department of Health",
+    "url": "http://www.ldoh.gov.za/",
+    "province": "Limpopo",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.ldoh.gov.za",
+      "ldoh.gov.za"
+    ],
+    "seeds": [
+      "http://www.ldoh.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "2670cb281982754f",
+    "name": "Department of Public Works, Roads and Infrastructure",
+    "url": "https://www.dpw.limpopo.gov.za/",
+    "province": "Limpopo",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.dpw.limpopo.gov.za",
+      "dpw.limpopo.gov.za"
+    ],
+    "seeds": [
+      "https://www.dpw.limpopo.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "b627dd38e51718c6",
+    "name": "Department of Safety, Security and Liaison",
+    "url": "http://www.ldot.gov.za/",
+    "province": "Limpopo",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.ldot.gov.za",
+      "ldot.gov.za"
+    ],
+    "seeds": [
+      "http://www.ldot.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "fce557185958356d",
+    "name": "Department of Social Development",
+    "url": "http://www.dsd.limpopo.gov.za/",
+    "province": "Limpopo",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.dsd.limpopo.gov.za",
+      "dsd.limpopo.gov.za"
+    ],
+    "seeds": [
+      "http://www.dsd.limpopo.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "cef3d7be4067d7c7",
+    "name": "Department of Sport, Arts and Culture",
+    "url": "http://www.sac.limpopo.gov.za/",
+    "province": "Limpopo",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.sac.limpopo.gov.za",
+      "sac.limpopo.gov.za"
+    ],
+    "seeds": [
+      "http://www.sac.limpopo.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "67bb95469b6ef7fd",
+    "name": "Department of Transport and Community Safety",
+    "url": "http://www.ldot.gov.za/",
+    "province": "Limpopo",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.ldot.gov.za",
+      "ldot.gov.za"
+    ],
+    "seeds": [
+      "http://www.ldot.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "dc8f599f4e9b5a99",
+    "name": "Provincial Treasury",
+    "url": "http://www.limtreasury.gov.za/",
+    "province": "Limpopo",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.limtreasury.gov.za",
+      "limtreasury.gov.za"
+    ],
+    "seeds": [
+      "http://www.limtreasury.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "9259cf30986eb7ac",
+    "name": "Mpumalanga Provincial Government",
+    "url": "http://www.mpumalanga.gov.za/",
+    "province": "Mpumalanga",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.mpumalanga.gov.za",
+      "mpumalanga.gov.za"
+    ],
+    "seeds": [
+      "http://www.mpumalanga.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "049a127e70fc74ea",
+    "name": "Office of the Premier",
+    "url": "https://www.mpg.gov.za/departments/otp",
+    "province": "Mpumalanga",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.mpg.gov.za",
+      "mpg.gov.za"
+    ],
+    "seeds": [
+      "https://www.mpg.gov.za/departments/otp"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review",
+    "path_prefixes": [
+      "/departments/otp"
+    ]
+  },
+  {
+    "id": "27743ba01939d284",
+    "name": "Department of Agriculture, Rural Development, Land and Environmental Affairs",
+    "url": "https://dardlea.mpg.gov.za/",
+    "province": "Mpumalanga",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "dardlea.mpg.gov.za",
+      "www.dardlea.mpg.gov.za"
+    ],
+    "seeds": [
+      "https://dardlea.mpg.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "5e8605b7c14f1b41",
+    "name": "Department of Community Safety, Security and Liaison",
+    "url": "https://www.mpg.gov.za/departments/dcssl",
+    "province": "Mpumalanga",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.mpg.gov.za",
+      "mpg.gov.za"
+    ],
+    "seeds": [
+      "https://www.mpg.gov.za/departments/dcssl"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review",
+    "path_prefixes": [
+      "/departments/dcssl"
+    ]
+  },
+  {
+    "id": "f505b44a65893cb7",
+    "name": "Department of Cooperative Governance and Traditional Affairs",
+    "url": "https://cogta.mpg.gov.za/",
+    "province": "Mpumalanga",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "cogta.mpg.gov.za",
+      "www.cogta.mpg.gov.za"
+    ],
+    "seeds": [
+      "https://cogta.mpg.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "81bfe79bc3968a9d",
+    "name": "Department of Culture, Sport and Recreation",
+    "url": "https://dcsr.mpg.gov.za/",
+    "province": "Mpumalanga",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "dcsr.mpg.gov.za",
+      "www.dcsr.mpg.gov.za"
+    ],
+    "seeds": [
+      "https://dcsr.mpg.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "461f2eb8bf7f1671",
+    "name": "Department of Economic Development and Tourism",
+    "url": "https://www.mpg.gov.za/departments/dedt",
+    "province": "Mpumalanga",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.mpg.gov.za",
+      "mpg.gov.za"
+    ],
+    "seeds": [
+      "https://www.mpg.gov.za/departments/dedt"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review",
+    "path_prefixes": [
+      "/departments/dedt"
+    ]
+  },
+  {
+    "id": "2b7534ca1850e42e",
+    "name": "Department of Education",
+    "url": "https://mpeducation.mpg.gov.za/",
+    "province": "Mpumalanga",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "mpeducation.mpg.gov.za",
+      "www.mpeducation.mpg.gov.za"
+    ],
+    "seeds": [
+      "https://mpeducation.mpg.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "47c0a0a938d1ff58",
+    "name": "Department of Health",
+    "url": "http://www.mpuhealth.gov.za/",
+    "province": "Mpumalanga",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.mpuhealth.gov.za",
+      "mpuhealth.gov.za"
+    ],
+    "seeds": [
+      "http://www.mpuhealth.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "7353156837d089fd",
+    "name": "Department of Human Settlements",
+    "url": "http://dhs.mpg.gov.za/",
+    "province": "Mpumalanga",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "dhs.mpg.gov.za",
+      "www.dhs.mpg.gov.za"
+    ],
+    "seeds": [
+      "http://dhs.mpg.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "7020a9478d6bacb2",
+    "name": "Department of Public Works, Roads and Transport",
+    "url": "http://dpwrt.mpg.gov.za/",
+    "province": "Mpumalanga",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "dpwrt.mpg.gov.za",
+      "www.dpwrt.mpg.gov.za"
+    ],
+    "seeds": [
+      "http://dpwrt.mpg.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "83059986cd5d9b73",
+    "name": "Department of Social Development",
+    "url": "https://www.dsdmpu.gov.za/",
+    "province": "Mpumalanga",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.dsdmpu.gov.za",
+      "dsdmpu.gov.za"
+    ],
+    "seeds": [
+      "https://www.dsdmpu.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "83fce385eba58df2",
+    "name": "Mpumalanga Provincial Legislature",
+    "url": "http://www.mpuleg.gov.za/",
+    "province": "Mpumalanga",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.mpuleg.gov.za",
+      "mpuleg.gov.za"
+    ],
+    "seeds": [
+      "http://www.mpuleg.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "22f4b0cdb66405d3",
+    "name": "Mpumalanga Provincial Treasury",
+    "url": "http://treasury.mpg.gov.za/",
+    "province": "Mpumalanga",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "treasury.mpg.gov.za",
+      "www.treasury.mpg.gov.za"
+    ],
+    "seeds": [
+      "http://treasury.mpg.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "df0360ba4dd8fe37",
+    "name": "Northern Cape Provincial Government",
+    "url": "http://www.northern-cape.gov.za/",
+    "province": "Northern Cape",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.northern-cape.gov.za",
+      "northern-cape.gov.za"
+    ],
+    "seeds": [
+      "http://www.northern-cape.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "12556fbbb41f4469",
+    "name": "Office of the Premier",
+    "url": "http://premier.ncpg.gov.za/",
+    "province": "Northern Cape",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "premier.ncpg.gov.za",
+      "www.premier.ncpg.gov.za"
+    ],
+    "seeds": [
+      "http://premier.ncpg.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "3b191243e5e2df9f",
+    "name": "Department of Agriculture, Environmental Affairs, Land Reform and Rural Development",
+    "url": "http://www.northern-cape.gov.za/agric/index.php",
+    "province": "Northern Cape",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.northern-cape.gov.za",
+      "northern-cape.gov.za"
+    ],
+    "seeds": [
+      "http://www.northern-cape.gov.za/agric/index.php"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review",
+    "path_prefixes": [
+      "/agric/index.php"
+    ]
+  },
+  {
+    "id": "72c02357da6cc435",
+    "name": "Department of Cooperative Governance, Human Settlements and Traditional Affairs",
+    "url": "http://www.coghsta.ncpg.gov.za/",
+    "province": "Northern Cape",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.coghsta.ncpg.gov.za",
+      "coghsta.ncpg.gov.za"
+    ],
+    "seeds": [
+      "http://www.coghsta.ncpg.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "25f0a2a8de8b569b",
+    "name": "Department of Education",
+    "url": "http://ncdoe.ncpg.gov.za/",
+    "province": "Northern Cape",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "ncdoe.ncpg.gov.za",
+      "www.ncdoe.ncpg.gov.za"
+    ],
+    "seeds": [
+      "http://ncdoe.ncpg.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "43db70f65790ca9a",
+    "name": "Department of Economic Development and Tourism",
+    "url": "http://www.northern-cape.gov.za/dedat/",
+    "province": "Northern Cape",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.northern-cape.gov.za",
+      "northern-cape.gov.za"
+    ],
+    "seeds": [
+      "http://www.northern-cape.gov.za/dedat/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review",
+    "path_prefixes": [
+      "/dedat/"
+    ]
+  },
+  {
+    "id": "048dc93a0a44fbd5",
+    "name": "Department of Health",
+    "url": "http://www.northern-cape.gov.za/health/index.php",
+    "province": "Northern Cape",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.northern-cape.gov.za",
+      "northern-cape.gov.za"
+    ],
+    "seeds": [
+      "http://www.northern-cape.gov.za/health/index.php"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review",
+    "path_prefixes": [
+      "/health/index.php"
+    ]
+  },
+  {
+    "id": "d45d15b82f920f98",
+    "name": "Department of Roads and Public Works",
+    "url": "http://ncrpw.ncpg.gov.za/",
+    "province": "Northern Cape",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "ncrpw.ncpg.gov.za",
+      "www.ncrpw.ncpg.gov.za"
+    ],
+    "seeds": [
+      "http://ncrpw.ncpg.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "f2a389ee714e507b",
+    "name": "Department of Social Development",
+    "url": "http://dsd.nwpg.gov.za/",
+    "province": "Northern Cape",
+    "category": "government",
+    "access": "review_required",
+    "enabled": false,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "dsd.nwpg.gov.za",
+      "www.dsd.nwpg.gov.za"
+    ],
+    "seeds": [
+      "http://dsd.nwpg.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory has a probable jurisdiction mismatch: North West host listed in Northern Cape. Manual verification required."
+  },
+  {
+    "id": "230949a5f4c7943d",
+    "name": "Department of Sport, Arts and Culture",
+    "url": "http://dsac.ncpg.gov.za/",
+    "province": "Northern Cape",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "dsac.ncpg.gov.za",
+      "www.dsac.ncpg.gov.za"
+    ],
+    "seeds": [
+      "http://dsac.ncpg.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "664968c62f76d53d",
+    "name": "Department of Transport, Safety and Liaison",
+    "url": "http://www.northern-cape.gov.za/index.php?option=com_content&view=article&id=222&Itemid=12",
+    "province": "Northern Cape",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.northern-cape.gov.za",
+      "northern-cape.gov.za"
+    ],
+    "seeds": [
+      "http://www.northern-cape.gov.za/index.php?option=com_content&view=article&id=222&Itemid=12"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review",
+    "path_prefixes": [
+      "/index.php"
+    ]
+  },
+  {
+    "id": "c8a233bc26ceca1d",
+    "name": "Northern Cape Provincial Legislature",
+    "url": "https://www.ncpleg.gov.za/",
+    "province": "Northern Cape",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.ncpleg.gov.za",
+      "ncpleg.gov.za"
+    ],
+    "seeds": [
+      "https://www.ncpleg.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "cfdaf7cc309a4911",
+    "name": "North West Provincial Government",
+    "url": "http://www.nwpg.gov.za/",
+    "province": "North West",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.nwpg.gov.za",
+      "nwpg.gov.za"
+    ],
+    "seeds": [
+      "http://www.nwpg.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "8d87564d8c84eb2a",
+    "name": "Office of the Premier",
+    "url": "http://www.nwpg.gov.za/",
+    "province": "North West",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.nwpg.gov.za",
+      "nwpg.gov.za"
+    ],
+    "seeds": [
+      "http://www.nwpg.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "2ecce4d595c7c560",
+    "name": "Department of Agriculture and Rural Development",
+    "url": "http://dard.nwpg.gov.za/",
+    "province": "North West",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "dard.nwpg.gov.za",
+      "www.dard.nwpg.gov.za"
+    ],
+    "seeds": [
+      "http://dard.nwpg.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "6f58b1ab1682dcd4",
+    "name": "Department of Arts, Culture, Sport and Recreation",
+    "url": "https://acsr.nwpg.gov.za/",
+    "province": "North West",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "acsr.nwpg.gov.za",
+      "www.acsr.nwpg.gov.za"
+    ],
+    "seeds": [
+      "https://acsr.nwpg.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "7a1f889555fcbcbd",
+    "name": "Department of Community Safety and Transport Management",
+    "url": "https://dcstm.nwpg.gov.za/",
+    "province": "North West",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "dcstm.nwpg.gov.za",
+      "www.dcstm.nwpg.gov.za"
+    ],
+    "seeds": [
+      "https://dcstm.nwpg.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "22ad41b599c3d5bf",
+    "name": "Department of Cooperative Governance and Traditional Affairs",
+    "url": "http://cogta.nwpg.gov.za/",
+    "province": "North West",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "cogta.nwpg.gov.za",
+      "www.cogta.nwpg.gov.za"
+    ],
+    "seeds": [
+      "http://cogta.nwpg.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "f1b0943752143db3",
+    "name": "Department of Economic Development, Environment, Conservation and Tourism",
+    "url": "https://dedect.nwpg.gov.za/",
+    "province": "North West",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "dedect.nwpg.gov.za",
+      "www.dedect.nwpg.gov.za"
+    ],
+    "seeds": [
+      "https://dedect.nwpg.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "ce33df54ddd7f91e",
+    "name": "Department of Education",
+    "url": "http://desd.nwpg.gov.za/",
+    "province": "North West",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "desd.nwpg.gov.za",
+      "www.desd.nwpg.gov.za"
+    ],
+    "seeds": [
+      "http://desd.nwpg.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "7249036d52036b07",
+    "name": "Department of Health",
+    "url": "http://health.nwpg.gov.za/",
+    "province": "North West",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "health.nwpg.gov.za",
+      "www.health.nwpg.gov.za"
+    ],
+    "seeds": [
+      "http://health.nwpg.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "66acb2a9e2d5ec4c",
+    "name": "Department of Local Government and Human Settlements",
+    "url": "http://www.nwpg.gov.za/HumanSettlements/site/index.html",
+    "province": "North West",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.nwpg.gov.za",
+      "nwpg.gov.za"
+    ],
+    "seeds": [
+      "http://www.nwpg.gov.za/HumanSettlements/site/index.html"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review",
+    "path_prefixes": [
+      "/HumanSettlements/site/index.html"
+    ]
+  },
+  {
+    "id": "1f54ac5953f116da",
+    "name": "Department of Public Works and Roads",
+    "url": "http://www.nwpg.gov.za/Public%20Works/",
+    "province": "North West",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.nwpg.gov.za",
+      "nwpg.gov.za"
+    ],
+    "seeds": [
+      "http://www.nwpg.gov.za/Public%20Works/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review",
+    "path_prefixes": [
+      "/Public%20Works/"
+    ]
+  },
+  {
+    "id": "63de696d7edacca3",
+    "name": "Department of Social Development",
+    "url": "http://dsd.nwpg.gov.za/",
+    "province": "North West",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "dsd.nwpg.gov.za",
+      "www.dsd.nwpg.gov.za"
+    ],
+    "seeds": [
+      "http://dsd.nwpg.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "dba55f816d9b2879",
+    "name": "North West Provincial Treasury",
+    "url": "http://treasury.nwpg.gov.za/",
+    "province": "North West",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "treasury.nwpg.gov.za",
+      "www.treasury.nwpg.gov.za"
+    ],
+    "seeds": [
+      "http://treasury.nwpg.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "c6e02b0d573f9192",
+    "name": "North West Provincial Legislature",
+    "url": "https://nwpl.gov.za/",
+    "province": "North West",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "nwpl.gov.za",
+      "www.nwpl.gov.za"
+    ],
+    "seeds": [
+      "https://nwpl.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "d07425d18ac31c9f",
+    "name": "Western Cape Provincial Government",
+    "url": "https://www.westerncape.gov.za/",
+    "province": "Western Cape",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.westerncape.gov.za",
+      "westerncape.gov.za"
+    ],
+    "seeds": [
+      "https://www.westerncape.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "54205ae0891fe1e4",
+    "name": "Department of Agriculture",
+    "url": "https://www.westerncape.gov.za/dept/agriculture",
+    "province": "Western Cape",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.westerncape.gov.za",
+      "westerncape.gov.za"
+    ],
+    "seeds": [
+      "https://www.westerncape.gov.za/dept/agriculture"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review",
+    "path_prefixes": [
+      "/dept/agriculture"
+    ]
+  },
+  {
+    "id": "67398c64e8be999d",
+    "name": "Department of Community Safety",
+    "url": "https://www.westerncape.gov.za/dept/community-safety",
+    "province": "Western Cape",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.westerncape.gov.za",
+      "westerncape.gov.za"
+    ],
+    "seeds": [
+      "https://www.westerncape.gov.za/dept/community-safety"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review",
+    "path_prefixes": [
+      "/dept/community-safety"
+    ]
+  },
+  {
+    "id": "d46a1873cb7398d0",
+    "name": "Department of Cultural Affairs and Sport",
+    "url": "https://www.westerncape.gov.za/dept/cas",
+    "province": "Western Cape",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.westerncape.gov.za",
+      "westerncape.gov.za"
+    ],
+    "seeds": [
+      "https://www.westerncape.gov.za/dept/cas"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review",
+    "path_prefixes": [
+      "/dept/cas"
+    ]
+  },
+  {
+    "id": "8679ad6cac8139f3",
+    "name": "Department of Economic Development and Tourism",
+    "url": "https://www.westerncape.gov.za/dept/edat",
+    "province": "Western Cape",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.westerncape.gov.za",
+      "westerncape.gov.za"
+    ],
+    "seeds": [
+      "https://www.westerncape.gov.za/dept/edat"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review",
+    "path_prefixes": [
+      "/dept/edat"
+    ]
+  },
+  {
+    "id": "884e5e8e49812aac",
+    "name": "Department of Education",
+    "url": "https://wcedonline.westerncape.gov.za/home/",
+    "province": "Western Cape",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "wcedonline.westerncape.gov.za",
+      "www.wcedonline.westerncape.gov.za"
+    ],
+    "seeds": [
+      "https://wcedonline.westerncape.gov.za/home/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review",
+    "path_prefixes": [
+      "/home/"
+    ]
+  },
+  {
+    "id": "64929c270377e30a",
+    "name": "Department of Environmental Affairs and Development Planning",
+    "url": "https://www.westerncape.gov.za/dept/eadp",
+    "province": "Western Cape",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.westerncape.gov.za",
+      "westerncape.gov.za"
+    ],
+    "seeds": [
+      "https://www.westerncape.gov.za/dept/eadp"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review",
+    "path_prefixes": [
+      "/dept/eadp"
+    ]
+  },
+  {
+    "id": "f616087b1c154b55",
+    "name": "Department of Health",
+    "url": "https://www.westerncape.gov.za/dept/health",
+    "province": "Western Cape",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.westerncape.gov.za",
+      "westerncape.gov.za"
+    ],
+    "seeds": [
+      "https://www.westerncape.gov.za/dept/health"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review",
+    "path_prefixes": [
+      "/dept/health"
+    ]
+  },
+  {
+    "id": "0b2ee1a86ce85a8c",
+    "name": "Department of Human Settlements",
+    "url": "https://www.westerncape.gov.za/dept/human-settlements",
+    "province": "Western Cape",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.westerncape.gov.za",
+      "westerncape.gov.za"
+    ],
+    "seeds": [
+      "https://www.westerncape.gov.za/dept/human-settlements"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review",
+    "path_prefixes": [
+      "/dept/human-settlements"
+    ]
+  },
+  {
+    "id": "95c44982f9f8a78d",
+    "name": "Department of Local Government",
+    "url": "https://www.westerncape.gov.za/dept/local-government",
+    "province": "Western Cape",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.westerncape.gov.za",
+      "westerncape.gov.za"
+    ],
+    "seeds": [
+      "https://www.westerncape.gov.za/dept/local-government"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review",
+    "path_prefixes": [
+      "/dept/local-government"
+    ]
+  },
+  {
+    "id": "d242bb3f739c7b08",
+    "name": "Department of Social Development",
+    "url": "https://www.westerncape.gov.za/dept/social-development",
+    "province": "Western Cape",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.westerncape.gov.za",
+      "westerncape.gov.za"
+    ],
+    "seeds": [
+      "https://www.westerncape.gov.za/dept/social-development"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review",
+    "path_prefixes": [
+      "/dept/social-development"
+    ]
+  },
+  {
+    "id": "87224258f4d84d44",
+    "name": "Department of Transport and Public Works",
+    "url": "https://www.westerncape.gov.za/dept/tpw",
+    "province": "Western Cape",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.westerncape.gov.za",
+      "westerncape.gov.za"
+    ],
+    "seeds": [
+      "https://www.westerncape.gov.za/dept/tpw"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review",
+    "path_prefixes": [
+      "/dept/tpw"
+    ]
+  },
+  {
+    "id": "4cab99c5380a284a",
+    "name": "Department of the Premier",
+    "url": "https://www.westerncape.gov.za/dept/department-premier",
+    "province": "Western Cape",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.westerncape.gov.za",
+      "westerncape.gov.za"
+    ],
+    "seeds": [
+      "https://www.westerncape.gov.za/dept/department-premier"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review",
+    "path_prefixes": [
+      "/dept/department-premier"
+    ]
+  },
+  {
+    "id": "6150ae8f354d0c89",
+    "name": "Mobility Department",
+    "url": "https://www.westerncape.gov.za/tpw/",
+    "province": "Western Cape",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.westerncape.gov.za",
+      "westerncape.gov.za"
+    ],
+    "seeds": [
+      "https://www.westerncape.gov.za/tpw/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review",
+    "path_prefixes": [
+      "/tpw/"
+    ]
+  },
+  {
+    "id": "60b51833fce11c0c",
+    "name": "Provincial Treasury",
+    "url": "https://www.westerncape.gov.za/dept/treasury",
+    "province": "Western Cape",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.westerncape.gov.za",
+      "westerncape.gov.za"
+    ],
+    "seeds": [
+      "https://www.westerncape.gov.za/dept/treasury"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/links/provincial-government",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review",
+    "path_prefixes": [
+      "/dept/treasury"
+    ]
+  },
+  {
+    "id": "ab640ed146604dfa",
+    "name": "Agriculture",
+    "url": "https://www.nda.gov.za/",
+    "province": "National",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.nda.gov.za",
+      "nda.gov.za"
+    ],
+    "seeds": [
+      "https://www.nda.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/about-government/government-system/national-departments",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "01068d6d4b2d77eb",
+    "name": "Civilian Secretariat for Police",
+    "url": "http://www.policesecretariat.gov.za/",
+    "province": "National",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.policesecretariat.gov.za",
+      "policesecretariat.gov.za"
+    ],
+    "seeds": [
+      "http://www.policesecretariat.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/about-government/government-system/national-departments",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "da5e756d42daeef5",
+    "name": "Communications and Digital Technologies",
+    "url": "https://www.dcdt.gov.za/",
+    "province": "National",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.dcdt.gov.za",
+      "dcdt.gov.za"
+    ],
+    "seeds": [
+      "https://www.dcdt.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/about-government/government-system/national-departments",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "5dcbec421f57d62b",
+    "name": "Cooperative Governance and Traditional Affairs",
+    "url": "https://www.cogta.gov.za/",
+    "province": "National",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.cogta.gov.za",
+      "cogta.gov.za"
+    ],
+    "seeds": [
+      "https://www.cogta.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/about-government/government-system/national-departments",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "e8bc2883ada52240",
+    "name": "Correctional Services",
+    "url": "http://www.dcs.gov.za/",
+    "province": "National",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.dcs.gov.za",
+      "dcs.gov.za"
+    ],
+    "seeds": [
+      "http://www.dcs.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/about-government/government-system/national-departments",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "a321d92cc5dad0f4",
+    "name": "Electricity and Energy",
+    "url": "https://www.dmre.gov.za/",
+    "province": "National",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.dmre.gov.za",
+      "dmre.gov.za"
+    ],
+    "seeds": [
+      "https://www.dmre.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/about-government/government-system/national-departments",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "d27b72e8f3a829b0",
+    "name": "Employment and Labour",
+    "url": "http://www.labour.gov.za/",
+    "province": "National",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.labour.gov.za",
+      "labour.gov.za"
+    ],
+    "seeds": [
+      "http://www.labour.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/about-government/government-system/national-departments",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "09c1240c1427a3ab",
+    "name": "Forestry, Fisheries and the Environment",
+    "url": "https://www.dffe.gov.za/",
+    "province": "National",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.dffe.gov.za",
+      "dffe.gov.za"
+    ],
+    "seeds": [
+      "https://www.dffe.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/about-government/government-system/national-departments",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "b41bead703c9fcb1",
+    "name": "Higher Education (Higher Education and Training)",
+    "url": "https://www.dhet.gov.za/",
+    "province": "National",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.dhet.gov.za",
+      "dhet.gov.za"
+    ],
+    "seeds": [
+      "https://www.dhet.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/about-government/government-system/national-departments",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "942cd9928c4779c2",
+    "name": "Home Affairs",
+    "url": "http://www.dha.gov.za/",
+    "province": "National",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.dha.gov.za",
+      "dha.gov.za"
+    ],
+    "seeds": [
+      "http://www.dha.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/about-government/government-system/national-departments",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "b8db153997c61d0a",
+    "name": "Human Settlements",
+    "url": "https://www.dhs.gov.za/",
+    "province": "National",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.dhs.gov.za",
+      "dhs.gov.za"
+    ],
+    "seeds": [
+      "https://www.dhs.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/about-government/government-system/national-departments",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "feb29dafa5fb17a4",
+    "name": "Independent Police Investigative Directorate",
+    "url": "https://www.ipid.gov.za/",
+    "province": "National",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.ipid.gov.za",
+      "ipid.gov.za"
+    ],
+    "seeds": [
+      "https://www.ipid.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/about-government/government-system/national-departments",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "6cdc58ecc6cdd698",
+    "name": "International Relations and Cooperation",
+    "url": "https://www.dirco.gov.za/",
+    "province": "National",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.dirco.gov.za",
+      "dirco.gov.za"
+    ],
+    "seeds": [
+      "https://www.dirco.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/about-government/government-system/national-departments",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "594dbe6649996d45",
+    "name": "Justice and Constitutional Development",
+    "url": "https://www.justice.gov.za/",
+    "province": "National",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.justice.gov.za",
+      "justice.gov.za"
+    ],
+    "seeds": [
+      "https://www.justice.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/about-government/government-system/national-departments",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "a702fe51cb97a2e4",
+    "name": "Land Reform and Rural Development",
+    "url": "https://www.dlrrd.gov.za/",
+    "province": "National",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.dlrrd.gov.za",
+      "dlrrd.gov.za"
+    ],
+    "seeds": [
+      "https://www.dlrrd.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/about-government/government-system/national-departments",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "f10d5c7f2cc36c2d",
+    "name": "Military Veterans",
+    "url": "http://www.dmv.gov.za/",
+    "province": "National",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.dmv.gov.za",
+      "dmv.gov.za"
+    ],
+    "seeds": [
+      "http://www.dmv.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/about-government/government-system/national-departments",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "02d4a3852e5f3ad6",
+    "name": "Mineral and Petroleum Resources",
+    "url": "http://www.dmre.gov.za/",
+    "province": "National",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.dmre.gov.za",
+      "dmre.gov.za"
+    ],
+    "seeds": [
+      "http://www.dmre.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/about-government/government-system/national-departments",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "2a7624bad5015ef6",
+    "name": "National School of Government",
+    "url": "https://www.thensg.gov.za/",
+    "province": "National",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.thensg.gov.za",
+      "thensg.gov.za"
+    ],
+    "seeds": [
+      "https://www.thensg.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/about-government/government-system/national-departments",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "a66a3b60820db3f1",
+    "name": "Planning Monitoring and Evaluation",
+    "url": "https://www.dpme.gov.za/Pages/default.aspx",
+    "province": "National",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.dpme.gov.za",
+      "dpme.gov.za"
+    ],
+    "seeds": [
+      "https://www.dpme.gov.za/Pages/default.aspx"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/about-government/government-system/national-departments",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review",
+    "path_prefixes": [
+      "/Pages/default.aspx"
+    ]
+  },
+  {
+    "id": "fd8df66ab2a84f24",
+    "name": "Public Service and Administration",
+    "url": "https://www.dpsa.gov.za/",
+    "province": "National",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.dpsa.gov.za",
+      "dpsa.gov.za"
+    ],
+    "seeds": [
+      "https://www.dpsa.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/about-government/government-system/national-departments",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "205408eefe2fc9eb",
+    "name": "Public Works and Infrastructure",
+    "url": "http://www.publicworks.gov.za/",
+    "province": "National",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.publicworks.gov.za",
+      "publicworks.gov.za"
+    ],
+    "seeds": [
+      "http://www.publicworks.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/about-government/government-system/national-departments",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "23d0bb6b4cf8429e",
+    "name": "Science, Technology and Innovation",
+    "url": "https://www.dsti.gov.za/",
+    "province": "National",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.dsti.gov.za",
+      "dsti.gov.za"
+    ],
+    "seeds": [
+      "https://www.dsti.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/about-government/government-system/national-departments",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "b283d41bfe0c749b",
+    "name": "Small Business Development",
+    "url": "http://www.dsbd.gov.za/",
+    "province": "National",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.dsbd.gov.za",
+      "dsbd.gov.za"
+    ],
+    "seeds": [
+      "http://www.dsbd.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/about-government/government-system/national-departments",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "fd6951dbdc959511",
+    "name": "SA Police Service",
+    "url": "https://www.saps.gov.za/",
+    "province": "National",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.saps.gov.za",
+      "saps.gov.za"
+    ],
+    "seeds": [
+      "https://www.saps.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/about-government/government-system/national-departments",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "26958802e3ed6924",
+    "name": "SA Revenue Service",
+    "url": "https://www.sars.gov.za/",
+    "province": "National",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.sars.gov.za",
+      "sars.gov.za"
+    ],
+    "seeds": [
+      "https://www.sars.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/about-government/government-system/national-departments",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "5073802c8e6e1d64",
+    "name": "State Security Agency",
+    "url": "https://www.ssa.gov.za/",
+    "province": "National",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.ssa.gov.za",
+      "ssa.gov.za"
+    ],
+    "seeds": [
+      "https://www.ssa.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/about-government/government-system/national-departments",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "8bc32f808a7bbabf",
+    "name": "Sport, Arts and Culture",
+    "url": "https://www.dsac.gov.za/",
+    "province": "National",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.dsac.gov.za",
+      "dsac.gov.za"
+    ],
+    "seeds": [
+      "https://www.dsac.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/about-government/government-system/national-departments",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "f70ae871a2dffc98",
+    "name": "Statistics South Africa",
+    "url": "http://www.statssa.gov.za/",
+    "province": "National",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.statssa.gov.za",
+      "statssa.gov.za"
+    ],
+    "seeds": [
+      "http://www.statssa.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/about-government/government-system/national-departments",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "08249be64635c264",
+    "name": "Tourism",
+    "url": "https://www.tourism.gov.za/Pages/home.aspx",
+    "province": "National",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.tourism.gov.za",
+      "tourism.gov.za"
+    ],
+    "seeds": [
+      "https://www.tourism.gov.za/Pages/home.aspx"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/about-government/government-system/national-departments",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review",
+    "path_prefixes": [
+      "/Pages/home.aspx"
+    ]
+  },
+  {
+    "id": "01b8c1eab43b1839",
+    "name": "Trade, Industry and Competition",
+    "url": "http://www.thedtic.gov.za/",
+    "province": "National",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.thedtic.gov.za",
+      "thedtic.gov.za"
+    ],
+    "seeds": [
+      "http://www.thedtic.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/about-government/government-system/national-departments",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "b50fe552a7c86c2f",
+    "name": "Water and Sanitation",
+    "url": "https://www.dws.gov.za/",
+    "province": "National",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.dws.gov.za",
+      "dws.gov.za"
+    ],
+    "seeds": [
+      "https://www.dws.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/about-government/government-system/national-departments",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  },
+  {
+    "id": "87aa4b34202a7811",
+    "name": "Women, Youth and Persons with Disabilities",
+    "url": "https://www.dwypd.gov.za/",
+    "province": "National",
+    "category": "government",
+    "access": "public",
+    "enabled": true,
+    "adapter": "public_web",
+    "allowed_hosts": [
+      "www.dwypd.gov.za",
+      "dwypd.gov.za"
+    ],
+    "seeds": [
+      "https://www.dwypd.gov.za/"
+    ],
+    "status": "not_indexed",
+    "discovered_from": "https://www.gov.za/about-government/government-system/national-departments",
+    "discovery_note": "Government directory candidate; live availability and jurisdiction require review"
+  }
+]
