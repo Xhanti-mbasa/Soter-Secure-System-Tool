@@ -218,7 +218,7 @@ class Connector:
         self.store = store
         self.fetcher = fetcher or Fetcher()
 
-    def crawl(self, source_id, pages=8, depth=1):
+    def crawl(self, source_id, pages=8, depth=1, progress=None):
         source = self.store.source(source_id)
         if not source: raise ValueError('Unknown source')
         if source.get('access') != 'public' or not source.get('enabled'):
@@ -233,6 +233,7 @@ class Connector:
                 url = canonical(url)
                 if url in visited: continue
                 visited.add(url); fetched += 1
+                if progress: progress(url,fetched,indexed)
                 raw, mime, final_url, charset = self.fetcher.fetch(url, hosts)
                 ids, links = extract(self.store, source, final_url, raw, mime, charset)
                 indexed += len(ids)

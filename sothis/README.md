@@ -2,22 +2,26 @@
 
 South African public-records research: an Android client and an independent document-collection/search engine. The Android app uses a bundled local interface, with a native bridge for engine connections, browser handoff, sharing, and file export.
 
-The first version opens without a server using a real, dated snapshot. Live collection runs on a computer/server, not inside the phone. All results refer to indexed evidence; the app does not claim exhaustive coverage or automatically establish a person's identity or business relationships.
+Version **0.2.0** fixes the snapshot-only search limitation. A name or registration-number search defaults to live public discovery. Android performs public discovery and eTenders queries directly without a hosted engine; an engine still provides government collection, shared evidence and server monitoring.
 
-## Included
+## Install and use
 
-- National government plus all nine provinces, with departmental source entries discovered from official government directories. Municipal sources start with Cape Town.
-- Configurable source connectors, host allowlists, optional path scopes, robots.txt checks, request delays, bounded crawl jobs, and explicit source availability.
-- HTML and text-bearing PDF ingestion, page-level PDF search, publication/retrieval dates, original links, SHA-256 hashes, raw content archives, and extracted-text version history.
-- SQLite FTS search, source/category/province/date filters, optional national inclusion, and reviewed spelling suggestions.
-- Device-local and engine investigations, evidence pins, researcher notes, and Markdown/HTML brief export. Device and server investigations are deliberately separate; there is no automatic migration between them.
-- CIPC browser handoff and authorised text import, with imported records labelled for authenticity review.
+Install `releases/sothis-0.2.0.apk` on Android 8.0+. It uses the same package and development signing key as 0.1.0, so it can update that installation while retaining app data. The signing key is excluded from Git.
 
-## Install the Android app
+- **Search:** choose Live public web, Social profiles, Live government web, Companies / CIPC, or Saved government collection. Live results show retrieved unique hits, profile candidates, name-match ranking, provider availability, retrieval dates and a platform footprint. Account ownership requires a saved researcher decision. Posts, share links and TikTok discovery pages are not counted as accounts.
+- **Company lookup:** slash, hyphen, spaced and compact enterprise numbers are normalised. Public web and eTenders supplier-index results appear when available. CIPC access is explicitly shown as requiring login. Add an authorised company disclosure, keep business activities/status with provenance, search imported records, and use the company name for supplier award searches.
+- **Tools:** public discovery, company lookup, eTenders and the national/provincial source directory. Select up to ten public collectors for jobs, tenders, e-services or departmental sites. Engine progress shows the source, URL, request count and indexed passages.
+- **Alerts:** choose web, social profiles, government web, imported CIPC disclosures or open tender notices; select new-hit or changed-text conditions, an optional required phrase and interval. Check now, pause/resume and view the inbox. First successful checks establish baselines. Enable Android notifications from Tools.
+- **Investigations:** pin evidence, keep notes and export a structured Markdown/HTML brief. Download a selected original public page or PDF into the phone archive with SHA-256 and retrieval time. Export an evidence ZIP containing the brief, manifest, researcher decisions and downloaded originals. A browser exports a JSON manifest instead of a native ZIP.
+- **Tender workspace:** live open/awarded/closed/cancelled notices, keyword/company/CSD/tender-number filters, award recipients and amounts, notice data, supporting document downloads and eSubmission availability. Select open notices to create multiple bid preparation packs with company/CSD details, tender-specific checklists, notes and researcher-recorded receipts. Export the preparation queue and hand off each submission to the prescribed channel.
 
-Install `releases/sothis-0.1.0.apk` on Android 8.0 or later. This is a development-signed build. The app requests internet access; no contacts, location, camera, or storage-wide permissions are required. Saving a report uses Android's file picker.
+Public search uses best-effort Brave web results with a DuckDuckGo public fallback on request failure. Providers may block or rate-limit requests and do not index every account. Settings accepts an optional **Brave Search API key**, stored privately on the phone; engine deployments use `SOTHIS_BRAVE_API_KEY`. No key is bundled. API usage/storage remains subject to the provider's account terms. Browser search links are actions, never invented account hits.
 
-Search **Geordin Hill-Lewis**, **Cyril Ramaphosa**, or **Western Cape** to explore the snapshot. Jordan Hill Lewis produces a suggested spelling rather than an automatic identity merge. Open a record to inspect dates, URL, hash and PDF page. Create an investigation, then pin records and export its brief.
+The app uses internet access, optional notification permission and a persisted Android job. It requests no contacts, location, camera or broad storage access. Report/ZIP exports use the Android file picker. Background checks depend on network and Android scheduling, may be delayed by battery controls, and stop if the app is force-stopped until it is opened again.
+
+## Included engine foundations
+
+National government plus all nine provinces, HTML/text-bearing PDF ingestion, per-source allowlists/path scopes, robots.txt checks, bounded crawling, SQLite FTS5 search, date/source/category/province filters, PDF page references, version history, raw archives, hashes and traceable report exports. Device and engine investigations/monitoring rules remain separate. There is no automatic migration when connecting or disconnecting.
 
 ## Start the engine
 
@@ -47,7 +51,7 @@ Engine credentials are held in the Android app's private preferences. Browser us
 
 ## Collect and search
 
-From Sources in the app, select up to ten enabled public sources, then collect. Collection is bounded to five page requests per selected source through the interface. Status shows unavailable, login-required, or not-indexed entries; successful indexing does not imply a complete website archive.
+From Tools in the app, select up to ten enabled public sources, then collect. Collection is bounded to five page requests per selected source through the interface. Status shows unavailable, login-required, or not-indexed entries; successful indexing does not imply a complete website archive.
 
 CLI examples:
 
@@ -58,7 +62,7 @@ python3 -m engine search "Ramaphosa" --category remuneration
 python3 -m engine snapshot
 ```
 
-`snapshot` refreshes the asset for the next APK build, not already-installed apps. Live searches cache excerpts on the device; the bundled snapshot remains a dated collection. Source directory updates require review:
+`snapshot` refreshes the asset for the next APK build, not already-installed apps. Indexed searches cache excerpts on the device; the bundled snapshot remains a dated collection. Source directory updates require review:
 
 ```bash
 python3 -m engine discover --url https://www.gov.za/links/provincial-government
@@ -70,7 +74,7 @@ Network environments with a trusted outbound HTTPS proxy that resolves public DN
 
 ## CIPC / record import
 
-CIPC's search notice redirects enterprise search to BizProfile/BizPortal and requires login: https://eservices.cipc.co.za/Search.aspx . This version does not invent a free API, bypass login, or make automated purchases. Use Sources → CIPC → Open website, perform an authorised lookup, then import record text using Settings. Retain the original disclosure securely; an imported URL/text entry is not automatically authenticated by CIPC.
+CIPC's official search notice redirects enterprise lookup to BizProfile/BizPortal and requires login: https://eservices.cipc.co.za/Search.aspx . No authenticated CIPC connector or licensed registry feed is configured in this version. A public-web miss does not mean an enterprise is unregistered. CIPC alerts watch **imported disclosures in the engine**, not the live national register, and a name mention does not establish directorship. Use the official portal for an authorised lookup, then add the disclosure in Companies / CIPC or import its text through Settings. Researcher-supplied authenticity, activities and status remain labelled for review. Local import anchors identify separate disclosures from a shared portal URL; they are Sothis identifiers, not official CIPC record identifiers.
 
 For bulk manual text import, create JSON records containing `source_id`, `url`, `title`, `text`, and optional `published_at` (`YYYY-MM-DD`) / `page`, then run:
 
@@ -82,9 +86,13 @@ python3 -m engine import records.json
 
 The starter snapshot contains 36 searchable passages from 23 URLs. The registry contains 203 source entries, including multiple departments on shared portals; it is not 203 verified integrations. Ten seed connectors were exercised; additional entries still need availability and content review. Current source entries include sites awaiting manual approval for collection.
 
-No general social-media account enumerator, commercial search API, identity resolution engine, relationship graph, OCR pipeline, continuous background scheduler, or LLM narrative generator is included. Social links extracted from a page are publisher links and remain person-ownership candidates. The exported brief is an evidence template with researcher notes, not an automatically verified biography or video essay. National remuneration notices may publish upper limits or pay scales; they do not establish an individual's actual salary. Date filters exclude documents with unknown publication dates.
+Discovery retrieves indexed public candidates rather than enumerating all private/platform accounts. Ranking measures name-text relevance, not identity probability. The footprint shows retrieved candidates per platform rather than a complete map of a person's online existence. Remuneration scales remain scales unless separate evidence establishes actual personal pay; unknown publication dates are excluded by collection date filters. Live web discovery has no reliable publication-date filter and remains separate from the collection's date/source filters.
 
-Recommended next implementation order: document-specific parsers and OCR; broader municipal/gazette coverage; human-reviewed entities and relationships; licensed news/social search connectors; background collection workers; cited narrative drafting from selected verified claims. At scale, move collection to durable queues/object storage and search to a production index, while preserving document IDs, evidence hashes, page references and provenance.
+Monitoring runs while the engine is running, or through Android JobScheduler for device rules. Errors preserve a service's previous baseline. New results are deduplicated and first-run results do not flood the inbox. CIPC registry events require a future authorised feed. Government document collection still runs on the server; phone-only monitoring does not crawl the entire government directory.
+
+The official eTenders public endpoints were verified from its own page/scripts. Supplier awards use the portal's `TenderFilter` company/CSD fields, not an unrelated keyword-only query. A registration number may need a verified company name or CSD number before award matching. Not every notice supports eSubmission. **Bulk bid preparation is implemented; automatic bulk submission is not.** Requirements, eligibility, pricing, attachments, login and final submission must be reviewed for each tender. A local receipt/status is researcher recorded; the app does not claim that a bid was submitted without official acknowledgement. Original source links remain intact under the portal's publication policy: https://data.etenders.gov.za/Home/LearnMore .
+
+OCR, comprehensive municipal/source coverage, entity verification, relationship graphs and cited AI narrative drafting remain future work. The brief is structured evidence plus researcher notes, not an automatically verified biography. At scale, move collection/monitoring to durable queues and search to a production index while preserving provenance and hashes.
 
 ## Build and verify
 

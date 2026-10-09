@@ -138,6 +138,9 @@ class Store:
                include_national=False, sort='relevance', offset=0, limit=30):
         q = q.strip()[:240]
         original_q = q
+        compact_registration = re.sub(r'[\s/\-]', '', q)
+        if re.fullmatch(r'(?:19|20)\d{10}',compact_registration):
+            q = compact_registration[:4]+'/'+compact_registration[4:10]+'/'+compact_registration[10:]
         region = next((p for p in PROVINCES if p.casefold() == q.casefold()), None)
         if region:
             province, q = region, ''

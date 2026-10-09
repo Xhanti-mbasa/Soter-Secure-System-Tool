@@ -16,6 +16,7 @@ const snapshot=JSON.parse(fs.readFileSync(path.join(__dirname,'../android/app/sr
   },snapshot);
   const page=await ctx.newPage();page.on('pageerror',e=>errors.push(e.message));
   await page.goto(base);await page.locator('#result-count').filter({hasText:/passages/}).waitFor();
+  await page.locator('#search-mode').selectOption('index');
   return {ctx,page};
  }
  const {ctx,page}=await setup(false,{width:1200,height:900});

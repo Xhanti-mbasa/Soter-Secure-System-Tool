@@ -8,6 +8,7 @@ from pathlib import Path
 
 from .connectors import Connector
 from .core import now, digest
+from .services import PublicServices, Monitoring
 
 class LensServer(ThreadingHTTPServer):
     daemon_threads = True
@@ -19,6 +20,12 @@ class LensServer(ThreadingHTTPServer):
         self.web_dir = Path(web_dir) if web_dir else None
         self.job = None
         self.job_lock = threading.Lock()
+        self.services = PublicServices()
+        self.monitoring = Monitoring(store,self.services)
+
+    def server_close(self):
+        self.monitoring.stop.set()
+        super().server_close()
 
 class Handler(BaseHTTPRequestHandler):
     server_version = 'ZALens/0.1'
@@ -59,11 +66,11 @@ class Handler(BaseHTTPRequestHandler):
                     if not isinstance(data,dict): raise ValueError('JSON object required')
                 else: data = {}
                 return self.api(method,path,urllib.parse.parse_qs(parsed.query),data)
-            if method == 'GET' and self.server.web_dir and path in ('/','/index.html','/snapshot.json'):
-                name = 'index.html' if path in ('/','/index.html') else 'snapshot.json'
+            if method == 'GET' and self.server.web_dir and path in ('/','/index.html','/snapshot.json','/features.js'):
+                name = 'index.html' if path in ('/','/index.html') else path.lstrip('/')
                 file = self.server.web_dir/name
                 if file.exists():
-                    return self.send(200,file.read_bytes(),'text/html; charset=utf-8' if name.endswith('.html') else 'application/json')
+                    return self.send(200,file.read_bytes(),'text/html; charset=utf-8' if name.endswith('.html') else 'application/javascript; charset=utf-8' if name.endswith('.js') else 'application/json')
             self.send(404,{'error':'Not found'})
         except KeyError as e: self.send(404,{'error':str(e)})
         except (ValueError,TypeError,json.JSONDecodeError) as e: self.send(400,{'error':str(e)[:250]})
@@ -72,7 +79,35 @@ class Handler(BaseHTTPRequestHandler):
     def api(self, method, path, params, data):
         store = self.server.store
         if method == 'GET' and path == '/api/health':
-            return self.send(200,{'ok':True,'version':'0.1.0',**store.stats()})
+            return self.send(200,{'ok':True,'version':'0.2.0',**store.stats()})
+        if path == '/api/discover' and method == 'POST':
+            result = self.server.services.discover(data.get('query',''),data.get('scope','all'))
+            # Persist index metadata as evidence, distinct from downloaded originals.
+            from .connectors import source_record
+            source = source_record('Public web discovery','https://search.brave.com/','National','news')
+            store.seed_sources([source])
+            for hit in result['results']:
+                description = hit['title']+'\n'+hit['description']+'\nSearch-index candidate. Account ownership unverified.'
+                hit['document_id'] = store.put_document(source,hit['url'],hit['title'],description,
+                    acquisition='search_index',category='government' if hit['category']=='government' else 'news')
+            return self.send(200,result)
+        if path == '/api/tenders' and method == 'POST':
+            return self.send(200,self.server.services.tenders(data.get('query',''),data.get('status','open'),data.get('start',0),data.get('search_by','keyword')))
+        if path == '/api/monitors':
+            if method == 'GET':return self.send(200,self.server.monitoring.list())
+            return self.send(201,self.server.monitoring.save(data))
+        if path == '/api/monitors/check' and method == 'POST':
+            return self.send(200,self.server.monitoring.run(data.get('id','')))
+        if path == '/api/alerts':
+            if method == 'POST':self.server.monitoring.mark_read()
+            return self.send(200,self.server.monitoring.list('alerts'))
+        if path == '/api/evidence' and method == 'POST':
+            from .connectors import Fetcher,canonical
+            import hashlib
+            url=canonical(data.get('url',''));host=urllib.parse.urlsplit(url).hostname
+            raw,mime,final,charset=Fetcher().fetch(url,{host})
+            sha=hashlib.sha256(raw).hexdigest();(store.root/'archive'/sha).write_bytes(raw)
+            return self.send(201,{'url':final,'sha256':sha,'bytes':len(raw),'mime':mime,'retrieved_at':now(),'location':'engine_archive'})
         if method == 'GET' and path == '/api/sources': return self.send(200,store.sources())
         if method == 'GET' and path == '/api/search':
             allowed = ('q','province','category','source_id','after','before','sort','offset','limit')
@@ -102,6 +137,13 @@ class Handler(BaseHTTPRequestHandler):
             if not source: raise ValueError('A registered source_id is required')
             from .connectors import canonical
             url = canonical(data.get('url',''))
+            # A disclosure imported from a portal can lack a unique downloadable URL.
+            # Keep an explicit local import anchor, distinct from an official record ID.
+            record_key=str(data.get('record_key',''))
+            if record_key:
+                import re
+                if not re.fullmatch(r'[A-Za-z0-9_-]{1,80}',record_key):raise ValueError('Invalid local import key')
+                url+='#sothis-import-'+record_key
             text = str(data.get('text',''))
             doc_id = store.put_document(source,url,str(data.get('title','Imported record')),text,
                                         data.get('published_at'),page=data.get('page'),acquisition='manual_import')
@@ -124,7 +166,10 @@ class Handler(BaseHTTPRequestHandler):
                 connector = Connector(store)
                 try:
                     for source_id in ids:
-                        result = connector.crawl(source_id,pages,1)
+                        with self.server.job_lock: job.update(current_source=source_id,current_url=store.source(source_id)['url'])
+                        def progress(url,fetched,indexed):
+                            with self.server.job_lock:job.update(current_url=url,fetched=fetched,indexed=indexed)
+                        result = connector.crawl(source_id,pages,1,progress=progress)
                         with self.server.job_lock: job['results'].append(result)
                     with self.server.job_lock: job.update(status='completed',finished_at=now())
                 except Exception as e:
