@@ -141,4 +141,4 @@ $('tender-query').onkeydown=e=>{if(e.key==='Enter')fetchTenders()};$('tender-sta
 // Collection progress identifies the current source and URL as well as totals.
 pollJob=async function(){try{const job=await api('/api/jobs');if(job.status==='running'){notice('job-status','Collecting '+(state.sources.find(s=>s.id===job.current_source)?.name||'sources')+' · '+(job.fetched||0)+' requests · '+(job.indexed||0)+' passages\n'+(job.current_url||'')+'\n'+(job.results||[]).length+' sources completed.');setTimeout(pollJob,3000)}else{const r=job.results||[];notice('job-status','Collection '+job.status+'. '+r.reduce((n,x)=>n+x.indexed,0)+' passages indexed; '+r.reduce((n,x)=>n+x.errors.length,0)+' requests failed.');await refreshSources()}}catch(e){notice('job-status',e.message,true)}};
 const previousStatus=setStatus;setStatus=function(){previousStatus();if(!state.connected)$('status').lastChild.textContent='PHONE DISCOVERY';};
-boot().then(()=>{setStatus();if(state.config.launch_alerts)tab('sources');});
+// Boot runs after all shared feature modules have installed their routes.

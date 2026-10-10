@@ -95,6 +95,21 @@ class WebsiteTests(unittest.TestCase):
         self.assertEqual(self.request('/api/publication','POST',{'url':'http://127.0.0.1/private'})['status'],400)
         self.assertEqual(self.request('/api/publication','POST',{'url':'https://example.org/article'},csrf='wrong')['status'],403)
 
+    def test_daily_routes_keep_authentication_and_local_files_boundaries(self):
+        from engine.daily import DailyService
+        from test_daily import RSS, JOB
+        self.assertEqual(self.request('/api/daily/news','POST',{})['status'],401)
+        self.login()
+        self.app.runtime.daily=DailyService(lambda url: JOB if 'erecruitment' in url else RSS)
+        self.assertEqual(self.request('/api/daily/news','POST',{},csrf='wrong')['status'],403)
+        result=self.request('/api/daily/news','POST',{'province':'Eastern Cape'})
+        self.assertEqual(result['status'],200);self.assertEqual(len(result['json']['results']),1)
+        self.assertEqual(self.request('/api/daily/opportunities','POST',{})['json']['results'][0]['title'],'Library Assistant')
+        self.assertEqual(self.request('/api/daily/article','POST',{'url':'https://example.org/reader'})['status'],400)
+        for path in ['/daily.js','/personal.js','/share-cards.js','/daily.css','/vendor/pdf.js','/vendor/pdf.worker.js']:
+            self.assertEqual(self.request(path)['status'],200)
+        self.assertEqual(self.request('/vendor/../../engine/daily.py')['status'],404)
+
     def test_cookie_policy_csp_and_same_origin_session(self):
         result = self.login()
         self.assertIn('__Host-sothis=',result['headers']['Set-Cookie'])

@@ -32,6 +32,8 @@ class Runtime:
         self.services = PublicServices()
         self.parties = PartyService()
         self.province_news = ProvinceNews(self.services)
+        from engine.daily import DailyService
+        self.daily = DailyService()
         self.monitoring = Monitoring(self.store, self.services)
 
     def close(self):

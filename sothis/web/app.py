@@ -152,7 +152,7 @@ class App:
             return 200, self.html(ASSETS / 'index.html', nonce), 'text/html; charset=utf-8', []
         if path in ('/web-runtime.js', '/web-ui.js'):
             return self.file(STATIC / path.lstrip('/'))
-        allowed = ('/snapshot.json', '/features.js', '/parties.js', '/party-data.json', '/visuals.js', '/photo-credits.json', '/analytics.js', '/analytics.css', '/analytics-data.json', '/navigation.js', '/provinces.js', '/provinces.css', '/province-data.json', '/education-registers.json','/company-details.js')
+        allowed = ('/snapshot.json', '/features.js', '/parties.js', '/party-data.json', '/visuals.js', '/photo-credits.json', '/analytics.js', '/analytics.css', '/analytics-data.json', '/navigation.js', '/provinces.js', '/provinces.css', '/province-data.json', '/education-registers.json','/company-details.js','/daily.js','/personal.js','/share-cards.js','/daily.css','/vendor/pdf.js','/vendor/pdf.worker.js')
         resource = path.startswith(('/images/', '/fonts/', '/icons/')) and Path(path).suffix.lower() in ('.webp', '.jpg', '.png', '.svg', '.ttf', '.woff2')
         file = (ASSETS / path.lstrip('/')).resolve()
         if (path in allowed or resource) and ASSETS.resolve() in file.parents and file.is_file():
@@ -185,8 +185,8 @@ class App:
             body = body.encode()
         headers = [('Content-Type', mime), ('Content-Length', str(len(body))), ('Cache-Control', 'no-store'),
             ('X-Content-Type-Options', 'nosniff'), ('Referrer-Policy', 'strict-origin-when-cross-origin'),
-            ('Content-Security-Policy', f"default-src 'self'; script-src 'self' 'nonce-{nonce}'; style-src 'self' 'unsafe-inline'; img-src 'self' https://www.parliament.gov.za https://parliament.gov.za data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'"),
-            ('Permissions-Policy', 'camera=(), microphone=(), geolocation=()'), *extra]
+            ('Content-Security-Policy', f"default-src 'self'; script-src 'self' 'nonce-{nonce}'; style-src 'self' 'unsafe-inline'; img-src 'self' https://www.parliament.gov.za https://parliament.gov.za data: blob:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'"),
+            ('Permissions-Policy', 'camera=(self), microphone=(self), geolocation=(self), web-share=(self)'), *extra]
         start_response(f'{status} {HTTPStatus(status).phrase}', headers)
         return [b'' if env['REQUEST_METHOD'] == 'HEAD' else body]
 

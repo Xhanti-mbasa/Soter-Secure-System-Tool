@@ -15,6 +15,12 @@ from wsgiref.simple_server import WSGIServer, WSGIRequestHandler, make_server
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
+# All public-provider calls in browser checks are fixtures or unavailable states.
+import urllib.request
+def no_external_network(*args, **kwargs):
+    raise OSError("External network disabled in UI verification")
+urllib.request.urlopen = no_external_network
+
 from web.app import create_app
 from web.auth import password_hash
 

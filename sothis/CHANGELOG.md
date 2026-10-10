@@ -1,5 +1,14 @@
 # Changes
 
+## 0.7.0 — 2026-10-10
+
+- Added Home / Regions / Opportunities / Profile navigation, header Explore, separate Search, remembered region layout and compact province actions.
+- Added credited SAnews reading, metadata-only custom RSS/Atom, local preference ranking, catch-up, topic alerts, likes, bookmarks and bounded offline storage.
+- Added dated public Eastern Cape eRecruitment roles, expiry filtering, skill matches, local TXT/PDF/DOCX CV import and official application handoffs with user-recorded receipts.
+- Added consistent provider workspaces and local municipal report drafts with editable routing, photo/video/audio/file attachment pickers, MIME email export and reviewed composer handoffs.
+- Added long-press public share cards, accessible Share buttons, frosted/liquid/solid styles, custom photos, opacity/blur, three image formats and Android/Web Share with PNG download fallback.
+- Reused the update signing identity; Android versionCode 8. Provider submissions and registry access retain the documented supported boundaries.
+
 ## 0.3.1 — 2026-10-10
 
 - Fixed the native launch failure introduced in 0.2.0: network-constrained JobScheduler work requires ACCESS_NETWORK_STATE on Android 14+, but the permission was missing.

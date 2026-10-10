@@ -4,7 +4,7 @@ const navigationState={restoring:false,sequence:0,routes:[]};
 function currentRoute(){return {tab:state.tab,party:state.tab==='party'?partyState.current?.code||partyState.member?.party_code||null:null,member:state.tab==='party'?partyState.member?.id||null:null,province:state.tab==='regions'?provinceState.current?.name||null:null}}
 function sameRoute(a,b){return a&&b&&a.tab===b.tab&&a.party===b.party&&a.member===b.member&&(a.province||null)===(b.province||null)}
 const routeBack=button('← Back',()=>window.sothisBack(),'route-back');document.querySelector('main').prepend(routeBack);
-function updateBackButton(){routeBack.hidden=state.tab==='search'||state.tab==='party'&&(!!partyState.current||!!partyState.member)||state.tab==='regions'&&!!provinceState.current}
+function updateBackButton(){routeBack.hidden=state.tab==='home'||state.tab==='search'||state.tab==='party'&&(!!partyState.current||!!partyState.member)||state.tab==='regions'&&!!provinceState.current}
 function recordRoute(){
  updateBackButton();if(navigationState.restoring)return;
  const route=currentRoute(),previous=navigationState.routes[navigationState.sequence];if(sameRoute(route,previous))return;
@@ -32,7 +32,7 @@ async function restoreRoute(route){
   }else if(route.tab==='regions'){
    await provinceReady;provinceState.serial++;provinceState.current=provinceState.data?.provinces.find(p=>p.name===route.province)||null;
    navigationTab('regions');if(provinceState.current){provinceState.section='overview';renderProvince();loadProvinceNews()}
-  }else navigationTab(route.tab||'search');
+  }else tab(route.tab||'home');
   updateBackButton();
  }finally{navigationState.restoring=false}
 }
@@ -53,7 +53,7 @@ window.sothisBack=function(){
  if(partyState.member&&state.tab==='party'){parentRoute('party');return true}
  if(partyState.current&&state.tab==='party'){parentRoute('directory');return true}
  if(provinceState.current&&state.tab==='regions'){provinceParent();return true}
- if(state.tab!=='search'){tab('search');return true}
+ if(state.tab!=='home'){tab('home');return true}
  return false;
 };
 $('party-directory-back').onclick=()=>parentRoute('directory');

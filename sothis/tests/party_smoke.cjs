@@ -13,7 +13,7 @@ const hits=[
 ].map(h=>({...h,match_label:'Name terms match',match_reason:'Text relevance, not identity.',retrieved_at:data.captured_at,content_hash:'fixture-hash'}));
 function discovery(body){const results=body.scope==='social'?hits.filter(h=>h.platform):body.scope==='government'?hits.filter(h=>h.category==='government'):hits;return {query:body.query,results,hit_count:results.length,account_count:results.filter(h=>h.platform).length,statuses:[{service:'Recorded fixture provider',status:'completed'}],retrieved_at:data.captured_at,coverage:'Retrieved public candidates only.',companies:[],cipc:{url:'https://www.bizportal.gov.za/',detail:'Authorised CIPC disclosure required.'}}}
 (async()=>{
- const browser=await chromium.launch({headless:true,executablePath:process.env.CHROME_EXECUTABLE,args:['--no-sandbox']});
+ const browser=await chromium.launch({headless:true,executablePath:process.env.CHROME_EXECUTABLE,args:['--no-sandbox','--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE localhost, EXCLUDE 127.0.0.1']});
  for(const standalone of [false,true]){
   const context=await browser.newContext({viewport:{width:390,height:844}}),errors=[],requests=[];
   if(standalone)await context.addInitScript(({snapshot,data,member})=>{
@@ -35,9 +35,9 @@ function discovery(body){const results=body.scope==='social'?hits.filter(h=>h.pl
    await page.route('**/api/member',route=>route.fulfill({json:member}));
    await page.route('**/api/discover',route=>{const d=route.request().postDataJSON();requests.push(d);return route.fulfill({json:discovery(d)})});
   }
-  await page.goto(process.env.SOTHIS_TEST_URL||'http://127.0.0.1:8765');await page.locator('#result-count').filter({hasText:/passages/}).waitFor();
+  await page.goto(process.env.SOTHIS_TEST_URL||'http://127.0.0.1:8765');await page.locator('.nav [data-tab=search]').click();await page.evaluate(()=>document.getElementById('search-scope').open=true);await page.locator('#result-count').filter({hasText:/passages/}).waitFor();
   if(!standalone)await page.waitForFunction(()=>state.connected);
-  await page.locator('#query').fill('ANC');await page.locator('#search-form button').click();await page.locator('#party-title').filter({hasText:anc.name}).waitFor();
+  await page.locator('#query').fill('ANC');await page.locator('#search-form button[type=submit]').click();await page.locator('#party-title').filter({hasText:anc.name}).waitFor();
   await page.locator('#member-filter').fill('Gwede Mantashe');assert.equal(await page.locator('#party-members [data-member]').count(),1);
   await page.locator('[data-member="5975"]').click();await page.locator('#member-results .record').first().waitFor();
   assert.match(await page.locator('#member-summary').innerText(),/Minister of Mineral and Petroleum Resources/);
@@ -50,12 +50,12 @@ function discovery(body){const results=body.scope==='social'?hits.filter(h=>h.pl
   await page.locator('#member-export').click();
   if(standalone){const report=await page.evaluate(()=>savedReports.at(-1));assert.equal(report.name,'sothis-member-5975.md');assert.match(report.text,/Annual ZAR: 2792155/);assert.match(report.text,/PDF pages/);assert.match(report.text,/not verified personal pay/)}
   await page.screenshot({path:'/tmp/sothis-party-member-'+(standalone?'native':'engine')+'.png',fullPage:false});
-  await page.locator('[data-tab=cases]').click();await page.locator('#new-case').click();await page.getByLabel('Investigation title',{exact:true}).fill('Party research dossier');await page.getByRole('button',{name:'Save investigation',exact:true}).click();
-  await page.locator('[data-tab=party]').click();await page.locator('#member-pin').click();await page.locator('#toast').filter({hasText:/Pinned to/}).waitFor();
-  await page.locator('[data-tab=cases]').click();await page.locator('#case-list').filter({hasText:/1 evidence records|1 pinned record|1 evidence|1 pinned/}).waitFor();assert.match(await page.locator('#case-list').innerText(),/1 evidence records|1 pinned record|1 evidence|1 pinned/);
+  await page.evaluate(()=>document.querySelector('.header-explore').open=true);await page.locator('[data-tab=cases]').click();await page.locator('#new-case').click();await page.getByLabel('Investigation title',{exact:true}).fill('Party research dossier');await page.getByRole('button',{name:'Save investigation',exact:true}).click();
+  await page.evaluate(()=>document.querySelector('.header-explore').open=true);await page.locator('[data-tab=party]').click();await page.locator('#member-pin').click();await page.locator('#toast').filter({hasText:/Pinned to/}).waitFor();
+  await page.evaluate(()=>document.querySelector('.header-explore').open=true);await page.locator('[data-tab=cases]').click();await page.locator('#case-list').filter({hasText:/1 evidence records|1 pinned record|1 evidence|1 pinned/}).waitFor();assert.match(await page.locator('#case-list').innerText(),/1 evidence records|1 pinned record|1 evidence|1 pinned/);
   if(standalone){await page.locator('#case-list .case').filter({hasText:'Party research dossier'}).getByRole('button',{name:'Export brief',exact:true}).click();await page.getByRole('button',{name:'Download evidence bundle',exact:true}).click();const exported=await page.evaluate(()=>JSON.parse(savedReports.find(r=>r.name==='sothis-evidence.zip').text));assert.equal(exported.evidence.length,1);assert.match(exported.evidence[0].url,/53965gon7004/);await page.getByRole('button',{name:'Close',exact:true}).click();}
-  await page.locator('[data-tab=party]').click();await page.locator('#member-alert').click();assert.equal(await page.getByLabel('Person, business number or keyword').inputValue(),'Gwede Mantashe');await page.getByRole('button',{name:'Save alert',exact:true}).click();await page.locator('#monitor-list').filter({hasText:'Gwede Mantashe'}).waitFor();
-  await page.locator('[data-tab=party]').click();await page.locator('#member-back').click();await page.locator('#party-title').filter({hasText:anc.name}).waitFor();await page.locator('#party-directory-back').click();
+  await page.evaluate(()=>document.querySelector('.header-explore').open=true);await page.locator('[data-tab=party]').click();await page.locator('#member-alert').click();assert.equal(await page.getByLabel('Person, business number or keyword').inputValue(),'Gwede Mantashe');await page.getByRole('button',{name:'Save alert',exact:true}).click();await page.locator('#monitor-list').filter({hasText:'Gwede Mantashe'}).waitFor();
+  await page.evaluate(()=>document.querySelector('.header-explore').open=true);await page.locator('[data-tab=party]').click();await page.locator('#member-back').click();await page.locator('#party-title').filter({hasText:anc.name}).waitFor();await page.locator('#party-directory-back').click();
   await page.locator('#party-query').fill('DA');await page.locator('#party-search-form button').click();await page.locator('#party-title').filter({hasText:'Democratic Alliance'}).waitFor();
   if(standalone){await page.locator('#party-refresh').click();await page.locator('#party-note').filter({hasText:'Refresh unavailable'}).waitFor();assert.match(await page.locator('#party-member-count').innerText(),/99 captured/);assert.ok(await page.evaluate(()=>bridgeCalls.some(c=>c.route==='/api/device/member'&&c.d.refresh)));}
   assert.deepEqual(errors,[]);await context.close();

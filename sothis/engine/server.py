@@ -26,6 +26,8 @@ class LensServer(ThreadingHTTPServer):
         self.parties = PartyService()
         from .provinces import ProvinceNews
         self.province_news = ProvinceNews(self.services)
+        from engine.daily import DailyService
+        self.daily = DailyService()
         self.monitoring = Monitoring(store,self.services)
 
     def server_close(self):
@@ -71,7 +73,7 @@ class Handler(BaseHTTPRequestHandler):
                     if not isinstance(data,dict): raise ValueError('JSON object required')
                 else: data = {}
                 return self.api(method,path,urllib.parse.parse_qs(parsed.query),data)
-            public_files = ('/','/index.html','/snapshot.json','/features.js','/parties.js','/party-data.json','/visuals.js','/nothing.css','/photo-credits.json','/analytics.js','/analytics.css','/analytics-data.json','/navigation.js','/provinces.js','/provinces.css','/province-data.json','/education-registers.json','/company-details.js')
+            public_files = ('/','/index.html','/snapshot.json','/features.js','/parties.js','/party-data.json','/visuals.js','/nothing.css','/photo-credits.json','/analytics.js','/analytics.css','/analytics-data.json','/navigation.js','/provinces.js','/provinces.css','/province-data.json','/education-registers.json','/company-details.js','/daily.js','/personal.js','/share-cards.js','/daily.css','/vendor/pdf.js','/vendor/pdf.worker.js')
             resource = path.startswith(('/images/','/fonts/','/icons/')) and Path(path).suffix.lower() in ('.webp','.jpg','.png','.svg','.ttf','.woff2')
             if method == 'GET' and self.server.web_dir and (path in public_files or resource):
                 name = 'index.html' if path in ('/','/index.html') else path.lstrip('/')
@@ -88,7 +90,11 @@ class Handler(BaseHTTPRequestHandler):
     def api(self, method, path, params, data):
         store = self.server.store
         if method == 'GET' and path == '/api/health':
-            return self.send(200,{'ok':True,'version':'0.6.0',**store.stats()})
+            return self.send(200,{'ok':True,'version':'0.7.0',**store.stats()})
+        if path in ('/api/daily/news', '/api/daily/opportunities') and method == 'POST':
+            return self.send(200,self.server.daily.collect(path.rsplit('/',1)[-1],data))
+        if path == '/api/daily/article' and method == 'POST':
+            return self.send(200,self.server.daily.news_provider.article(data.get('url','')))
         if path == '/api/provinces' and method == 'GET':
             from .provinces import snapshot
             return self.send(200,snapshot())

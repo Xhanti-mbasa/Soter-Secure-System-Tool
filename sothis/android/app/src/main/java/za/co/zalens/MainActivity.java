@@ -13,6 +13,15 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.webkit.ValueCallback;
 import android.widget.Toast;
+import android.webkit.WebChromeClient;
+import android.location.Location;
+import android.location.LocationManager;
+import android.location.LocationListener;
+import android.content.pm.PackageManager;
+import android.provider.MediaStore;
+import android.content.ClipData;
+import android.util.Base64;
+import java.util.UUID;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import android.Manifest;
@@ -40,6 +49,10 @@ public final class MainActivity extends Activity {
     private PublicServices services;
     private boolean monitoringScheduled;
     private static final int SAVE_REPORT = 19;
+    private ValueCallback<Uri[]> fileCallback;
+    private Uri captureUri;
+    private String locationRequest;
+    private LocationListener locationListener;
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
@@ -54,7 +67,7 @@ public final class MainActivity extends Activity {
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
         settings.setAllowFileAccess(true);
-        settings.setAllowContentAccess(false);
+        settings.setAllowContentAccess(true);
         settings.setAllowFileAccessFromFileURLs(false);
         settings.setAllowUniversalAccessFromFileURLs(false);
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
@@ -77,6 +90,16 @@ public final class MainActivity extends Activity {
                 if (url.startsWith("file:///android_asset/")) return false;
                 openExternal(url);
                 return true;
+            }
+        });
+        web.setWebChromeClient(new WebChromeClient(){
+            @Override public boolean onShowFileChooser(WebView view,ValueCallback<Uri[]> callback,FileChooserParams params){
+                if(fileCallback!=null)fileCallback.onReceiveValue(null);fileCallback=callback;captureUri=null;
+                try{Intent pick=params.createIntent().putExtra(Intent.EXTRA_ALLOW_MULTIPLE,params.getMode()==WebChromeClient.FileChooserParams.MODE_OPEN_MULTIPLE);if(params.isCaptureEnabled()&&params.getAcceptTypes().length>0&&params.getAcceptTypes()[0].startsWith("image")){
+                    File dir=new File(getCacheDir(),"capture");dir.mkdirs();String name=UUID.randomUUID().toString().replace("-","")+".jpg";captureUri=Uri.parse("content://za.co.zalens.files/capture/"+name);Intent camera=new Intent(MediaStore.ACTION_IMAGE_CAPTURE).putExtra(MediaStore.EXTRA_OUTPUT,captureUri).addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION|Intent.FLAG_GRANT_READ_URI_PERMISSION);camera.setClipData(ClipData.newRawUri("Photo",captureUri));if(camera.resolveActivity(getPackageManager())!=null)pick=camera;else captureUri=null;
+                }else if(params.isCaptureEnabled()&&params.getAcceptTypes().length>0&&params.getAcceptTypes()[0].startsWith("video")){Intent camera=new Intent(MediaStore.ACTION_VIDEO_CAPTURE);if(camera.resolveActivity(getPackageManager())!=null)pick=camera;else captureUri=null;
+                }else if(params.isCaptureEnabled()&&params.getAcceptTypes().length>0&&params.getAcceptTypes()[0].startsWith("audio")){Intent recorder=new Intent(MediaStore.Audio.Media.RECORD_SOUND_ACTION);if(recorder.resolveActivity(getPackageManager())!=null)pick=recorder;}
+                startActivityForResult(pick,41);return true;}catch(Exception e){fileCallback.onReceiveValue(null);fileCallback=null;Toast.makeText(MainActivity.this,"No compatible picker available",Toast.LENGTH_LONG).show();return true;}
             }
         });
         setContentView(web);
@@ -112,6 +135,7 @@ public final class MainActivity extends Activity {
     }
 
     public final class Bridge {
+        @JavascriptInterface public String dailyCapabilities(){return "news,opportunities,article,local-files,location,share-image";}
         @JavascriptInterface public String config() {
             JSONObject result = new JSONObject();
             try { result.put("url", prefs.getString("url", ""));result.put("launch_alerts",getIntent().getBooleanExtra("alerts",false)); result.put("configured", !prefs.getString("url", "").isEmpty()); result.put("search_key_configured",!getSharedPreferences("services",MODE_PRIVATE).getString("search_key","").isEmpty()); }
@@ -178,7 +202,7 @@ public final class MainActivity extends Activity {
                     if (base.isEmpty() || route.startsWith("/api/device/")) {
                         if(route.contains("/monitors"))getSharedPreferences("services",MODE_PRIVATE).edit().putString("monitor_backend","device").apply();
                         String result;
-                        if(route.endsWith("/publication")||route.endsWith("/province/news"))result=services.execute(route.replace("/api/device/","/api/"),method,body);
+                        if(route.endsWith("/publication")||route.endsWith("/province/news")||route.startsWith("/api/device/daily/")||route.startsWith("/api/daily/"))result=services.execute(route.replace("/api/device/","/api/"),method,body);
                         else synchronized(PublicServices.class){result=services.execute(route.replace("/api/device/","/api/"),method,body);}
                         if(route.endsWith("/monitors/check"))MonitorJob.notifyAlerts(MainActivity.this,services.alerts());
                         reply(id,result,"");return;
@@ -231,6 +255,15 @@ public final class MainActivity extends Activity {
                 runOnUiThread(new Runnable(){public void run(){pendingFile=file;pendingReport=null;Intent intent=new Intent(Intent.ACTION_CREATE_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("application/zip").putExtra(Intent.EXTRA_TITLE,name.replaceAll("[^a-zA-Z0-9._-]","_"));startActivityForResult(intent,SAVE_REPORT);}});
             }catch(Exception e){runOnUiThread(new Runnable(){public void run(){Toast.makeText(MainActivity.this,"Could not prepare evidence bundle",Toast.LENGTH_LONG).show();}});}}});
         }
+        @JavascriptInterface public void binaryFile(final String name,final String base64,final String mime,final boolean sharing){
+            executor.execute(new Runnable(){public void run(){try{
+                if(base64.length()>28*1024*1024)throw new Exception("File too large");byte[] bytes=Base64.decode(base64,Base64.DEFAULT);if(bytes.length>20*1024*1024)throw new Exception("File too large");String ext=name.toLowerCase().matches(".*\\.(png|jpg|pdf|txt|eml|docx)$")?name.substring(name.lastIndexOf('.')+1).toLowerCase():"bin";File dir=new File(getCacheDir(),"share");dir.mkdirs();for(File old:dir.listFiles())if(System.currentTimeMillis()-old.lastModified()>24*3600000L)old.delete();final File file=new File(dir,UUID.randomUUID().toString().replace("-","")+"."+ext);try(FileOutputStream out=new FileOutputStream(file)){out.write(bytes);}runOnUiThread(new Runnable(){public void run(){try{if(sharing){Uri uri=Uri.parse("content://za.co.zalens.files/share/"+file.getName());Intent intent=new Intent(Intent.ACTION_SEND).setType(mime).putExtra(Intent.EXTRA_STREAM,uri).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);intent.setClipData(ClipData.newRawUri("Sothis card",uri));startActivity(Intent.createChooser(intent,"Share Sothis card"));}else{pendingFile=file;pendingReport=null;startActivityForResult(new Intent(Intent.ACTION_CREATE_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType(mime).putExtra(Intent.EXTRA_TITLE,name.replaceAll("[^a-zA-Z0-9._-]","_")),SAVE_REPORT);}}catch(Exception e){Toast.makeText(MainActivity.this,"No compatible app available",Toast.LENGTH_LONG).show();}}});
+            }catch(Exception e){runOnUiThread(new Runnable(){public void run(){Toast.makeText(MainActivity.this,"Could not prepare the local file",Toast.LENGTH_LONG).show();}});}}});
+        }
+        @JavascriptInterface public void openEvidence(final String sha,final String mime){runOnUiThread(new Runnable(){public void run(){try{if(!sha.matches("[a-f0-9]{64}"))return;String ext=mime.equals("application/pdf")?"pdf":mime.startsWith("text/")?"txt":"bin";Uri uri=Uri.parse("content://za.co.zalens.files/evidence/"+sha+"."+ext);startActivity(new Intent(Intent.ACTION_VIEW).setDataAndType(uri,mime).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION));}catch(Exception e){Toast.makeText(MainActivity.this,"No offline viewer available",Toast.LENGTH_LONG).show();}}});}
+        @JavascriptInterface public void email(final String to,final String subject,final String body){runOnUiThread(new Runnable(){public void run(){try{if(!to.matches("[^\\s@]+@[^\\s@]+\\.[^\\s@]+"))return;startActivity(new Intent(Intent.ACTION_SENDTO,Uri.parse("mailto:"+Uri.encode(to))).putExtra(Intent.EXTRA_SUBJECT,subject).putExtra(Intent.EXTRA_TEXT,body));}catch(Exception e){Toast.makeText(MainActivity.this,"No email app available. Export the draft instead.",Toast.LENGTH_LONG).show();}}});}
+        @JavascriptInterface public void notificationPreferences(String start,String end){if(start.matches("[0-2][0-9]:[0-5][0-9]")&&end.matches("[0-2][0-9]:[0-5][0-9]"))getSharedPreferences("services",MODE_PRIVATE).edit().putString("quiet_start",start).putString("quiet_end",end).apply();}
+        @JavascriptInterface public void location(final String id){runOnUiThread(new Runnable(){public void run(){locationRequest=id;if(checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION)!=PackageManager.PERMISSION_GRANTED){requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION,Manifest.permission.ACCESS_FINE_LOCATION},42);return;}requestProvinceLocation(id);}});}
         @JavascriptInterface public void open(final String url) {
             runOnUiThread(new Runnable() { @Override public void run() { openExternal(url); }});
         }
@@ -255,6 +288,7 @@ public final class MainActivity extends Activity {
 
     @Override protected void onActivityResult(int request,int result,Intent data) {
         super.onActivityResult(request,result,data);
+        if(request==41){if(fileCallback!=null){Uri[] uris=result==RESULT_OK?(captureUri!=null?new Uri[]{captureUri}:pickerResult(result,data)):null;fileCallback.onReceiveValue(uris);fileCallback=null;captureUri=null;}return;}
         if(request==SAVE_REPORT && result==RESULT_OK && data!=null && (pendingReport!=null||pendingFile!=null)) {
             try {
                 OutputStream out=getContentResolver().openOutputStream(data.getData());
@@ -264,6 +298,14 @@ public final class MainActivity extends Activity {
         }
         pendingReport=null;pendingFile=null;
     }
+    private Uri[] pickerResult(int result,Intent data){if(result!=RESULT_OK||data==null)return null;if(data.getClipData()!=null){ClipData clip=data.getClipData();Uri[] uris=new Uri[clip.getItemCount()];for(int i=0;i<uris.length;i++)uris[i]=clip.getItemAt(i).getUri();return uris;}return WebChromeClient.FileChooserParams.parseResult(result,data);}
+    private void requestProvinceLocation(final String id){
+        final LocationManager manager=(LocationManager)getSystemService(LOCATION_SERVICE);if(manager==null){reply(id,"","Location unavailable");return;}
+        try{if(locationListener!=null)manager.removeUpdates(locationListener);locationListener=new LocationListener(){public void onLocationChanged(Location loc){try{JSONObject value=new JSONObject().put("latitude",loc.getLatitude()).put("longitude",loc.getLongitude());reply(id,value.toString(),"");manager.removeUpdates(this);locationListener=null;}catch(Exception e){reply(id,"","Location unavailable");}}public void onStatusChanged(String p,int s,Bundle b){}public void onProviderEnabled(String p){}public void onProviderDisabled(String p){}};
+            String provider=manager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)?LocationManager.NETWORK_PROVIDER:LocationManager.GPS_PROVIDER;if(!manager.isProviderEnabled(provider)){reply(id,"","Enable location or choose a province manually");return;}manager.requestSingleUpdate(provider,locationListener,getMainLooper());web.postDelayed(new Runnable(){public void run(){if(locationListener!=null&&id.equals(locationRequest)){manager.removeUpdates(locationListener);locationListener=null;reply(id,"","Location timed out; choose manually");}}},25000);
+        }catch(Exception e){reply(id,"","Location unavailable; choose manually");}
+    }
+    @Override public void onRequestPermissionsResult(int request,String[] permissions,int[] results){super.onRequestPermissionsResult(request,permissions,results);if(request==42){if(checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION)==PackageManager.PERMISSION_GRANTED)requestProvinceLocation(locationRequest);else reply(locationRequest,"","Location permission declined; choose manually");}}
     @Override public void onBackPressed() {
         if(web==null){finish();return;}
         web.evaluateJavascript("(function(){if(typeof window.sothisBack==='function')return window.sothisBack();var o=document.getElementById('overlay');if(o&&!o.hidden){window.closeDetail();return true;}return false;})()",new ValueCallback<String>() {
@@ -271,6 +313,7 @@ public final class MainActivity extends Activity {
         });
     }
     @Override protected void onDestroy() {
+        if(locationListener!=null){((LocationManager)getSystemService(LOCATION_SERVICE)).removeUpdates(locationListener);locationListener=null;}
         executor.shutdownNow();if(web!=null){web.removeJavascriptInterface("Native");web.destroy();}super.onDestroy();
     }
 }

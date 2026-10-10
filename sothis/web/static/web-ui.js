@@ -18,6 +18,8 @@ account.append(copy, button('Sign out', async () => {
     const response = await fetch('/auth/logout', {method:'POST', credentials:'same-origin',
       headers:{'Content-Type':'application/json','X-Sothis-CSRF':session.csrf}, body:'{}'});
     if (!response.ok) throw new Error('Sign-out failed. Try again.');
+    daily.reader.stop();
+    await daily.vault.clear().catch(()=>{});
     for (const key of Object.keys(localStorage)) if (key.startsWith('za-') || key.startsWith('sothis-')) localStorage.removeItem(key);
     location.replace('/login');
   } catch (error) { toast(error.message); }

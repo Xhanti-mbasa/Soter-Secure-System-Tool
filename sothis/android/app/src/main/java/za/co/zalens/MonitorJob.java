@@ -30,6 +30,9 @@ public final class MonitorJob extends JobService {
         NotificationManager manager=(NotificationManager)c.getSystemService(Context.NOTIFICATION_SERVICE);
         manager.createNotificationChannel(new NotificationChannel("monitoring","Sothis monitoring",NotificationManager.IMPORTANCE_DEFAULT));
         if(Build.VERSION.SDK_INT>=33&&c.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)!=PackageManager.PERMISSION_GRANTED)return;
+        SharedPreferences settings=c.getSharedPreferences("services",Context.MODE_PRIVATE);
+        String start=settings.getString("quiet_start",""),end=settings.getString("quiet_end","");
+        if(!start.isEmpty()&&!end.isEmpty()&&!start.equals(end)){java.time.LocalTime t=java.time.LocalTime.now();String clock=String.format(java.util.Locale.US,"%02d:%02d",t.getHour(),t.getMinute());boolean quiet=start.compareTo(end)<0?clock.compareTo(start)>=0&&clock.compareTo(end)<0:clock.compareTo(start)>=0||clock.compareTo(end)<0;if(quiet)return;}
         SharedPreferences prefs=c.getSharedPreferences("notifications",Context.MODE_PRIVATE);
         Set<String> delivered=new HashSet<>(prefs.getStringSet("delivered",new HashSet<String>()));
         for(int i=0;i<alerts.length();i++) {

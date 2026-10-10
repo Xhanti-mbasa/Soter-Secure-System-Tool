@@ -4,13 +4,15 @@
 
 South African public-records research: an Android client and an independent document-collection/search engine. The Android app uses a bundled local interface, with a native bridge for engine connections, browser handoff, sharing, and file export.
 
-Version **0.6.0** adds a province map and dashboards for news, population, education, employment, activities and public data banks. Salaries remain visible; company declaration details and sourced links to authorised company records sit alongside the member charts. It retains the Nothing-inspired interface with a charcoal palette, Doto dot-matrix headings, blue accents, rounded cards and a floating four-tab dock with a separate search button. Settings is available from the header. Landscape photos and their metadata are loaded locally through the native asset bridge for National and all nine provinces, and representatives use sourced Parliament portraits with initials when the image is unavailable. The native launch fix from 0.3.1 remains in place.
+Version **0.7.0** adds Home, Opportunities and a local Profile around the existing research tools. Long-press public cards to share PNGs with frosted/liquid glass, solid colours, a local photo, opacity and blur controls. News has dates, local likes/bookmarks and offline downloads; CV imports and municipal report drafts remain local. Tool workspaces run without redirecting to Search.
+
+Version **0.6.0** added a province map and dashboards for news, population, education, employment, activities and public data banks. Salaries remain visible; company declaration details and sourced links to authorised company records sit alongside the member charts. It retains the Nothing-inspired interface with a charcoal palette, Doto dot-matrix headings, blue accents, rounded cards and a floating four-tab dock with a separate search button. Settings is available from the header. Landscape photos and their metadata are loaded locally through the native asset bridge for National and all nine provinces, and representatives use sourced Parliament portraits with initials when the image is unavailable. The native launch fix from 0.3.1 remains in place.
 
 Live search, sourced Party dossiers, alerts, local evidence saving, investigations and tender preparation keep their existing behavior. Android performs public discovery and eTenders queries directly without a hosted engine; an engine provides government collection, shared evidence and server monitoring.
 
 ## Install and use
 
-Install `releases/sothis-0.6.0.apk` on Android 8.0+. It uses the same package and development signing key as previous Sothis releases, so it can update that installation while retaining app data. The signing key is excluded from Git.
+Install `releases/sothis-0.7.0.apk` on Android 8.0+. It uses the same package and development signing key as previous Sothis releases, so it can update that installation while retaining app data. The signing key is excluded from Git.
 
 - **Search:** choose Live public web, Social profiles, Live government web, Companies / CIPC, or Saved government collection. Live results show retrieved unique hits, profile candidates, name-match ranking, provider availability, retrieval dates and a platform footprint. Account ownership requires a saved researcher decision. Posts, share links and TikTok discovery pages are not counted as accounts.
 - **Party:** search ANC, DA, EFF or another listed party from Search or the Party tab. Browse the captured Parliament roster, filter representatives by name, refresh the official directory, and open member dossiers. Profiles retrieve current public member pages and group live mentions into government, news, remuneration, education, business and social categories. Pin/export a sourced dossier or create a mention alert.
@@ -154,3 +156,5 @@ python3 -m unittest discover -s tests -v
 `scripts/build_apk.py` accepts paths to Android SDK build tools 35, `android.jar`, and the Eclipse Java compiler jar. It invokes aapt2, Java compilation, D8, zipalign, and apksigner. A private development signing key is generated only if the supplied path does not exist; keep that key for subsequent compatible updates and use a protected release key for production.
 
 See `VALIDATION.md` for the checks completed for this version. Project code uses the repository's MIT license. Public source records retain their publishers' rights and source terms; they are not relicensed by this project's code license.
+
+Everyday features and source limits are documented in [DAILY_VALIDATION.md](docs/DAILY_VALIDATION.md). The website uses the same interface and provider services; deploy the updated repository using the existing server guide.
