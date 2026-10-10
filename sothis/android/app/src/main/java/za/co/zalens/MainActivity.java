@@ -44,12 +44,12 @@ public final class MainActivity extends Activity {
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
-        getWindow().setStatusBarColor(0xff0b1320);
-        getWindow().setNavigationBarColor(0xff0b1320);
+        getWindow().setStatusBarColor(0xff242424);
+        getWindow().setNavigationBarColor(0xff242424);
         prefs = getSharedPreferences("engine", MODE_PRIVATE);
         services=new PublicServices(this);
         web = new WebView(this);
-        web.setBackgroundColor(0xff0b1320);
+        web.setBackgroundColor(0xff242424);
         WebSettings settings = web.getSettings();
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
@@ -127,6 +127,13 @@ public final class MainActivity extends Activity {
                 in.close();
                 return new String(out.toByteArray(), StandardCharsets.UTF_8);
             } catch (Exception e) { return "{\"documents\":[],\"sources\":[]}"; }
+        }
+        @JavascriptInterface public String photoCredits() {
+            try (InputStream in=getAssets().open("photo-credits.json")) {
+                ByteArrayOutputStream out=new ByteArrayOutputStream();byte[] bytes=new byte[4096];int count;
+                while((count=in.read(bytes))!=-1)out.write(bytes,0,count);
+                return new String(out.toByteArray(),StandardCharsets.UTF_8);
+            } catch(Exception e) { return "[]"; }
         }
         @JavascriptInterface public String partySnapshot() {
             try { return PartyServices.snapshot(MainActivity.this); }

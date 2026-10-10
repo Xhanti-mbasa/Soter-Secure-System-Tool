@@ -67,7 +67,12 @@ public final class PartyServices {
                 for(int i=0;i<rows.length();i++){
                     JSONObject row=rows.getJSONObject(i);String id=row.getString("id"),party=row.getString("party");
                     if(!id.matches("\\d{1,10}")||!ids.add(id)||!codes.contains(party))throw new IOException("Invalid, duplicated or unknown-party directory entry");total++;
-                    if(party.equals(p.getString("code")))members.put(new JSONObject().put("id",id).put("name",row.getString("full_name")).put("party_code",party).put("source_url",PARLIAMENT+"/person-details/"+id));
+                    if(party.equals(p.getString("code"))){
+                        JSONObject person=new JSONObject().put("id",id).put("name",row.getString("full_name")).put("party_code",party).put("source_url",PARLIAMENT+"/person-details/"+id);
+                        String photo=row.optString("profile_pic_url","");
+                        if(photo.matches("/storage/app/media/MemberImages/[A-Za-z0-9_.-]+\\.(?i:jpg|jpeg|png)"))person.put("image_url",PARLIAMENT+photo).put("image_source_url",PARLIAMENT+"/person-details/"+id);
+                        members.put(person);
+                    }
                 }
             }
             if(total!=expected||total==0)throw new IOException("Incomplete Parliament directory");

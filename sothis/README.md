@@ -2,11 +2,13 @@
 
 South African public-records research: an Android client and an independent document-collection/search engine. The Android app uses a bundled local interface, with a native bridge for engine connections, browser handoff, sharing, and file export.
 
-Version **0.3.1** fixes the native launch crash in 0.2.0 and 0.3.0. Party search and sourced public representative dossiers remain available. Version 0.2.0 fixed the snapshot-only search limitation. A name or registration-number search defaults to live public discovery. Android performs public discovery and eTenders queries directly without a hosted engine; an engine still provides government collection, shared evidence and server monitoring.
+Version **0.4.0** refreshes the interface with a Nothing-inspired charcoal palette, Doto dot-matrix headings, blue accents, rounded cards and a floating four-tab dock with a separate search button. Settings is available from the header. Landscape photos and their metadata are loaded locally through the native asset bridge for National and all nine provinces, and representatives use sourced Parliament portraits with initials when the image is unavailable. The native launch fix from 0.3.1 remains in place.
+
+Live search, sourced Party dossiers, alerts, local evidence saving, investigations and tender preparation keep their existing behavior. Android performs public discovery and eTenders queries directly without a hosted engine; an engine provides government collection, shared evidence and server monitoring.
 
 ## Install and use
 
-Install `releases/sothis-0.3.1.apk` on Android 8.0+. It uses the same package and development signing key as 0.1.0, 0.2.0 and 0.3.0, so it can update that installation while retaining app data. The signing key is excluded from Git.
+Install `releases/sothis-0.4.0.apk` on Android 8.0+. It uses the same package and development signing key as previous Sothis releases, so it can update that installation while retaining app data. The signing key is excluded from Git.
 
 - **Search:** choose Live public web, Social profiles, Live government web, Companies / CIPC, or Saved government collection. Live results show retrieved unique hits, profile candidates, name-match ranking, provider availability, retrieval dates and a platform footprint. Account ownership requires a saved researcher decision. Posts, share links and TikTok discovery pages are not counted as accounts.
 - **Party:** search ANC, DA, EFF or another listed party from Search or the Party tab. Browse the captured Parliament roster, filter representatives by name, refresh the official directory, and open member dossiers. Profiles retrieve current public member pages and group live mentions into government, news, remuneration, education, business and social categories. Pin/export a sourced dossier or create a mention alert.
@@ -23,6 +25,14 @@ The app uses internet access, the normal network-state permission, optional noti
 ## Included engine foundations
 
 National government plus all nine provinces, HTML/text-bearing PDF ingestion, per-source allowlists/path scopes, robots.txt checks, bounded crawling, SQLite FTS5 search, date/source/category/province filters, PDF page references, version history, raw archives, hashes and traceable report exports. Device and engine investigations/monitoring rules remain separate. There is no automatic migration when connecting or disconnecting.
+
+## Interface and photography
+
+The dock contains Party, Regions, Tools and Cases. The separate circle opens Search; the header gear opens Settings. Photos on region cards identify the pictured place, rather than claiming the source or every document originated there. Home photo cards open Regions and Party. A representative dossier places the portrait, name and sourced details first; Back returns to the roster.
+
+The APK includes nine compressed landscape photographs (Pretoria is used for both National and Gauteng), the Doto font and Phosphor icons. Landscape credits, original file pages, licenses and modifications are available in Settings and `android/app/src/main/assets/photo-credits.json`. Images retain their listed Creative Commons licenses. Doto is under the SIL Open Font License; Phosphor icons are under MIT, with license files bundled. Representative portraits are loaded from the official Parliament directory over HTTPS and are optional network assets; missing photos show initials. Portraits do not verify the ownership of a social account.
+
+Rendered screens: [Search](docs/screenshots/home.png), [Regions](docs/screenshots/regions.png), [Representative dossier](docs/screenshots/profile.png), [Tools](docs/screenshots/tools.png). The visual verification checks all six main screens at 320, 360, 390, 412, 720 and 1200 CSS pixels, local asset MIME types, static file boundaries, fonts, photographs, 44-pixel dock targets and JavaScript errors.
 
 ## Party sources and coverage
 

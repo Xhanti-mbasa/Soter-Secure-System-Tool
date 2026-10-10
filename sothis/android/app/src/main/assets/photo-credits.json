@@ -1,0 +1,112 @@
+[
+  {
+    "file": "images/eastern-cape.webp",
+    "region": "Eastern Cape",
+    "place": "Middledrift, Eastern Cape",
+    "title": "Eastern cape near middledrift - rsa.jpg",
+    "author": "Lysippos",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Eastern_cape_near_middledrift_-_rsa.jpg",
+    "license": "CC BY-SA 3.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+    "changes": "Resized and converted to WebP; grayscale and crop applied in the app."
+  },
+  {
+    "file": "images/free-state.webp",
+    "region": "Free State",
+    "place": "Bloemfontein",
+    "title": "Bloemfontein skyline.jpg",
+    "author": "ShupingM",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Bloemfontein_skyline.jpg",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+    "changes": "Resized and converted to WebP; grayscale and crop applied in the app."
+  },
+  {
+    "file": "images/union-buildings.webp",
+    "region": "Gauteng",
+    "place": "Union Buildings, Pretoria",
+    "title": "Union buildings - Pretoria.jpg",
+    "author": "Dev RSA",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Union_buildings_-_Pretoria.jpg",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+    "changes": "Resized and converted to WebP; grayscale and crop applied in the app."
+  },
+  {
+    "file": "images/durban.webp",
+    "region": "KwaZulu-Natal",
+    "place": "Durban",
+    "title": "DSkyline.jpg",
+    "author": "flowcomm",
+    "source_url": "https://commons.wikimedia.org/wiki/File:DSkyline.jpg",
+    "license": "CC BY 2.0",
+    "license_url": "https://creativecommons.org/licenses/by/2.0",
+    "changes": "Resized and converted to WebP; grayscale and crop applied in the app."
+  },
+  {
+    "file": "images/limpopo.webp",
+    "region": "Limpopo",
+    "place": "Magoebaskloof",
+    "title": "Magoebaskloof, Limpopo, South Africa (2417714031).jpg",
+    "author": "South African Tourism",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Magoebaskloof,_Limpopo,_South_Africa_(2417714031).jpg",
+    "license": "CC BY 2.0",
+    "license_url": "https://creativecommons.org/licenses/by/2.0",
+    "changes": "Resized and converted to WebP; grayscale and crop applied in the app."
+  },
+  {
+    "file": "images/mpumalanga.webp",
+    "region": "Mpumalanga",
+    "place": "Blyde River Canyon",
+    "title": "Blyde River Canyon Nature Reserve (ZA), Blyde River, Bourke's Luck Potholes, Blyde River Canyon -- 2024 -- 0024.jpg",
+    "author": "Dietmar Rabich",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Blyde_River_Canyon_Nature_Reserve_(ZA),_Blyde_River,_Bourke%27s_Luck_Potholes,_Blyde_River_Canyon_--_2024_--_0024.jpg",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+    "changes": "Resized and converted to WebP; grayscale and crop applied in the app."
+  },
+  {
+    "file": "images/union-buildings.webp",
+    "region": "National",
+    "place": "Union Buildings, Pretoria",
+    "title": "Union buildings - Pretoria.jpg",
+    "author": "Dev RSA",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Union_buildings_-_Pretoria.jpg",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+    "changes": "Resized and converted to WebP; grayscale and crop applied in the app."
+  },
+  {
+    "file": "images/north-west.webp",
+    "region": "North West",
+    "place": "Pilanesberg",
+    "title": "Animals at Pilanesberg National Park 4.jpg",
+    "author": "Photograph by Mike Peel (www.mikepeel.net).",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Animals_at_Pilanesberg_National_Park_4.jpg",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+    "changes": "Resized and converted to WebP; grayscale and crop applied in the app."
+  },
+  {
+    "file": "images/northern-cape.webp",
+    "region": "Northern Cape",
+    "place": "Kimberley",
+    "title": "Big Hole, Kimberley, Northern Cape, South Africa (20512571296).jpg",
+    "author": "South African Tourism from South Africa",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Big_Hole,_Kimberley,_Northern_Cape,_South_Africa_(20512571296).jpg",
+    "license": "CC BY 2.0",
+    "license_url": "https://creativecommons.org/licenses/by/2.0",
+    "changes": "Resized and converted to WebP; grayscale and crop applied in the app."
+  },
+  {
+    "file": "images/cape-town.webp",
+    "region": "Western Cape",
+    "place": "Table Mountain, Cape Town",
+    "title": "Cape Town Table Mountain.jpg",
+    "author": "Matthiasmullie",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Cape_Town_Table_Mountain.jpg",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+    "changes": "Resized and converted to WebP; grayscale and crop applied in the app."
+  }
+]

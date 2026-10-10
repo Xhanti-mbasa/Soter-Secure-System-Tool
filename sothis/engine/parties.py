@@ -54,6 +54,9 @@ def parse_directory(markup, codes):
         seen.add(member_id)
         result[m['party']].append({'id': member_id, 'name': str(m['full_name']), 'party_code': m['party'],
                                   'source_url': PARLIAMENT + '/person-details/' + member_id})
+        photo = m.get('profile_pic_url') or ''
+        if re.fullmatch(r'/storage/app/media/MemberImages/[\w.-]+\.(?:jpg|jpeg|png)', photo, re.I):
+            result[m['party']][-1].update(image_url=PARLIAMENT+photo, image_source_url=PARLIAMENT+'/person-details/'+member_id)
     for members in result.values():
         members.sort(key=lambda m: m['name'].casefold())
     return result

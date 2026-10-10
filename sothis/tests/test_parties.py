@@ -38,6 +38,15 @@ class PartyTests(unittest.TestCase):
         for raw in (directory(rows,3), directory(rows+rows), directory(rows).replace('DA','UNKNOWN')):
             with self.assertRaises(ValueError):parse_directory(raw,['ANC','DA'])
 
+    def test_directory_portrait_is_restricted_to_official_member_images(self):
+        rows = [{'id': 1, 'party': 'ANC', 'full_name': 'Example Representative', 'profile_pic_url': '/storage/app/media/MemberImages/1.jpg'}]
+        member = parse_directory(directory(rows), ['ANC'])['ANC'][0]
+        self.assertEqual(member['image_url'], 'https://www.parliament.gov.za/storage/app/media/MemberImages/1.jpg')
+        self.assertEqual(member['image_source_url'], member['source_url'])
+        for photo in ('https://other.example/photo.jpg','/storage/app/media/MemberImages/../../private.jpg',None):
+            rows[0]['profile_pic_url'] = photo
+            self.assertNotIn('image_url', parse_directory(directory(rows), ['ANC'])['ANC'][0])
+
     def test_member_role_is_not_navigation_or_contact_text(self):
         member = parse_member(MEMBER,'5975')
         self.assertEqual(member['role'],'Minister of Mineral and Petroleum Resources')

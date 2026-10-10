@@ -22,16 +22,16 @@ function memberMatches(q, members) {
 }
 function captureLabel(date) {return date?date.replace(/\+00:00$/,'Z').replace('T',' · ').replace('Z',' UTC'):'No capture recorded'}
 function memberLink(m) {
- const b=button(m.name,()=>openPartyMember(m),'memberlink');
- b.append(el('span','mono muted',m.party_code||''));b.dataset.member=m.id;return b;
+ const b=button('',()=>openPartyMember(m),'memberlink'),copy=el('span','member-copy');copy.append(el('strong','',m.name),el('span','mono muted',m.party_code||''));b.append(portrait(m),copy);b.dataset.member=m.id;return b;
 }
 function renderPartyDirectory(q=$('party-query').value) {
  if(!partyState.data)return;
+ $('party-panel').classList.remove('member-view');
  const box=$('party-directory');box.replaceChildren();$('party-body').hidden=true;$('member-body').hidden=true;box.hidden=false;
  $('party-coverage').textContent=partyState.data.coverage;
  const parties=partyState.data.parties.filter(p=>!q||partyKey(p.code+' '+p.name+' '+(p.aliases||[]).join(' ')).includes(partyKey(q)));
  const grid=el('div','toolsgrid');box.append(grid);
- for(const p of parties){const card=el('article','source');card.append(el('span','tag',p.code),el('h3','',p.name),el('p','muted',p.captured_at?p.member_count+' listed public representatives':'Roster unavailable from this party page'),el('p','mono muted',captureLabel(p.captured_at)),button('View '+p.code,()=>openParty(p.code)));grid.append(card)}
+ for(const p of parties){const card=el('article','source party-card');card.append(el('div','party-code-display',p.code),el('h3','',p.name),el('p','muted',p.captured_at?p.member_count+' listed public representatives':'Roster unavailable from this party page'),el('p','mono muted',captureLabel(p.captured_at)),button('View '+p.code,()=>openParty(p.code)));const faces=el('div','portrait-row');for(const m of p.members.slice(0,4))faces.append(portrait(m));card.insertBefore(faces,card.lastElementChild);grid.append(card)}
  if(!parties.length){box.append(el('h2','','Public representative matches'));const members=memberMatches(q);for(const m of members.slice(0,80))box.append(memberLink(m));if(!members.length)box.append(el('div','empty','No directory match. Try a party abbreviation or representative’s name, or search the public web.'));if(members.length>80)box.append(el('p','coverage','Showing the first 80 matches. Add more of the name to narrow the list.'))}
 }
 
@@ -49,6 +49,7 @@ async function openParty(code,refresh=false) {
  finally{if(serial===partyState.serial)$('party-refresh').disabled=false}
 }
 function renderParty(p) {
+ $('party-panel').classList.remove('member-view');
  $('party-directory').hidden=true;$('member-body').hidden=true;$('party-body').hidden=false;
  $('party-title').textContent=p.name;$('party-code').textContent=p.code;
  $('party-capture').textContent=captureLabel(p.captured_at);$('party-roster-source').onclick=()=>openExternal(p.source_url);
@@ -91,8 +92,9 @@ function factGroup(title,rows,captured) {
  for(const f of rows||[]){c.append(el('p','',f.text));sourceRow(c,f.source_url)}if(captured)c.append(el('p','mono muted','Biography captured '+captureLabel(captured)));return c;
 }
 function renderPartyMember(m) {
+ $('party-panel').classList.add('member-view');
  $('party-directory').hidden=true;$('party-body').hidden=true;$('member-body').hidden=false;
- $('member-name').textContent=m.name;$('member-party').textContent=m.party_name||m.party_code;
+ $('member-name').textContent=m.name;const photo=portrait(m,true);$('member-portrait').replaceChildren(photo);$('member-photo-credit').textContent='Portrait · Parliament of South Africa';if(!photo.querySelector('img'))$('member-photo-credit').textContent='No published portrait available';else photo.querySelector('img').addEventListener('error',()=>{if(partyState.member?.id!==m.id)return;$('member-photo-credit').textContent='Portrait unavailable · initials shown'});$('member-party').textContent=m.party_name||m.party_code;
  const info=$('member-summary');info.replaceChildren(el('p','member-role',m.role||'Role awaiting member-page retrieval'),el('p','muted',m.chamber||'Chamber awaiting member-page retrieval'),el('p','mono muted','Roster captured '+captureLabel(m.captured_at)),el('p','mono muted','Member page '+captureLabel(m.profile_captured_at)));
  sourceRow(info,m.source_url);if(m.membership_note)info.append(el('div','note',m.membership_note));
  $('member-back').onclick=()=>openParty(m.party_code||partyState.current?.code||'ANC');

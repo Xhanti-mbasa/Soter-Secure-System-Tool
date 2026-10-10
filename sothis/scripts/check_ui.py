@@ -7,7 +7,7 @@ ROOT=Path(__file__).resolve().parent.parent
 sys.path.insert(0,str(ROOT))
 from engine.core import Store
 from engine.server import LensServer
-p=argparse.ArgumentParser();p.add_argument('--chrome');p.add_argument('--chrome-zip');p.add_argument('--playwright',default='playwright');args=p.parse_args()
+p=argparse.ArgumentParser();p.add_argument('--chrome');p.add_argument('--chrome-zip');p.add_argument('--playwright',default='playwright');p.add_argument('--suite',choices=('ui_smoke.cjs','features_smoke.cjs','party_smoke.cjs','visual_smoke.cjs'));args=p.parse_args()
 with tempfile.TemporaryDirectory() as tmp:
  store=Store(Path(tmp)/'data');snapshot=json.loads((ROOT/'android/app/src/main/assets/snapshot.json').read_text());store.seed_sources(snapshot['sources'])
  for d in snapshot['documents']:
@@ -20,5 +20,5 @@ with tempfile.TemporaryDirectory() as tmp:
  env={**os.environ,'PLAYWRIGHT_MODULE':args.playwright}
  if chrome:env['CHROME_EXECUTABLE']=chrome
  try:
-  for suite in ('ui_smoke.cjs','features_smoke.cjs','party_smoke.cjs'):subprocess.run(['node',str(ROOT/'tests'/suite)],env=env,check=True,timeout=110,cwd=ROOT)
+  for suite in ((args.suite,) if args.suite else ('ui_smoke.cjs','features_smoke.cjs','party_smoke.cjs','visual_smoke.cjs')):subprocess.run(['node',str(ROOT/'tests'/suite)],env=env,check=True,timeout=110,cwd=ROOT)
  finally:server.shutdown();server.server_close()

@@ -1,5 +1,17 @@
 # Sothis validation
 
+## Version 0.4.0 — UI refresh
+
+Validated on 10 October 2026.
+
+- Four Playwright suites pass on the seeded engine and recorded native-bridge contracts: indexed/live search, dates, company-number normalization, CIPC access state, local evidence saving, ownership review, cases, export, alerts, tender awards/preparation, Party rosters, biographies, salary provenance, category searches and provider failures.
+- The native photoCredits bridge supplies local metadata without file-origin fetch. A standalone Chromium file-origin check with the native bridge confirms all ten region cards and the bundled Doto font load offline. The new visual suite covers six main screens at 320, 360, 390, 412, 720 and 1200 CSS pixels with no horizontal overflow; dock targets remain at least 44 × 44 pixels. It checks local photograph/font/icon delivery and MIME types, unavailable portrait fallback, static file boundaries, Doto availability and uncaught JavaScript errors. Rendered mobile evidence is in `docs/screenshots/`.
+- 34 Python tests pass, including the added official-portrait path test. Published portrait URLs are accepted only inside Parliament's MemberImages directory. All 449 captured roster entries have official portrait metadata; an unavailable photo displays initials.
+- Nine actual South African landscape photos are bundled with creator/source/license/modification metadata. National and Gauteng share the Pretoria photograph. Doto OFL and Phosphor MIT license files are packaged; Settings displays photography credits and original source/license links.
+- The native launch/JobScheduler regression checks pass. SDK 35 resource linking, Java compilation, DEX, alignment and APK v2/v3 verification pass. Package `za.co.zalens`, versionName `0.4.0`, versionCode `5`, minimum SDK 26, target SDK 35. All 31 packaged assets match the tested source byte for byte. Signing certificate matches 0.3.1 for an in-place update.
+- APK SHA-256: `9284f3deef658a7c844e12a9a2c60edce4025cf95133bb10ac887ab1863709a9`.
+- No physical Android device or emulator was available. Browser rendering and native scheduling boundary checks do not certify device startup, OS insets or notification delivery. Portrait display needs internet; landscape cards, font and icons work offline.
+
 ## Version 0.3.1
 
 - Both 0.2.0 and 0.3.0 scheduled a network-constrained persisted job in Activity.onCreate, before creating the WebView, without ACCESS_NETWORK_STATE. The initial 0.1.0 launch path did not schedule this job. This matches Android 14+’s documented SecurityException behavior: https://developer.android.com/about/versions/14/behavior-changes-14#jobscheduler . No device crash trace was supplied, so this is a verified code defect consistent with the reported failure, not a captured phone stack trace.

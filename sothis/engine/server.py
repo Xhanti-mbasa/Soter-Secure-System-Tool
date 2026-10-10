@@ -1,4 +1,5 @@
 import hmac
+import mimetypes
 import json
 import os
 import threading
@@ -68,11 +69,15 @@ class Handler(BaseHTTPRequestHandler):
                     if not isinstance(data,dict): raise ValueError('JSON object required')
                 else: data = {}
                 return self.api(method,path,urllib.parse.parse_qs(parsed.query),data)
-            if method == 'GET' and self.server.web_dir and path in ('/','/index.html','/snapshot.json','/features.js','/parties.js','/party-data.json'):
+            public_files = ('/','/index.html','/snapshot.json','/features.js','/parties.js','/party-data.json','/visuals.js','/nothing.css','/photo-credits.json')
+            resource = path.startswith(('/images/','/fonts/','/icons/')) and Path(path).suffix.lower() in ('.webp','.jpg','.png','.svg','.ttf','.woff2')
+            if method == 'GET' and self.server.web_dir and (path in public_files or resource):
                 name = 'index.html' if path in ('/','/index.html') else path.lstrip('/')
-                file = self.server.web_dir/name
-                if file.exists():
-                    return self.send(200,file.read_bytes(),'text/html; charset=utf-8' if name.endswith('.html') else 'application/javascript; charset=utf-8' if name.endswith('.js') else 'application/json')
+                root = self.server.web_dir.resolve()
+                file = (root/name).resolve()
+                if root in file.parents and file.is_file():
+                    mime = {'css':'text/css','js':'application/javascript','ttf':'font/ttf'}.get(file.suffix.lstrip('.'),mimetypes.guess_type(str(file))[0] or 'application/octet-stream')
+                    return self.send(200,file.read_bytes(),mime)
             self.send(404,{'error':'Not found'})
         except KeyError as e: self.send(404,{'error':str(e)})
         except (ValueError,TypeError,json.JSONDecodeError) as e: self.send(400,{'error':str(e)[:250]})
@@ -81,7 +86,7 @@ class Handler(BaseHTTPRequestHandler):
     def api(self, method, path, params, data):
         store = self.server.store
         if method == 'GET' and path == '/api/health':
-            return self.send(200,{'ok':True,'version':'0.3.1',**store.stats()})
+            return self.send(200,{'ok':True,'version':'0.4.0',**store.stats()})
         if path == '/api/parties' and method == 'GET':
             return self.send(200,self.server.parties.catalog(params.get('q',[''])[0]))
         if path == '/api/party' and method == 'POST':
