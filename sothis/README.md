@@ -2,11 +2,11 @@
 
 South African public-records research: an Android client and an independent document-collection/search engine. The Android app uses a bundled local interface, with a native bridge for engine connections, browser handoff, sharing, and file export.
 
-Version **0.3.0** adds Party search and sourced public representative dossiers. Version 0.2.0 fixed the snapshot-only search limitation. A name or registration-number search defaults to live public discovery. Android performs public discovery and eTenders queries directly without a hosted engine; an engine still provides government collection, shared evidence and server monitoring.
+Version **0.3.1** fixes the native launch crash in 0.2.0 and 0.3.0. Party search and sourced public representative dossiers remain available. Version 0.2.0 fixed the snapshot-only search limitation. A name or registration-number search defaults to live public discovery. Android performs public discovery and eTenders queries directly without a hosted engine; an engine still provides government collection, shared evidence and server monitoring.
 
 ## Install and use
 
-Install `releases/sothis-0.3.0.apk` on Android 8.0+. It uses the same package and development signing key as 0.1.0 and 0.2.0, so it can update that installation while retaining app data. The signing key is excluded from Git.
+Install `releases/sothis-0.3.1.apk` on Android 8.0+. It uses the same package and development signing key as 0.1.0, 0.2.0 and 0.3.0, so it can update that installation while retaining app data. The signing key is excluded from Git.
 
 - **Search:** choose Live public web, Social profiles, Live government web, Companies / CIPC, or Saved government collection. Live results show retrieved unique hits, profile candidates, name-match ranking, provider availability, retrieval dates and a platform footprint. Account ownership requires a saved researcher decision. Posts, share links and TikTok discovery pages are not counted as accounts.
 - **Party:** search ANC, DA, EFF or another listed party from Search or the Party tab. Browse the captured Parliament roster, filter representatives by name, refresh the official directory, and open member dossiers. Profiles retrieve current public member pages and group live mentions into government, news, remuneration, education, business and social categories. Pin/export a sourced dossier or create a mention alert.
@@ -18,7 +18,7 @@ Install `releases/sothis-0.3.0.apk` on Android 8.0+. It uses the same package an
 
 Public search uses best-effort Brave web results with a DuckDuckGo public fallback on request failure. Providers may block or rate-limit requests and do not index every account. Settings accepts an optional **Brave Search API key**, stored privately on the phone; engine deployments use `SOTHIS_BRAVE_API_KEY`. No key is bundled. API usage/storage remains subject to the provider's account terms. Browser search links are actions, never invented account hits.
 
-The app uses internet access, optional notification permission and a persisted Android job. It requests no contacts, location, camera or broad storage access. Report/ZIP exports use the Android file picker. Background checks depend on network and Android scheduling, may be delayed by battery controls, and stop if the app is force-stopped until it is opened again.
+The app uses internet access, the normal network-state permission, optional notification permission and a persisted Android job. Background scheduling starts after the local screen loads; an unavailable scheduler leaves the foreground app usable and reports the problem in Tools. It requests no contacts, location, camera or broad storage access. Report/ZIP exports use the Android file picker. Background checks depend on network and Android scheduling, may be delayed by battery controls, and stop if the app is force-stopped until it is opened again.
 
 ## Included engine foundations
 

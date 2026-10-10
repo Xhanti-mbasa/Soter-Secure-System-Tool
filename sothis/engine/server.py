@@ -81,7 +81,7 @@ class Handler(BaseHTTPRequestHandler):
     def api(self, method, path, params, data):
         store = self.server.store
         if method == 'GET' and path == '/api/health':
-            return self.send(200,{'ok':True,'version':'0.3.0',**store.stats()})
+            return self.send(200,{'ok':True,'version':'0.3.1',**store.stats()})
         if path == '/api/parties' and method == 'GET':
             return self.send(200,self.server.parties.catalog(params.get('q',[''])[0]))
         if path == '/api/party' and method == 'POST':

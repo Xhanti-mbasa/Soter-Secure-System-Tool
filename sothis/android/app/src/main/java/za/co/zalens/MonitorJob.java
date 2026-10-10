@@ -20,10 +20,11 @@ import java.util.concurrent.*;
 public final class MonitorJob extends JobService {
     private final ExecutorService worker=Executors.newSingleThreadExecutor();
     private Future<?> task;
-    static void schedule(Context c) {
-        JobScheduler scheduler=(JobScheduler)c.getSystemService(Context.JOB_SCHEDULER_SERVICE);
-        scheduler.schedule(new JobInfo.Builder(202,new ComponentName(c,MonitorJob.class))
-            .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY).setPeriodic(15*60*1000L).setPersisted(true).build());
+    static String schedule(Context c) {
+        String error=MonitorScheduler.schedule(c,MonitorJob.class);
+        try {c.getSharedPreferences("services",Context.MODE_PRIVATE).edit().putString("background_error",error).apply();}
+        catch(RuntimeException ignored) { /* Optional status persistence must also be nonfatal. */ }
+        return error;
     }
     static void notifyAlerts(Context c,JSONArray alerts) throws Exception {
         NotificationManager manager=(NotificationManager)c.getSystemService(Context.NOTIFICATION_SERVICE);

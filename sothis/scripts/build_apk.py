@@ -4,6 +4,7 @@ import argparse
 import os
 from pathlib import Path
 import subprocess
+import shutil
 import zipfile
 
 ROOT=Path(__file__).resolve().parent.parent
@@ -20,6 +21,8 @@ def main():
     p.add_argument('--output',required=True,type=Path)
     args=p.parse_args()
     source=ROOT/'android/app/src/main';build=ROOT/'android/app/build/manual'
+    # Do not carry anonymous/removed class files from a previous release into DEX.
+    if build.exists():shutil.rmtree(build)
     classes=build/'classes';dex=build/'dex'
     classes.mkdir(parents=True,exist_ok=True);dex.mkdir(exist_ok=True)
     resources=build/'resources.zip';base=build/'base.apk';unsigned=build/'unsigned.apk';aligned=build/'aligned.apk'

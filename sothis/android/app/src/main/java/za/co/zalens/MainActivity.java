@@ -38,6 +38,7 @@ public final class MainActivity extends Activity {
     private String pendingReport;
     private File pendingFile;
     private PublicServices services;
+    private boolean monitoringScheduled;
     private static final int SAVE_REPORT = 19;
 
     @Override public void onCreate(Bundle state) {
@@ -47,7 +48,6 @@ public final class MainActivity extends Activity {
         getWindow().setNavigationBarColor(0xff0b1320);
         prefs = getSharedPreferences("engine", MODE_PRIVATE);
         services=new PublicServices(this);
-        MonitorJob.schedule(this);
         web = new WebView(this);
         web.setBackgroundColor(0xff0b1320);
         WebSettings settings = web.getSettings();
@@ -60,6 +60,13 @@ public final class MainActivity extends Activity {
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
         web.addJavascriptInterface(new Bridge(), "Native");
         web.setWebViewClient(new WebViewClient() {
+            @Override public void onPageFinished(WebView view,String url) {
+                if(!monitoringScheduled && "file:///android_asset/index.html".equals(url)) {
+                    monitoringScheduled=true;
+                    String error=MonitorJob.schedule(MainActivity.this);
+                    if(!error.isEmpty())Toast.makeText(MainActivity.this,"Background alerts unavailable. You can still use the app.",Toast.LENGTH_LONG).show();
+                }
+            }
             @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 String url = request.getUrl().toString();
                 if (url.startsWith("file:///android_asset/")) return false;
@@ -124,6 +131,9 @@ public final class MainActivity extends Activity {
         @JavascriptInterface public String partySnapshot() {
             try { return PartyServices.snapshot(MainActivity.this); }
             catch(Exception e) { return "{\"parties\":[],\"profiles\":{},\"remuneration_schedules\":[]}"; }
+        }
+        @JavascriptInterface public String backgroundStatus() {
+            return getSharedPreferences("services",MODE_PRIVATE).getString("background_error","");
         }
         @JavascriptInterface public String configure(String value, String token) {
             try {
@@ -238,6 +248,6 @@ public final class MainActivity extends Activity {
         });
     }
     @Override protected void onDestroy() {
-        executor.shutdownNow();web.removeJavascriptInterface("Native");web.destroy();super.onDestroy();
+        executor.shutdownNow();if(web!=null){web.removeJavascriptInterface("Native");web.destroy();}super.onDestroy();
     }
 }

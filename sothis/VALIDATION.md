@@ -1,5 +1,13 @@
 # Sothis validation
 
+## Version 0.3.1
+
+- Both 0.2.0 and 0.3.0 scheduled a network-constrained persisted job in Activity.onCreate, before creating the WebView, without ACCESS_NETWORK_STATE. The initial 0.1.0 launch path did not schedule this job. This matches Android 14+’s documented SecurityException behavior: https://developer.android.com/about/versions/14/behavior-changes-14#jobscheduler . No device crash trace was supplied, so this is a verified code defect consistent with the reported failure, not a captured phone stack trace.
+- Declared ACCESS_NETWORK_STATE in the final APK and retained INTERNET / RECEIVE_BOOT_COMPLETED / JobService permission. Deferred optional monitoring to onPageFinished for the trusted local page. Scheduler permission failures, missing service, rejected schedules and runtime exceptions return a status instead of escaping through startup.
+- scripts/check_android_startup.py compiles and executes the actual MonitorScheduler with strict JVM Android doubles: old unguarded permission rejection, successful scheduling with correct permissions, unchanged job ID/network/interval/persistence, missing permission, missing scheduler, declined job, SecurityException and IllegalStateException all checked. This is native boundary regression coverage, not an Android emulator run.
+- Existing 33 Python checks and three Playwright suites passed; clean SDK 35 Java/DEX build and APK v2/v3 signature verification passed. Final packaged assets match source, ACCESS_NETWORK_STATE is in the binary manifest, versionCode is 4, and signing certificate matches 0.3.0.
+- Device startup still needs the user’s installation check. Saved preferences, WebView storage, cases and evidence are retained by an in-place compatible update.
+
 ## Version 0.3.0
 
 - Official Parliament directory capture: 18 parties, 449 unique public representative IDs; explicit party codes, total count and duplicates validated. Individual party pages were observed to have missing/stale entries, so the combined public directory is the roster source.

@@ -1,5 +1,12 @@
 # Changes
 
+## 0.3.1 — 2026-10-10
+
+- Fixed the native launch failure introduced in 0.2.0: network-constrained JobScheduler work requires ACCESS_NETWORK_STATE on Android 14+, but the permission was missing.
+- Added the normal network-state permission; schedule optional monitoring only after the local app page loads. Missing permissions/services, rejected jobs and runtime scheduling exceptions now produce a background-status error without closing the app.
+- Show background scheduling errors in Tools; preserve searches, cases, rules and evidence. Clean old compiled classes before APK builds.
+- Added executable Java regression coverage of the production scheduling boundary. Android versionCode 4 uses the existing signing key for compatible updates.
+
 ## 0.3.0 — 2026-10-09
 
 - Added Party tab, Tools entry and search mode; an exact listed party name/code in live Search opens its roster.

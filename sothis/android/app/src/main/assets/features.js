@@ -72,7 +72,7 @@ async function archiveEvidence(url,box){
 }
 detail=async function(id){await originalDetail(id);const d=state.docs.get(id);if(d)$('dialog').append(button('Download original locally',()=>archiveEvidence(d.url,$('dialog'))));};
 function toolsHome(){
- const box=$('tools-home');box.replaceChildren();const grid=el('div','toolsgrid');
+ const box=$('tools-home');box.replaceChildren();if(native()&&typeof Native.backgroundStatus==='function'){const error=Native.backgroundStatus();if(error)box.append(el('div','note error',error));}const grid=el('div','toolsgrid');
  for(const [title,description,action,label]of [
  ['Public web & social discovery','Retrieve indexed hits, compare profile candidates and record ownership decisions.',()=>{tab('search');$('search-mode').value='live'},'Search public web'],
  ['CIPC / BizProfile','Registration numbers are normalised. Authorised disclosures can be imported and monitored through your engine.',()=>{tab('search');$('search-mode').value='company'},'Company lookup'],
