@@ -1,0 +1,5 @@
+{$SOTHIS_DOMAIN} {
+    encode zstd gzip
+    reverse_proxy app:8000
+    header Strict-Transport-Security "max-age=31536000"
+}

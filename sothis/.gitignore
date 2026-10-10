@@ -7,3 +7,8 @@ android/app/build/
 *.keystore
 toolchain/
 .venv/
+.env
+.env.*
+!.env.example
+secrets/
+backups/

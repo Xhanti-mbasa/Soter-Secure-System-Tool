@@ -1,0 +1,68 @@
+name: sothis
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      SOTHIS_DATA: /var/lib/sothis
+    ports:
+      - "127.0.0.1:8780:8000"
+    volumes:
+      - research-data:/var/lib/sothis
+    read_only: true
+    tmpfs:
+      - /tmp:size=128m,mode=1777
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+    logging:
+      driver: json-file
+      options: {max-size: 10m, max-file: "3"}
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    profiles: [tunnel]
+    restart: unless-stopped
+    command: [tunnel, --no-autoupdate, --loglevel, warn, run]
+    environment:
+      TUNNEL_TOKEN_FILE: /run/secrets/cloudflare-token
+    secrets: [cloudflare-token]
+    depends_on:
+      app: {condition: service_healthy}
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    logging:
+      driver: json-file
+      options: {max-size: 10m, max-file: "3"}
+  caddy:
+    image: caddy:2
+    profiles: [https]
+    restart: unless-stopped
+    environment:
+      SOTHIS_DOMAIN: ${SOTHIS_DOMAIN:?Run python3 -m web.setup first}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      app: {condition: service_healthy}
+    security_opt: [no-new-privileges:true]
+    logging:
+      driver: json-file
+      options: {max-size: 10m, max-file: "3"}
+volumes:
+  research-data:
+  caddy-data:
+  caddy-config:
+secrets:
+  cloudflare-token:
+    file: ./secrets/cloudflare-token

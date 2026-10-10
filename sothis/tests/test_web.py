@@ -1,0 +1,183 @@
+import hashlib
+import io
+import json
+import sqlite3
+import tempfile
+import time
+import unittest
+import zipfile
+from pathlib import Path
+
+from web.app import create_app
+from web.auth import password_hash, verify_password
+from web.backup import make_backup
+
+
+class WebsiteTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.password = 'temporary-test-password'
+        cls.encoded = password_hash(cls.password)
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.config = {'SOTHIS_PUBLIC_ORIGIN':'https://sothis.example.org','SOTHIS_USERNAME':'researcher',
+                       'SOTHIS_PASSWORD_HASH':self.encoded,'SOTHIS_DATA':self.tmp.name}
+        self.app = create_app(self.config)
+        self.cookie, self.csrf = '', ''
+
+    def tearDown(self):
+        self.app.close()
+        self.tmp.cleanup()
+
+    def request(self, path, method='GET', data=None, origin=None, csrf=None, host=None, raw=None, content_type='application/json'):
+        path, _, query = path.partition('?')
+        body = raw if raw is not None else json.dumps(data or {}).encode()
+        env = {'REQUEST_METHOD':method,'PATH_INFO':path,'QUERY_STRING':query,
+               'HTTP_HOST':host or 'sothis.example.org','HTTP_COOKIE':self.cookie,
+               'REMOTE_ADDR':'127.0.0.1','wsgi.input':io.BytesIO(body),'CONTENT_LENGTH':str(len(body)),
+               'CONTENT_TYPE':content_type}
+        if method == 'POST':
+            env['HTTP_ORIGIN'] = origin if origin is not None else self.config['SOTHIS_PUBLIC_ORIGIN']
+            env['HTTP_X_SOTHIS_CSRF'] = self.csrf if csrf is None else csrf
+        response = {}
+        def start(status, headers):
+            response.update(status=int(status.split()[0]), headers=dict(headers))
+        response['body'] = b''.join(self.app(env,start))
+        if response['headers']['Content-Type'].startswith('application/json'):
+            response['json'] = json.loads(response['body'])
+        return response
+
+    def login(self):
+        result = self.request('/auth/login','POST',{'username':'researcher','password':self.password})
+        self.assertEqual(result['status'],200)
+        self.cookie = result['headers']['Set-Cookie'].split(';')[0]
+        self.csrf = result['json']['csrf']
+        return result
+
+    def test_no_default_login_and_https_required(self):
+        for config in ({**self.config,'SOTHIS_PASSWORD_HASH':''},{**self.config,'SOTHIS_PUBLIC_ORIGIN':'http://sothis.example.org'},
+                       {**self.config,'SOTHIS_PUBLIC_ORIGIN':'https://sothis.example.org/path'},
+                       {**self.config,'SOTHIS_DEV':'1','SOTHIS_PUBLIC_ORIGIN':'http://public.example.org'}):
+            with self.assertRaises(ValueError):create_app(config)
+        self.assertTrue(verify_password(self.password,self.encoded))
+        self.assertFalse(verify_password('wrong',self.encoded))
+
+    def test_private_api_and_archives_require_login(self):
+        self.assertEqual(self.request('/')['headers']['Location'],'/login')
+        for path in ('/api/cases','/api/alerts','/api/sources','/api/evidence/'+'a'*64+'/download'):
+            self.assertEqual(self.request(path)['status'],401)
+        self.assertFalse(self.request('/api/session')['json']['authenticated'])
+        self.assertEqual(self.request('/snapshot.json')['status'],302)
+        self.assertEqual(self.request('/healthz')['json'],{'ok':True})
+
+    def test_cookie_policy_csp_and_same_origin_session(self):
+        result = self.login()
+        self.assertIn('__Host-sothis=',result['headers']['Set-Cookie'])
+        for part in ('HttpOnly','Secure','SameSite=Lax','Path=/'):
+            self.assertIn(part,result['headers']['Set-Cookie'])
+        self.assertEqual(self.request('/api/session')['json']['csrf'],self.csrf)
+        page = self.request('/')
+        self.assertEqual(page['status'],200)
+        self.assertIn(b'/web-runtime.js',page['body'])
+        self.assertLess(page['body'].index(b'/web-runtime.js'),page['body'].index(b'features.js'))
+        self.assertIn(b'<script nonce=',page['body'])
+        self.assertIn("frame-ancestors 'none'",page['headers']['Content-Security-Policy'])
+        self.assertNotIn("script-src 'self' 'unsafe-inline'",page['headers']['Content-Security-Policy'])
+        self.assertEqual(page['headers']['Cache-Control'],'no-store')
+
+    def test_cross_origin_and_missing_csrf_cannot_mutate(self):
+        self.login()
+        for origin, csrf in (('https://evil.example',''),('',self.csrf),(None,''),(None,'wrong')):
+            self.assertEqual(self.request('/api/cases','POST',{'title':'Blocked'},origin=origin,csrf=csrf)['status'],403)
+        self.assertEqual(self.request('/api/cases')['json'],[])
+        self.assertEqual(self.request('/auth/login','POST',{'username':'researcher','password':self.password},origin='https://evil.example')['status'],403)
+
+    def test_hostname_and_static_boundaries(self):
+        self.login()
+        self.assertEqual(self.request('/api/cases',host='evil.example')['status'],400)
+        for path in ('/images/../../engine/core.py','/web/../auth.py','/.env','/secrets/cloudflare-token','/fonts/OFL.txt'):
+            self.assertEqual(self.request(path)['status'],404)
+        for path, mime in (('/nothing.css','text/css'),('/web-runtime.js','application/javascript'),('/images/cape-town.webp','image/webp'),('/fonts/doto.ttf','font/ttf')):
+            self.assertEqual(self.request(path)['headers']['Content-Type'],mime)
+        self.assertEqual(self.request('/',method='HEAD')['body'],b'')
+
+    def test_json_limits_and_types(self):
+        self.login()
+        self.assertEqual(self.request('/api/cases','POST',raw=b'[]')['status'],400)
+        self.assertEqual(self.request('/api/cases','POST',raw=b'{')['status'],400)
+        self.assertEqual(self.request('/api/cases','POST',content_type='text/plain')['status'],415)
+        self.assertEqual(self.request('/api/cases','POST',raw=b'x'*(2*1024*1024+1))['status'],413)
+
+    def test_cases_search_and_rules_persist_on_restart(self):
+        self.login()
+        record = self.request('/api/cases','POST',{'title':'Website investigation','notes':'Sourced notes','pins':[]})
+        self.assertEqual(record['status'],201)
+        rule = self.request('/api/monitors','POST',{'query':'Public research','services':['government'],'condition':'new_hit','interval_minutes':120,'enabled':False})
+        self.assertEqual(rule['status'],201)
+        self.assertGreater(self.request('/api/search?q=Ramaphosa')['json']['total'],0)
+        self.app.close()
+        self.app = create_app(self.config)
+        self.assertEqual(self.request('/api/cases')['json'][0]['notes'],'Sourced notes')
+        self.assertEqual(self.request('/api/monitors')['json'][0]['id'],rule['json']['id'])
+        self.assertTrue(self.request('/api/session')['json']['authenticated'])
+
+    def test_password_reset_revokes_existing_sessions(self):
+        self.login()
+        self.app.close()
+        self.app = create_app({**self.config,'SOTHIS_PASSWORD_HASH':password_hash('another-temporary-password')})
+        self.assertEqual(self.request('/api/cases')['status'],401)
+
+    def test_logout_and_expiry(self):
+        self.login()
+        result = self.request('/auth/logout','POST')
+        self.assertEqual(result['status'],200)
+        self.assertIn('Max-Age=0',result['headers']['Set-Cookie'])
+        self.assertEqual(self.request('/api/cases')['status'],401)
+        self.login()
+        with self.app.auth.connect() as db:db.execute('UPDATE sessions SET expires=?',(time.time()-1,))
+        self.assertEqual(self.request('/api/cases')['status'],401)
+
+    def test_login_rate_limit_survives_restart(self):
+        for _ in range(20):
+            self.assertEqual(self.request('/auth/login','POST',{'username':'researcher','password':'wrong'})['status'],401)
+        self.app.close()
+        self.app = create_app(self.config)
+        self.assertEqual(self.request('/auth/login','POST',{'username':'researcher','password':self.password})['status'],429)
+
+    def test_original_download_and_bundle_hashes(self):
+        self.login()
+        raw = b'Original public evidence\n'
+        sha = hashlib.sha256(raw).hexdigest()
+        (Path(self.tmp.name)/'archive'/sha).write_bytes(raw)
+        self.assertEqual(self.request('/api/evidence/'+sha+'/download')['body'],raw)
+        payload = {'title':'Evidence','report':'# Sourced report','evidence':[{'sha256':sha,'url':'https://example.org/document'}]}
+        result = self.request('/api/bundle','POST',payload)
+        self.assertEqual(result['status'],200)
+        with zipfile.ZipFile(io.BytesIO(result['body'])) as z:
+            manifest = json.loads(z.read('manifest.json'))
+            self.assertEqual(z.read(manifest['evidence'][0]['bundle_path']),raw)
+            self.assertEqual(z.read('report.md'),b'# Sourced report')
+        payload['evidence'][0]['sha256'] = '../lens.sqlite3'
+        self.assertEqual(self.request('/api/bundle','POST',payload)['status'],400)
+        payload['evidence'][0]['sha256'] = sha
+        (Path(self.tmp.name)/'archive'/sha).write_bytes(b'Corrupt original')
+        self.assertEqual(self.request('/api/bundle','POST',payload)['status'],400)
+
+    def test_backup_preserves_research_and_originals(self):
+        self.login()
+        self.request('/api/cases','POST',{'title':'Backup research','notes':'Saved notes'})
+        raw = b'Public original'
+        sha = hashlib.sha256(raw).hexdigest()
+        (Path(self.tmp.name)/'archive'/sha).write_bytes(raw)
+        output = io.BytesIO()
+        make_backup(self.tmp.name,output)
+        with tempfile.TemporaryDirectory() as restored, zipfile.ZipFile(io.BytesIO(output.getvalue())) as archive:
+            archive.extractall(restored)
+            with sqlite3.connect(Path(restored)/'lens.sqlite3') as db:
+                self.assertEqual(json.loads(db.execute('SELECT data FROM cases').fetchone()[0])['notes'],'Saved notes')
+            self.assertEqual((Path(restored)/'archive'/sha).read_bytes(),raw)
+            self.assertTrue((Path(restored)/'auth.sqlite3').is_file())
+
+
+if __name__ == '__main__':unittest.main()

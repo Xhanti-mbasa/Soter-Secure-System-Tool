@@ -1,5 +1,7 @@
 # Sothis
 
+**Self-hosted website:** the same interface now runs as a private website with browser login, a persistent engine and original-evidence downloads. The default address is `sothis.xhantidaka.online`. See [server and Cloudflare deployment](deploy/README.md) for Docker, Tunnel or HTTPS reverse-proxy setup. This does not change the Android release below.
+
 South African public-records research: an Android client and an independent document-collection/search engine. The Android app uses a bundled local interface, with a native bridge for engine connections, browser handoff, sharing, and file export.
 
 Version **0.4.0** refreshes the interface with a Nothing-inspired charcoal palette, Doto dot-matrix headings, blue accents, rounded cards and a floating four-tab dock with a separate search button. Settings is available from the header. Landscape photos and their metadata are loaded locally through the native asset bridge for National and all nine provinces, and representatives use sourced Parliament portraits with initials when the image is unavailable. The native launch fix from 0.3.1 remains in place.
