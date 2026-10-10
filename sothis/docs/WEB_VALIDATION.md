@@ -1,6 +1,6 @@
 # Self-hosted website validation
 
-Validated 10 October 2026. Website release 1 adds a production WSGI gateway over the existing Sothis 0.4.0 research engine and interface. Android code and its APK remain unchanged.
+Validated 10 October 2026. Website release 1 added a production WSGI gateway over the Sothis 0.4.0 research engine and interface. The subsequent shared 0.5.0 Party analytics update, including authenticated website checks and its Android release, is covered in [ANALYTICS_VALIDATION.md](ANALYTICS_VALIDATION.md). The original website verification below remains applicable to its authentication/deployment foundations.
 
 ## Passed
 

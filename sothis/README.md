@@ -1,16 +1,16 @@
 # Sothis
 
-**Self-hosted website:** the same interface now runs as a private website with browser login, a persistent engine and original-evidence downloads. The default address is `sothis.xhantidaka.online`. See [server and Cloudflare deployment](deploy/README.md) for Docker, Tunnel or HTTPS reverse-proxy setup. This does not change the Android release below.
+**Self-hosted website:** the same interface now runs as a private website with browser login, a persistent engine and original-evidence downloads. The default address is `sothis.xhantidaka.online`. See [server and Cloudflare deployment](deploy/README.md) for Docker, Tunnel or HTTPS reverse-proxy setup. The website and Android use the same research interface.
 
 South African public-records research: an Android client and an independent document-collection/search engine. The Android app uses a bundled local interface, with a native bridge for engine connections, browser handoff, sharing, and file export.
 
-Version **0.4.0** refreshes the interface with a Nothing-inspired charcoal palette, Doto dot-matrix headings, blue accents, rounded cards and a floating four-tab dock with a separate search button. Settings is available from the header. Landscape photos and their metadata are loaded locally through the native asset bridge for National and all nine provinces, and representatives use sourced Parliament portraits with initials when the image is unavailable. The native launch fix from 0.3.1 remains in place.
+Version **0.5.0** adds sourced Party analytics and member charts. It retains the Nothing-inspired interface with a charcoal palette, Doto dot-matrix headings, blue accents, rounded cards and a floating four-tab dock with a separate search button. Settings is available from the header. Landscape photos and their metadata are loaded locally through the native asset bridge for National and all nine provinces, and representatives use sourced Parliament portraits with initials when the image is unavailable. The native launch fix from 0.3.1 remains in place.
 
 Live search, sourced Party dossiers, alerts, local evidence saving, investigations and tender preparation keep their existing behavior. Android performs public discovery and eTenders queries directly without a hosted engine; an engine provides government collection, shared evidence and server monitoring.
 
 ## Install and use
 
-Install `releases/sothis-0.4.0.apk` on Android 8.0+. It uses the same package and development signing key as previous Sothis releases, so it can update that installation while retaining app data. The signing key is excluded from Git.
+Install `releases/sothis-0.5.0.apk` on Android 8.0+. It uses the same package and development signing key as previous Sothis releases, so it can update that installation while retaining app data. The signing key is excluded from Git.
 
 - **Search:** choose Live public web, Social profiles, Live government web, Companies / CIPC, or Saved government collection. Live results show retrieved unique hits, profile candidates, name-match ranking, provider availability, retrieval dates and a platform footprint. Account ownership requires a saved researcher decision. Posts, share links and TikTok discovery pages are not counted as accounts.
 - **Party:** search ANC, DA, EFF or another listed party from Search or the Party tab. Browse the captured Parliament roster, filter representatives by name, refresh the official directory, and open member dossiers. Profiles retrieve current public member pages and group live mentions into government, news, remuneration, education, business and social categories. Pin/export a sourced dossier or create a mention alert.
@@ -35,6 +35,14 @@ The dock contains Party, Regions, Tools and Cases. The separate circle opens Sea
 The APK includes nine compressed landscape photographs (Pretoria is used for both National and Gauteng), the Doto font and Phosphor icons. Landscape credits, original file pages, licenses and modifications are available in Settings and `android/app/src/main/assets/photo-credits.json`. Images retain their listed Creative Commons licenses. Doto is under the SIL Open Font License; Phosphor icons are under MIT, with license files bundled. Representative portraits are loaded from the official Parliament directory over HTTPS and are optional network assets; missing photos show initials. Portraits do not verify the ownership of a social account.
 
 Rendered screens: [Search](docs/screenshots/home.png), [Regions](docs/screenshots/regions.png), [Representative dossier](docs/screenshots/profile.png), [Tools](docs/screenshots/tools.png). The visual verification checks all six main screens at 320, 360, 390, 412, 720 and 1200 CSS pixels, local asset MIME types, static file boundaries, fonts, photographs, 44-pixel dock targets and JavaScript errors.
+
+## Party analytics
+
+The landing dashboard shows a 400-seat National Assembly tile chart and an interactive South Africa province map. Party pages compare 2019 and 2024 seat allocations, show their share of the Assembly and provincial-ballot percentages. All charts link to Parliament or IEC evidence and show dates. A province’s largest vote share does not identify the governing coalition. Ramaphosa appears separately under ANC leadership; the President is not added to the MP roster or seat total.
+
+Member declarations have a four-section status chart and nominal-ZAR bars when the shares section contains explicit amounts. These charts summarise dated self-disclosures, not CIPC ownership checks. Original text remains expandable. Mentions show local platform/source icons, publication and retrieval dates separately. News view checks up to four source pages for explicit publication metadata; other mentions have a Check article date action. Missing or conflicting dates remain unavailable. A provider page date may be a modified date.
+
+The national outlook has no invented win percentage. Reviewed national voting-intention polls can be installed with sample, population, dates and methodology; the UI retires expired polls or polls for an older completed election. Voting intention is not winning probability. See [analytics validation and updates](docs/ANALYTICS_VALIDATION.md). Browser Back, visible back controls and Android’s native back action share screen history.
 
 ## Party sources and coverage
 

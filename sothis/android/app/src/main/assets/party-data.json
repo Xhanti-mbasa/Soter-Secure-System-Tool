@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "captured_at": "2026-10-09T22:25:55+00:00",
-  "coverage": "Parliament-listed representatives, including National Assembly and NCOP members. This is not a list of every party member nationwide. Counts reflect this captured roster, not election seat totals.",
+  "coverage": "Parliament-listed representatives, including National Assembly and NCOP members. This is not a list of every party member nationwide. Counts reflect this captured roster, not election seat totals. Sourced party leadership is listed separately from MPs.",
   "catalog_source": "https://www.parliament.gov.za/political-party-list",
   "parties": [
     {
@@ -8122,6 +8122,25 @@
       "source_url": "https://www.gov.za/sites/default/files/gcis_document/202601/53965gon7004.pdf",
       "page": 3,
       "label": "Published annual remuneration for this office. Dated 2025/26 schedule, not verified personal pay or a claim about later rates."
+    }
+  ],
+  "leaders": [
+    {
+      "id": "leader-anc-ramaphosa",
+      "name": "Cyril Ramaphosa",
+      "search_name": "Cyril Ramaphosa",
+      "party_code": "ANC",
+      "party_name": "African National Congress",
+      "entity_type": "party_leader",
+      "role": "President of the ANC · President of South Africa",
+      "chamber": "Party leadership · not a sitting National Assembly MP",
+      "source_url": "https://www.anc1912.org.za/officials/",
+      "roster_url": "https://www.anc1912.org.za/officials/",
+      "captured_at": "2026-10-10T18:10:38+00:00",
+      "profile_captured_at": "2026-10-10T18:10:38+00:00",
+      "profile_content_hash": "3ff2bb07bcbfc0d77d9d81b90aeeae67d8bd2473c8b7486d07b062fa020a035c",
+      "membership_note": "Listed separately as party leadership. A President elected by the National Assembly ceases to be an Assembly member; leadership does not add an MP or a seat.",
+      "role_source_url": "https://www.parliament.gov.za/press-releases/national-assembly-elects-cyril-ramaphosa-president-elect"
     }
   ]
 }

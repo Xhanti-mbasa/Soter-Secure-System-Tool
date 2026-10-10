@@ -1,0 +1,47 @@
+const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+const root=path.join(__dirname,'../android/app/src/main/assets'),data=JSON.parse(fs.readFileSync(path.join(root,'party-data.json'))),analytics=JSON.parse(fs.readFileSync(path.join(root,'analytics-data.json')));
+(async()=>{
+ const browser=await chromium.launch({executablePath:process.env.CHROME_EXECUTABLE,headless:true,args:['--no-sandbox']});
+ for(const width of [320,390,720,1280]){
+  const context=await browser.newContext({viewport:{width,height:900}}),page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
+  await page.route('**/api/member',route=>{const id=route.request().postDataJSON().id,leader=data.leaders.find(m=>m.id===id),p=data.parties.find(p=>p.members.some(m=>m.id===id)),member=leader||{...p.members.find(m=>m.id===id),...data.profiles[id],party_name:p.name,captured_at:p.captured_at,roster_url:p.source_url};return route.fulfill({json:{...member,interests_register:data.interests_register,remuneration:member.role?.startsWith('Minister')?data.remuneration_schedules.find(r=>r.role==='Minister'):null}})});
+  await page.route('**/api/discover',route=>route.fulfill({json:{hit_count:2,account_count:1,statuses:[],retrieved_at:'2026-10-10T09:00:00Z',coverage:'Controlled provider fixture',results:[{id:'news-fixture',url:'https://example.org/article',title:'Sourced public statement',description:'Controlled fixture article',category:'web',platform:null,index_date:'2026-10-09',retrieved_at:'2026-10-10T09:00:00Z'},{id:'profile-fixture',url:'https://instagram.com/example',title:'Profile candidate',description:'Name match; ownership unreviewed',category:'social',platform:'Instagram',retrieved_at:'2026-10-10T09:00:00Z'}]}}));
+  await page.route('**/api/publication',route=>route.fulfill({json:{published_at:'2026-08-03',publication_date_source:'Source metadata · article:published_time',date_checked_at:'2026-10-10T09:00:00Z'}}));
+  await page.goto(process.env.SOTHIS_TEST_URL||'http://127.0.0.1:8765');await page.waitForFunction(()=>partyState.data&&analyticsState.data);
+  await page.locator('[data-tab=party]').click();await page.locator('.seat-tile').first().waitFor();assert.equal(await page.locator('.seat-tile').count(),400);assert.equal(await page.locator('.province-map path').count(),9);
+  await page.getByRole('button',{name:'Show KwaZulu-Natal results',exact:true}).click();assert.match(await page.locator('.province-detail').innerText(),/MK · 45.35%/);
+  await page.getByRole('button',{name:'Show Western Cape results',exact:true}).click();assert.match(await page.locator('.province-detail').innerText(),/DA · 55.30%/);
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+  if(width===1280){fs.mkdirSync(path.join(__dirname,'../docs/screenshots'),{recursive:true});await page.locator('#party-overview').screenshot({path:path.join(__dirname,'../docs/screenshots/party-analytics.png')})}
+  await page.locator('#party-directory').getByRole('button',{name:'View ANC',exact:true}).click();await page.locator('#party-analytics .chart-ring').waitFor();assert.match(await page.locator('#party-analytics').innerText(),/159 \/ 400/);assert.match(await page.locator('#party-analytics').innerText(),/NO REVIEWED FORECAST/);assert.equal(await page.locator('#party-leadership [data-member="leader-anc-ramaphosa"]').count(),1);
+  if(width===1280)await page.locator('#party-analytics').screenshot({path:path.join(__dirname,'../docs/screenshots/party-selected-analytics.png')});
+  await page.locator('#party-leadership [data-member="leader-anc-ramaphosa"]').click();await page.locator('#member-name').filter({hasText:'Cyril Ramaphosa'}).waitFor();assert.match(await page.locator('#member-summary').innerText(),/not a sitting National Assembly MP/);
+  await page.evaluate(()=>history.back());await page.locator('#party-title').filter({hasText:'African National Congress'}).waitFor();
+  await page.locator('#member-filter').fill('Gwede Mantashe');await page.locator('#party-members [data-member="5975"]').click();await page.locator('.disclosure-section').first().waitFor();assert.equal(await page.locator('.none_declared').count(),4);
+  await page.locator('#member-results .published-date').first().waitFor();await page.locator('#member-results').getByRole('button',{name:'Check article date',exact:true}).click();await page.locator('#member-results .published-date').filter({hasText:/03 Aug 2026/}).waitFor();assert.match(await page.locator('#member-results').innerText(),/Retrieved · 10 Oct 2026/);
+  await page.waitForFunction(()=>[...document.querySelectorAll('#member-results .source-icon')].every(i=>i.complete&&i.naturalWidth>0));
+  await page.locator('[data-member-section=news]').click();await page.locator('#member-results .published-date').filter({hasText:/03 Aug 2026/}).waitFor();
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+  if(width===390)await page.screenshot({path:path.join(__dirname,'../docs/screenshots/member-analytics-mobile.png'),fullPage:true});
+  await page.evaluate(()=>window.sothisBack());await page.locator('#party-body').waitFor({state:'visible'});await page.locator('#party-directory-back').click();await page.locator('#party-overview').waitFor({state:'visible'});
+  const checks=await page.evaluate((original)=>{const poll={election_type:'national',measure:'voting_intention',target_after:'2024-05-29',published_at:'2026-09-01',expires_at:'2027-01-01',shares:{ANC:35}};const d={...original,polls:[poll]};const active=activeNationalPoll(d,'2026-10-10')===poll;const expired=activeNationalPoll(d,'2027-01-02')===null;const local=activeNationalPoll({...d,polls:[{...poll,election_type:'local'}]},'2026-10-10')===null;const newer={...d,national_elections:[...d.national_elections,{date:'2029-05-30',total_seats:400,seats:{ANC:200,DA:200}}]};return {active,expired,local,retired:activeNationalPoll(newer,'2029-06-01')===null,amount:declaredAmounts('1. SHARES AND OTHER FINANCIAL INTERESTS\nName of Company Number of Shares Nature of Shares Nominal Value\nExample pension R7 051 427.43\n2. REMUNERATED EMPLOYMENT\nName of Employer\nnone')[0]}},analytics);
+  assert.deepEqual(checks,{active:true,expired:true,local:true,retired:true,amount:7051427.43});assert.deepEqual(errors,[]);await context.close();
+ }
+ const nativeContext=await browser.newContext({viewport:{width:390,height:844}}),nativePage=await nativeContext.newPage(),nativeErrors=[];
+ await nativeContext.addInitScript(({data,analytics,snapshot,photos})=>{
+  window.Native={snapshot:()=>JSON.stringify(snapshot),partySnapshot:()=>JSON.stringify(data),analyticsSnapshot:()=>JSON.stringify(analytics),photoCredits:()=>JSON.stringify(photos),config:()=>JSON.stringify({url:'',configured:false}),open:()=>{},
+   request:(id,route,method,body)=>{const d=JSON.parse(body);let result;route=route.replace('/api/device/','/api/');
+    if(route==='/api/party')result=data.parties.find(p=>p.code===d.code);
+    else if(route==='/api/member')result={...data.leaders.find(m=>m.id===d.id),interests_register:data.interests_register,remuneration:null};
+    else if(route==='/api/discover')result={results:[],hit_count:0,account_count:0,statuses:[],coverage:'Controlled native provider',retrieved_at:data.captured_at};
+    else throw Error('Unexpected native analytics route '+route);
+    setTimeout(()=>nativeReply(id,JSON.stringify(result),''),2);
+   }};
+ },{data,analytics,snapshot:JSON.parse(fs.readFileSync(path.join(root,'snapshot.json'))),photos:JSON.parse(fs.readFileSync(path.join(root,'photo-credits.json')))});
+ nativePage.on('pageerror',e=>nativeErrors.push(e.message));await nativePage.goto('file://'+path.join(root,'index.html'));await nativePage.waitForFunction(()=>partyState.data&&analyticsState.data);
+ await nativePage.locator('[data-tab=party]').click();await nativePage.locator('.seat-tile').first().waitFor();assert.equal(await nativePage.locator('.seat-tile').count(),400);
+ await nativePage.getByRole('button',{name:'View ANC',exact:true}).click();await nativePage.locator('[data-member="leader-anc-ramaphosa"]').click();await nativePage.locator('#member-name').filter({hasText:'Cyril Ramaphosa'}).waitFor();
+ await nativePage.evaluate(()=>window.sothisBack());await nativePage.locator('#party-body').waitFor({state:'visible'});await nativePage.evaluate(()=>window.sothisBack());await nativePage.locator('#party-overview').waitFor({state:'visible'});await nativePage.evaluate(()=>window.sothisBack());await nativePage.locator('#search-panel').waitFor({state:'visible'});assert.equal(await nativePage.evaluate(()=>window.sothisBack()),false);assert.deepEqual(nativeErrors,[]);await nativeContext.close();
+ await browser.close();console.log('Analytics passed: 400 seats, nine province paths, IEC shares, separate ANC leadership, browser back and file-origin Android bridge/back handler, four disclosure sections, source icons, metadata dates, poll expiry/cycle retirement and four viewport widths.');
+})().catch(e=>{console.error(e);process.exit(1)});

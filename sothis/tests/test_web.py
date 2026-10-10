@@ -71,6 +71,19 @@ class WebsiteTests(unittest.TestCase):
         self.assertEqual(self.request('/snapshot.json')['status'],302)
         self.assertEqual(self.request('/healthz')['json'],{'ok':True})
 
+    def test_analytics_assets_and_metadata_endpoint_keep_session_boundaries(self):
+        for path in ('/api/analytics','/api/publication'):
+            self.assertEqual(self.request(path)['status'],401)
+        for path in ('/analytics-data.json','/analytics.js','/analytics.css','/navigation.js'):
+            self.assertEqual(self.request(path)['status'],302)
+        self.login()
+        analytics=self.request('/api/analytics')['json']
+        self.assertEqual(sum(analytics['national_elections'][-1]['seats'].values()),400)
+        for path in ('/analytics-data.json','/analytics.js','/analytics.css','/navigation.js'):
+            self.assertEqual(self.request(path)['status'],200)
+        self.assertEqual(self.request('/api/publication','POST',{'url':'http://127.0.0.1/private'})['status'],400)
+        self.assertEqual(self.request('/api/publication','POST',{'url':'https://example.org/article'},csrf='wrong')['status'],403)
+
     def test_cookie_policy_csp_and_same_origin_session(self):
         result = self.login()
         self.assertIn('__Host-sothis=',result['headers']['Set-Cookie'])

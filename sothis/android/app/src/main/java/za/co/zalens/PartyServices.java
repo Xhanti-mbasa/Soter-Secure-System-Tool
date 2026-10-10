@@ -85,6 +85,10 @@ public final class PartyServices {
     }
 
     public JSONObject member(String id,boolean refresh) throws Exception {
+        JSONArray leaders=snapshot.optJSONArray("leaders");
+        if(leaders!=null)for(int i=0;i<leaders.length();i++)if(leaders.getJSONObject(i).getString("id").equals(id)) {
+            return new JSONObject(leaders.getJSONObject(i).toString()).put("status","sourced_leadership").put("remuneration",JSONObject.NULL).put("interests_register",snapshot.getJSONObject("interests_register"));
+        }
         if(!id.matches("\\d{1,10}"))throw new IOException("Invalid Parliament member ID");
         JSONObject p=null,m=null;JSONArray parties=snapshot.getJSONArray("parties");
         for(int i=0;i<parties.length()&&m==null;i++){

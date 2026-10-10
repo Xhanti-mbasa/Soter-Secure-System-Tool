@@ -152,7 +152,7 @@ class App:
             return 200, self.html(ASSETS / 'index.html', nonce), 'text/html; charset=utf-8', []
         if path in ('/web-runtime.js', '/web-ui.js'):
             return self.file(STATIC / path.lstrip('/'))
-        allowed = ('/snapshot.json', '/features.js', '/parties.js', '/party-data.json', '/visuals.js', '/photo-credits.json')
+        allowed = ('/snapshot.json', '/features.js', '/parties.js', '/party-data.json', '/visuals.js', '/photo-credits.json', '/analytics.js', '/analytics.css', '/analytics-data.json', '/navigation.js')
         resource = path.startswith(('/images/', '/fonts/', '/icons/')) and Path(path).suffix.lower() in ('.webp', '.jpg', '.png', '.svg', '.ttf', '.woff2')
         file = (ASSETS / path.lstrip('/')).resolve()
         if (path in allowed or resource) and ASSETS.resolve() in file.parents and file.is_file():

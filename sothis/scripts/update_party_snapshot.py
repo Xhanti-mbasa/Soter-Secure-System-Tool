@@ -101,8 +101,8 @@ def main():
             linked += 1
         print('Linked dated business disclosures:', linked)
     data = {'schema_version': 1, 'captured_at': captured,
-            'coverage': 'Parliament-listed representatives, including National Assembly and NCOP members. This is not a list of every party member nationwide. Counts reflect this captured roster, not election seat totals.',
-            'catalog_source': PARLIAMENT + '/political-party-list', 'parties': parties, 'profiles': profiles,
+            'coverage': 'Parliament-listed representatives, including National Assembly and NCOP members. This is not a list of every party member nationwide. Counts reflect this captured roster, not election seat totals. Sourced party leadership is listed separately from MPs.',
+            'catalog_source': PARLIAMENT + '/political-party-list', 'parties': parties, 'profiles': profiles, 'leaders': existing.get('leaders', []),
             'interests_register': {'source_url': REGISTER, 'directory_url': PARLIAMENT + '/register-members-Interests', 'period': 'June 2026', 'captured_at': captured},
             'remuneration_schedules': [dict(role=role, annual_zar=amount, effective_from='2025-04-01', published_at='2026-01-16', source_url=PAY, page=3,
                 label='Published annual remuneration for this office. Dated 2025/26 schedule, not verified personal pay or a claim about later rates.')

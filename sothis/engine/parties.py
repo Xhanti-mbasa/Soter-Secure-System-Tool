@@ -121,6 +121,13 @@ class PartyService:
 
     def member(self, member_id, refresh=False):
         member_id = str(member_id)
+        with self.lock:
+            leader = next((m for m in self.data.get('leaders', []) if m['id'] == member_id), None)
+            if leader:
+                result = copy.deepcopy(leader)
+                result.update(status='sourced_leadership', remuneration=None,
+                              interests_register=copy.deepcopy(self.data['interests_register']))
+                return result
         if not re.fullmatch(r'\d{1,10}', member_id):
             raise ValueError('Invalid Parliament member ID')
         with self.lock:

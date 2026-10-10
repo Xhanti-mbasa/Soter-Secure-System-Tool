@@ -9,7 +9,7 @@ import time
 import urllib.parse as urlparse
 import urllib.request
 from html.parser import HTMLParser
-from .core import now, digest
+from .core import now, digest, date_value
 
 PLATFORMS = {'instagram.com':'Instagram','facebook.com':'Facebook','linkedin.com':'LinkedIn',
              'x.com':'X / Twitter','twitter.com':'X / Twitter','tiktok.com':'TikTok','youtube.com':'YouTube'}
@@ -88,7 +88,8 @@ def normalize_hit(hit,query):
     return dict(id=digest(url)[:24],url=url,title=title or url,description=description,
         platform=kind,category=category,match_score=score,match_label='Strong name match' if exact else 'Name terms match',
         match_reason='Name appears in indexed text. Ranking measures text relevance, not identity.',
-        ownership='unreviewed',retrieved_at=now(),content_hash=digest(title+'\n'+description),acquisition='search_index')
+        ownership='unreviewed',retrieved_at=now(),published_at=None,index_date=date_value(hit.get('page_age')),
+        content_hash=digest(title+'\n'+description),acquisition='search_index')
 
 class PublicServices:
     def __init__(self, reader=None):

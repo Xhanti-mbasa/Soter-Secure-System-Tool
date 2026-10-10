@@ -1,0 +1,52 @@
+'use strict';
+// One screen history for browser Back and Android's native back gesture.
+const navigationState={restoring:false,sequence:0,routes:[]};
+function currentRoute(){return {tab:state.tab,party:state.tab==='party'?partyState.current?.code||partyState.member?.party_code||null:null,member:state.tab==='party'?partyState.member?.id||null:null}}
+function sameRoute(a,b){return a&&b&&a.tab===b.tab&&a.party===b.party&&a.member===b.member}
+const routeBack=button('← Back',()=>window.sothisBack(),'route-back');document.querySelector('main').prepend(routeBack);
+function updateBackButton(){routeBack.hidden=state.tab==='search'||state.tab==='party'&&(!!partyState.current||!!partyState.member)}
+function recordRoute(){
+ updateBackButton();if(navigationState.restoring)return;
+ const route=currentRoute(),previous=navigationState.routes[navigationState.sequence];if(sameRoute(route,previous))return;
+ navigationState.routes.splice(navigationState.sequence+1);navigationState.routes.push(route);navigationState.sequence++;
+ const hash='#'+[route.tab,route.party,route.member].filter(Boolean).map(encodeURIComponent).join('/');
+ history.pushState({sothis:route,sequence:navigationState.sequence},'',hash);
+}
+const navigationTab=tab,navigationPartyRender=renderParty,navigationMemberRender=renderPartyMember,navigationDirectory=renderPartyDirectory;
+tab=function(name){navigationTab(name);recordRoute()};
+renderParty=function(p){navigationPartyRender(p);recordRoute()};
+renderPartyMember=function(m){navigationMemberRender(m);recordRoute();$('member-back').onclick=()=>parentRoute('party')};
+renderPartyDirectory=function(q){navigationDirectory(q);recordRoute()};
+async function restoreRoute(route){
+ navigationState.restoring=true;
+ try{
+  await partyReady;partyState.serial++;partyState.memberSerial++;notice('party-note','');
+  if(route.tab==='party'){
+   const p=partyState.data.parties.find(p=>p.code===route.party);
+   const m=[...partyState.data.leaders||[],...partyState.data.parties.flatMap(p=>p.members)].find(m=>m.id===route.member);
+   partyState.current=p||null;partyState.member=m?localMember(m):null;
+   navigationTab('party');
+   if(m){partyState.discoveries={};partyState.section='all';navigationMemberRender(partyState.member);$('member-back').onclick=()=>parentRoute('party');loadMemberMentions('all')}
+   else if(p)navigationPartyRender(p);
+   else{$('party-query').value='';navigationDirectory('')}
+  }else navigationTab(route.tab||'search');
+  updateBackButton();
+ }finally{navigationState.restoring=false}
+}
+function parentRoute(level){
+ const party=partyState.member?.party_code||partyState.current?.code;
+ const target=level==='party'?{tab:'party',party,member:null}:{tab:'party',party:null,member:null};
+ if(sameRoute(navigationState.routes[navigationState.sequence-1],target)){history.back();return}
+ restoreRoute(target).then(recordRoute);
+}
+window.sothisBack=function(){
+ if(!$('overlay').hidden){closeDetail();return true}
+ if(navigationState.sequence>0){history.back();return true}
+ if(partyState.member&&state.tab==='party'){parentRoute('party');return true}
+ if(partyState.current&&state.tab==='party'){parentRoute('directory');return true}
+ if(state.tab!=='search'){tab('search');return true}
+ return false;
+};
+$('party-directory-back').onclick=()=>parentRoute('directory');
+navigationState.routes=[currentRoute()];history.replaceState({sothis:currentRoute(),sequence:0},'','#'+state.tab);updateBackButton();
+window.addEventListener('popstate',e=>{if(!e.state?.sothis)return;navigationState.sequence=e.state.sequence;restoreRoute(e.state.sothis)});

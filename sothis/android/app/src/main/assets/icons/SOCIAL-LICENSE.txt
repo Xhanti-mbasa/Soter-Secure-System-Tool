@@ -1,0 +1,9 @@
+Platform SVG marks: Simple Icons, CC0-1.0.
+https://github.com/simple-icons/simple-icons/blob/develop/LICENSE.md
+Instagram, Facebook, X, TikTok, YouTube: version 14.15.0.
+LinkedIn: version 10.4.0 (not included in the newer set).
+https://github.com/simple-icons/simple-icons
+Trademarks belong to their respective owners; no endorsement is implied.
+
+Newspaper glyph: Phosphor Icons, MIT, as in the accompanying LICENSE.
+https://github.com/phosphor-icons/core

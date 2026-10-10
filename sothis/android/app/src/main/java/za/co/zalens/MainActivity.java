@@ -139,6 +139,13 @@ public final class MainActivity extends Activity {
             try { return PartyServices.snapshot(MainActivity.this); }
             catch(Exception e) { return "{\"parties\":[],\"profiles\":{},\"remuneration_schedules\":[]}"; }
         }
+        @JavascriptInterface public String analyticsSnapshot() {
+            try (InputStream in=getAssets().open("analytics-data.json")) {
+                ByteArrayOutputStream out=new ByteArrayOutputStream();byte[] bytes=new byte[8192];int count;
+                while((count=in.read(bytes))!=-1)out.write(bytes,0,count);
+                return new String(out.toByteArray(),StandardCharsets.UTF_8);
+            } catch(Exception e) { return "{}"; }
+        }
         @JavascriptInterface public String backgroundStatus() {
             return getSharedPreferences("services",MODE_PRIVATE).getString("background_error","");
         }
@@ -164,7 +171,9 @@ public final class MainActivity extends Activity {
                     String base=prefs.getString("url", "");
                     if (base.isEmpty() || route.startsWith("/api/device/")) {
                         if(route.contains("/monitors"))getSharedPreferences("services",MODE_PRIVATE).edit().putString("monitor_backend","device").apply();
-                        String result; synchronized(PublicServices.class){result=services.execute(route.replace("/api/device/","/api/"),method,body);}
+                        String result;
+                        if(route.endsWith("/publication"))result=services.execute(route.replace("/api/device/","/api/"),method,body);
+                        else synchronized(PublicServices.class){result=services.execute(route.replace("/api/device/","/api/"),method,body);}
                         if(route.endsWith("/monitors/check"))MonitorJob.notifyAlerts(MainActivity.this,services.alerts());
                         reply(id,result,"");return;
                     }
@@ -250,7 +259,8 @@ public final class MainActivity extends Activity {
         pendingReport=null;pendingFile=null;
     }
     @Override public void onBackPressed() {
-        web.evaluateJavascript("(function(){var o=document.getElementById('overlay');if(o&&!o.hidden){window.closeDetail();return true;}return false;})()",new ValueCallback<String>() {
+        if(web==null){finish();return;}
+        web.evaluateJavascript("(function(){if(typeof window.sothisBack==='function')return window.sothisBack();var o=document.getElementById('overlay');if(o&&!o.hidden){window.closeDetail();return true;}return false;})()",new ValueCallback<String>() {
             @Override public void onReceiveValue(String value) { if(!"true".equals(value)) finish(); }
         });
     }

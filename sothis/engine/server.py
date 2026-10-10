@@ -69,7 +69,7 @@ class Handler(BaseHTTPRequestHandler):
                     if not isinstance(data,dict): raise ValueError('JSON object required')
                 else: data = {}
                 return self.api(method,path,urllib.parse.parse_qs(parsed.query),data)
-            public_files = ('/','/index.html','/snapshot.json','/features.js','/parties.js','/party-data.json','/visuals.js','/nothing.css','/photo-credits.json')
+            public_files = ('/','/index.html','/snapshot.json','/features.js','/parties.js','/party-data.json','/visuals.js','/nothing.css','/photo-credits.json','/analytics.js','/analytics.css','/analytics-data.json','/navigation.js')
             resource = path.startswith(('/images/','/fonts/','/icons/')) and Path(path).suffix.lower() in ('.webp','.jpg','.png','.svg','.ttf','.woff2')
             if method == 'GET' and self.server.web_dir and (path in public_files or resource):
                 name = 'index.html' if path in ('/','/index.html') else path.lstrip('/')
@@ -86,7 +86,13 @@ class Handler(BaseHTTPRequestHandler):
     def api(self, method, path, params, data):
         store = self.server.store
         if method == 'GET' and path == '/api/health':
-            return self.send(200,{'ok':True,'version':'0.4.0',**store.stats()})
+            return self.send(200,{'ok':True,'version':'0.5.0',**store.stats()})
+        if path == '/api/analytics' and method == 'GET':
+            from .analytics import snapshot
+            return self.send(200,snapshot())
+        if path == '/api/publication' and method == 'POST':
+            from .publications import publication
+            return self.send(200,publication(data.get('url','')))
         if path == '/api/parties' and method == 'GET':
             return self.send(200,self.server.parties.catalog(params.get('q',[''])[0]))
         if path == '/api/party' and method == 'POST':

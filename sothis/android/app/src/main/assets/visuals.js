@@ -24,7 +24,8 @@ function renderPhotoCredits(){
  const box=$('asset-credits');if(!box)return;box.replaceChildren();
  const unique=photoCredits.filter((p,i,a)=>a.findIndex(x=>x.file===p.file)===i);
  for(const p of unique){const row=el('p');const link=el('a','',p.title+' · '+p.author);link.href=p.source_url;link.onclick=e=>{e.preventDefault();openExternal(p.source_url)};row.append(link,document.createTextNode(' · '+p.license+'. '+p.changes));if(p.license_url){const license=el('a','',' License');license.href=p.license_url;license.onclick=e=>{e.preventDefault();openExternal(p.license_url)};row.append(license)}box.append(row)}
- box.append(el('p','','Representative portraits are loaded from Parliament’s published directory. When unavailable, initials are shown. Portraits are not evidence of account ownership. Doto: SIL Open Font License. Phosphor icons: MIT license.'));
+ box.append(el('p','','Representative portraits are loaded from Parliament’s published directory. When unavailable, initials are shown. Portraits are not evidence of account ownership. Doto: SIL Open Font License. Phosphor icons: MIT license. Simple Icons platform marks: CC0; trademarks belong to their owners.'));
+ box.append(el('p','','Party charts adapt your Figma ring and rounded seat tiles from shatter prof. South Africa province boundaries: geoBoundaries / OCHA ROSEA / South African Municipal Demarcation Board, CC BY 3.0 IGO, 2020 boundaries. Election numbers: Parliament and IEC, with dates and original sources on each chart.'));
 }
 (async()=>{if(native()&&typeof Native.photoCredits==='function')return JSON.parse(Native.photoCredits());const r=await fetch('photo-credits.json');if(!r.ok)throw Error('Photo credits unavailable');return r.json()})().then(rows=>{photoCredits=rows;renderPhotoCredits();if(state.tab==='regions')renderRegions()}).catch(()=>{});
 $('explore-country').onclick=()=>tab('regions');$('explore-party').onclick=()=>tab('party');
