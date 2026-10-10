@@ -44,6 +44,7 @@ def main():
         raw = b'Public source fixture for website download verification.\n'
         sha = hashlib.sha256(raw).hexdigest()
         (app.runtime.store.root/'archive'/sha).write_bytes(raw)
+        app.runtime.province_news.reader=lambda url:b'<rss><channel><item><title>Western Cape website gateway fixture</title><link>https://www.sanews.gov.za/node/999999</link><description>Controlled public-news gateway evidence for verification only.</description><pubDate>Fri, 09 Oct 2026 12:00:00 +0200</pubDate></item></channel></rss>'
         server = make_server('127.0.0.1',8766,app,server_class=ThreadedServer,handler_class=QuietHandler)
         threading.Thread(target=server.serve_forever,daemon=True).start()
         chrome = args.chrome

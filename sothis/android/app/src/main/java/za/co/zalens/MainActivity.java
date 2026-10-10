@@ -149,6 +149,12 @@ public final class MainActivity extends Activity {
         @JavascriptInterface public String backgroundStatus() {
             return getSharedPreferences("services",MODE_PRIVATE).getString("background_error","");
         }
+        @JavascriptInterface public String provinceSnapshot() {
+            try{return ProvinceServices.asset(MainActivity.this,"province-data.json");}catch(Exception e){return "{}";}
+        }
+        @JavascriptInterface public String educationRegisters() {
+            try{return ProvinceServices.asset(MainActivity.this,"education-registers.json");}catch(Exception e){return "{}";}
+        }
         @JavascriptInterface public String configure(String value, String token) {
             try {
                 value=value.trim().replaceAll("/+$", "");
@@ -172,7 +178,7 @@ public final class MainActivity extends Activity {
                     if (base.isEmpty() || route.startsWith("/api/device/")) {
                         if(route.contains("/monitors"))getSharedPreferences("services",MODE_PRIVATE).edit().putString("monitor_backend","device").apply();
                         String result;
-                        if(route.endsWith("/publication"))result=services.execute(route.replace("/api/device/","/api/"),method,body);
+                        if(route.endsWith("/publication")||route.endsWith("/province/news"))result=services.execute(route.replace("/api/device/","/api/"),method,body);
                         else synchronized(PublicServices.class){result=services.execute(route.replace("/api/device/","/api/"),method,body);}
                         if(route.endsWith("/monitors/check"))MonitorJob.notifyAlerts(MainActivity.this,services.alerts());
                         reply(id,result,"");return;

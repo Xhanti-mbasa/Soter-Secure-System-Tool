@@ -6,6 +6,7 @@ from engine.core import Store
 from engine.parties import PartyService
 from engine.server import Handler
 from engine.services import Monitoring, PublicServices
+from engine.provinces import ProvinceNews
 
 ROOT = Path(__file__).resolve().parent.parent
 ASSETS = ROOT / 'android/app/src/main/assets'
@@ -30,6 +31,7 @@ class Runtime:
         self.job, self.job_lock = None, threading.Lock()
         self.services = PublicServices()
         self.parties = PartyService()
+        self.province_news = ProvinceNews(self.services)
         self.monitoring = Monitoring(self.store, self.services)
 
     def close(self):

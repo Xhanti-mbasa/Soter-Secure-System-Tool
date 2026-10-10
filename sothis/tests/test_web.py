@@ -71,6 +71,17 @@ class WebsiteTests(unittest.TestCase):
         self.assertEqual(self.request('/snapshot.json')['status'],302)
         self.assertEqual(self.request('/healthz')['json'],{'ok':True})
 
+    def test_province_assets_and_news_use_private_web_gateway(self):
+        self.assertEqual(self.request('/api/provinces')['status'],401)
+        self.login()
+        self.assertEqual(len(self.request('/api/provinces')['json']['provinces']),9)
+        for asset in ('provinces.js','provinces.css','province-data.json','education-registers.json','company-details.js'):
+            self.assertEqual(self.request('/'+asset)['status'],200)
+        self.app.runtime.province_news.reader=lambda url:b'<rss><channel><item><title>Western Cape fixture</title><link>https://www.sanews.gov.za/node/999</link><pubDate>Fri, 09 Oct 2026 12:00:00 +0200</pubDate></item></channel></rss>'
+        result=self.request('/api/province/news','POST',{'province':'Western Cape','days':0})
+        self.assertEqual(result['status'],200);self.assertEqual(result['json']['results'][0]['acquisition'],'publisher_feed')
+        self.assertEqual(self.request('/api/province/news','POST',{'province':'Invalid','days':30})['status'],400)
+
     def test_analytics_assets_and_metadata_endpoint_keep_session_boundaries(self):
         for path in ('/api/analytics','/api/publication'):
             self.assertEqual(self.request(path)['status'],401)

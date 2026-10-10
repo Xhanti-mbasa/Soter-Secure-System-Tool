@@ -24,6 +24,8 @@ class LensServer(ThreadingHTTPServer):
         self.job_lock = threading.Lock()
         self.services = PublicServices()
         self.parties = PartyService()
+        from .provinces import ProvinceNews
+        self.province_news = ProvinceNews(self.services)
         self.monitoring = Monitoring(store,self.services)
 
     def server_close(self):
@@ -69,7 +71,7 @@ class Handler(BaseHTTPRequestHandler):
                     if not isinstance(data,dict): raise ValueError('JSON object required')
                 else: data = {}
                 return self.api(method,path,urllib.parse.parse_qs(parsed.query),data)
-            public_files = ('/','/index.html','/snapshot.json','/features.js','/parties.js','/party-data.json','/visuals.js','/nothing.css','/photo-credits.json','/analytics.js','/analytics.css','/analytics-data.json','/navigation.js')
+            public_files = ('/','/index.html','/snapshot.json','/features.js','/parties.js','/party-data.json','/visuals.js','/nothing.css','/photo-credits.json','/analytics.js','/analytics.css','/analytics-data.json','/navigation.js','/provinces.js','/provinces.css','/province-data.json','/education-registers.json','/company-details.js')
             resource = path.startswith(('/images/','/fonts/','/icons/')) and Path(path).suffix.lower() in ('.webp','.jpg','.png','.svg','.ttf','.woff2')
             if method == 'GET' and self.server.web_dir and (path in public_files or resource):
                 name = 'index.html' if path in ('/','/index.html') else path.lstrip('/')
@@ -86,7 +88,21 @@ class Handler(BaseHTTPRequestHandler):
     def api(self, method, path, params, data):
         store = self.server.store
         if method == 'GET' and path == '/api/health':
-            return self.send(200,{'ok':True,'version':'0.5.0',**store.stats()})
+            return self.send(200,{'ok':True,'version':'0.6.0',**store.stats()})
+        if path == '/api/provinces' and method == 'GET':
+            from .provinces import snapshot
+            return self.send(200,snapshot())
+        if path == '/api/province/news' and method == 'POST':
+            result=self.server.province_news.news(data.get('province',''),data.get('days',30),data.get('refresh') is True)
+            from .connectors import source_record
+            feed_source=source_record('SAnews public news','https://www.sanews.gov.za/','National','news')
+            index_source=source_record('Public web discovery','https://search.brave.com/','National','news')
+            store.seed_sources([feed_source,index_source])
+            for hit in result['results']+result['undated']+result['candidates']:
+                is_feed=hit.get('acquisition')=='publisher_feed'
+                description=hit['title']+'\n'+hit.get('description','')+'\nPublished: '+str(hit.get('published_at') or 'Unavailable')+'\n'+('Publisher feed; province location mention.' if is_feed else 'Public search-index candidate; publication date and identity require review.')
+                hit['document_id']=store.put_document(feed_source if is_feed else index_source,hit['url'],hit['title'],description,hit.get('published_at'),acquisition='publisher_feed' if is_feed else 'search_index',category='news')
+            return self.send(200,result)
         if path == '/api/analytics' and method == 'GET':
             from .analytics import snapshot
             return self.send(200,snapshot())

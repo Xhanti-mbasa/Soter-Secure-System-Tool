@@ -169,6 +169,7 @@ public final class PublicServices {
     }
     public String execute(String route,String method,String body) throws Exception {
         JSONObject data=new JSONObject(body);
+        if(route.equals("/api/province/news")&&method.equals("POST"))return new ProvinceServices(context).news(data.optString("province"),data.optInt("days",30),data.optBoolean("refresh",false),this).toString();
         if(route.equals("/api/publication")&&method.equals("POST"))return PublicationServices.publication(data.optString("url")).toString();
         if(route.equals("/api/parties")&&method.equals("GET"))return new PartyServices(context).catalog().toString();
         if(route.equals("/api/party")&&method.equals("POST"))return new PartyServices(context).party(data.optString("code"),data.optBoolean("refresh",false)).toString();

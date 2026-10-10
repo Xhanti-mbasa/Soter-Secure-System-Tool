@@ -1,0 +1,913 @@
+{
+  "schema_version": 1,
+  "captured_at": "2026-10-10",
+  "coverage": "Reviewed provincial indicators and public directories. This is not every public database or a complete campus inventory.",
+  "sources": {
+    "population": {
+      "url": "https://census.statssa.gov.za/assets/documents/2022/P03014_Census_2022_Statistical_Release.pdf",
+      "period": "Census 2022",
+      "published_at": "2023-10-10",
+      "page": 15,
+      "definition": "Census population, table 2.1. Historic count; not a current population estimate."
+    },
+    "labour": {
+      "url": "https://www.statssa.gov.za/publications/P0211/P02112ndQuarter2026.pdf",
+      "period": "Q2 2026 · April–June",
+      "published_at": "2026-08-11",
+      "definition": "QLFS, ages 15–64, table 2.3. Estimates and rounding apply. Absorption uses the working-age population; unemployment uses the labour force."
+    },
+    "nsc": {
+      "url": "https://www.education.gov.za/Portals/0/Documents/Reports/2025%20NSC%20Examination%20Report.pdf",
+      "period": "NSC class of 2025",
+      "published_at": "2026-01-12",
+      "page": 6,
+      "definition": "DBE full-time candidates who wrote and achieved the NSC. This is not a pass rate for all schools, all grades or an entire learner cohort."
+    },
+    "latest_population": {
+      "url": "https://www.statssa.gov.za/?PPN=P0302&page_id=1854",
+      "period": "Mid-year population estimates 2026",
+      "definition": "Newer estimates are available from Stats SA. The comparable provincial census values remain separate until the provincial estimate table is imported and reviewed."
+    }
+  },
+  "education_outcomes": [
+    {
+      "id": "ieb",
+      "name": "Independent schools · IEB NSC",
+      "value": 98.31,
+      "period": "2025",
+      "geography": "National IEB candidates",
+      "source_url": "https://www.ieb.co.za/post/2025-ieb-national-senior-certificate-results",
+      "published_at": "2026-01-12",
+      "definition": "National IEB NSC pass rate; no provincial breakdown is installed. IEB is not every independent school."
+    },
+    {
+      "id": "sacai",
+      "name": "Independent / distance schooling · SACAI",
+      "source_url": "https://www.sacai.org.za/",
+      "definition": "No reviewed provincial pass-rate series installed. Consult the assessment body’s dated results."
+    },
+    {
+      "id": "tvet",
+      "name": "TVET · NC(V) & Report 191",
+      "source_url": "https://www.dhet.gov.za/SitePages/Statistics-on-Post-School-Education-and-Training.aspx",
+      "definition": "Completion/certification varies by qualification, level and examination sitting. No reviewed province series installed."
+    },
+    {
+      "id": "cet",
+      "name": "Community & adult education",
+      "source_url": "https://www.dhet.gov.za/SitePages/Community%20Education%20and%20Training.aspx",
+      "definition": "CET/AET outcomes are separate from matric. No reviewed provincial series installed."
+    },
+    {
+      "id": "higher",
+      "name": "Public & private higher education",
+      "source_url": "https://www.che.ac.za/",
+      "definition": "Course success, graduation and cohort completion use different denominators. No reviewed provincial series installed."
+    },
+    {
+      "id": "basic",
+      "name": "Primary school & earlier grades",
+      "source_url": "https://www.education.gov.za/Resources/Reports.aspx",
+      "definition": "Learning assessments and grade progression are separate measures. No universal provincial primary-school pass-rate measure is installed."
+    }
+  ],
+  "sectors": [
+    {
+      "id": "statistics",
+      "name": "Population, households & services",
+      "publisher": "Stats SA Census and data portal",
+      "url": "https://census.statssa.gov.za/",
+      "description": "Public census tables: age, households, housing, water, electricity and internet. Periods vary.",
+      "access": "Public directory / original publisher",
+      "captured_at": "2026-10-10"
+    },
+    {
+      "id": "economy",
+      "name": "Economy, industries & jobs",
+      "publisher": "Stats SA ISIbalo data portal",
+      "url": "https://isibaloweb.statssa.gov.za/pages/dataapps.php",
+      "description": "GDP, labour, agriculture, manufacturing and trade tables. Check geography and release date for each series.",
+      "access": "Public directory / original publisher",
+      "captured_at": "2026-10-10"
+    },
+    {
+      "id": "banks",
+      "name": "Banks & co-operative banks",
+      "publisher": "SARB Prudential Authority",
+      "url": "https://www.resbank.co.za/en/home/what-we-do/Prudentialregulation/sa-registered-banks-and-representative-offices",
+      "description": "Official institution lists; national licences do not identify every provincial branch or customers.",
+      "access": "Public directory / original publisher",
+      "captured_at": "2026-10-10"
+    },
+    {
+      "id": "finance",
+      "name": "Financial providers, funds & insurers",
+      "publisher": "FSCA registers",
+      "url": "https://www.fsca.co.za/FSB-Search/",
+      "description": "Verify provider names and FSP numbers. The regulator has additional registers for funds, insurers and other entities.",
+      "access": "Public directory / original publisher",
+      "captured_at": "2026-10-10"
+    },
+    {
+      "id": "companies",
+      "name": "Companies & co-operatives",
+      "publisher": "CIPC / BizPortal",
+      "url": "https://www.bizportal.gov.za/",
+      "description": "Open the official portal and import an authorised disclosure. Authentication and access conditions apply; no public ownership API is assumed.",
+      "access": "Public directory / original publisher",
+      "captured_at": "2026-10-10"
+    },
+    {
+      "id": "markets",
+      "name": "Listed companies",
+      "publisher": "JSE",
+      "url": "https://www.jse.co.za/",
+      "description": "Issuer announcements and public company reporting. Search the issuer and verify the publication period.",
+      "access": "Public directory / original publisher",
+      "captured_at": "2026-10-10"
+    },
+    {
+      "id": "groups",
+      "name": "Nonprofit organisations & groups",
+      "publisher": "Department of Social Development",
+      "url": "https://www.dsd.gov.za/",
+      "description": "Use the official NPO services and register. An NPO entry is not a complete list of informal or political groups.",
+      "access": "Public directory / original publisher",
+      "captured_at": "2026-10-10"
+    },
+    {
+      "id": "budgets",
+      "name": "Budgets & public entities",
+      "publisher": "National Treasury",
+      "url": "https://www.treasury.gov.za/",
+      "description": "Provincial budgets, expenditure publications and PFMA entity schedules. Inspect the original report year.",
+      "access": "Public directory / original publisher",
+      "captured_at": "2026-10-10"
+    },
+    {
+      "id": "municipal",
+      "name": "Municipal finance & performance",
+      "publisher": "Municipal Money / National Treasury",
+      "url": "https://municipalmoney.gov.za/",
+      "description": "Municipal finances and audit context; select the municipality inside this province.",
+      "access": "Public directory / original publisher",
+      "captured_at": "2026-10-10"
+    },
+    {
+      "id": "procurement",
+      "name": "Tenders & awarded contracts",
+      "publisher": "National Treasury eTenders",
+      "url": "https://www.etenders.gov.za/Home/opportunities",
+      "description": "Published open and awarded tenders; the app also provides live tender lookup in Tools.",
+      "access": "Public directory / original publisher",
+      "captured_at": "2026-10-10"
+    },
+    {
+      "id": "health",
+      "name": "Health facilities & public health",
+      "publisher": "National Department of Health",
+      "url": "https://www.health.gov.za/",
+      "description": "Public facilities, policies and aggregate reports. Personal medical records are excluded.",
+      "access": "Public directory / original publisher",
+      "captured_at": "2026-10-10"
+    },
+    {
+      "id": "crime",
+      "name": "Crime statistics",
+      "publisher": "South African Police Service",
+      "url": "https://www.saps.gov.za/services/crimestats.php",
+      "description": "Published aggregates by reporting period and police station. Counts do not establish individual guilt.",
+      "access": "Public directory / original publisher",
+      "captured_at": "2026-10-10"
+    },
+    {
+      "id": "environment",
+      "name": "Parks, conservation & activities",
+      "publisher": "South African National Parks",
+      "url": "https://www.sanparks.org/",
+      "description": "Park information, conservation reports and visitor activities. Verify availability with the park.",
+      "access": "Public directory / original publisher",
+      "captured_at": "2026-10-10"
+    },
+    {
+      "id": "tourism",
+      "name": "Tourism, events & things to do",
+      "publisher": "South African Tourism",
+      "url": "https://www.southafrica.net/",
+      "description": "Explore provincial destinations, cultural activities and tourism information. Event dates must be checked with the organiser.",
+      "access": "Public directory / original publisher",
+      "captured_at": "2026-10-10"
+    },
+    {
+      "id": "education",
+      "name": "Qualifications & provider accreditation",
+      "publisher": "SAQA / QCTO",
+      "url": "https://www.saqa.org.za/",
+      "description": "Qualification registration; provider accreditation and DHET registration are distinct checks.",
+      "access": "Public directory / original publisher",
+      "captured_at": "2026-10-10"
+    },
+    {
+      "id": "training",
+      "name": "Occupational training providers",
+      "publisher": "Quality Council for Trades and Occupations",
+      "url": "https://www.qcto.org.za/",
+      "description": "Occupational provider accreditation. Some occupational providers are exempt from the DHET private-college register.",
+      "access": "Public directory / original publisher",
+      "captured_at": "2026-10-10"
+    }
+  ],
+  "provinces": [
+    {
+      "name": "Eastern Cape",
+      "keywords": [
+        "Eastern Cape",
+        "Gqeberha",
+        "East London",
+        "Bhisho",
+        "Mthatha",
+        "Port Elizabeth",
+        "Alice"
+      ],
+      "population": 7230204,
+      "labour": {
+        "absorption": 28.9,
+        "unemployment": 47.5,
+        "participation": 55.1,
+        "employed_thousands": 1346,
+        "working_age_thousands": 4653,
+        "page": 36
+      },
+      "nsc": {
+        "wrote": 106561,
+        "achieved": 89694,
+        "pass_rate": 84.17
+      },
+      "universities": [
+        {
+          "name": "Nelson Mandela University",
+          "url": "https://www.mandela.ac.za/",
+          "source_url": "https://usaf.ac.za/prospective-students/",
+          "type": "Public university",
+          "location_basis": "Primary province; this university may have campuses or distance learners elsewhere."
+        },
+        {
+          "name": "Rhodes University",
+          "url": "https://www.ru.ac.za/",
+          "source_url": "https://usaf.ac.za/prospective-students/",
+          "type": "Public university",
+          "location_basis": "Primary province; this university may have campuses or distance learners elsewhere."
+        },
+        {
+          "name": "University of Fort Hare",
+          "url": "https://www.ufh.ac.za/",
+          "source_url": "https://usaf.ac.za/prospective-students/",
+          "type": "Public university",
+          "location_basis": "Primary province; this university may have campuses or distance learners elsewhere."
+        },
+        {
+          "name": "Walter Sisulu University",
+          "url": "https://www.wsu.ac.za/",
+          "source_url": "https://usaf.ac.za/prospective-students/",
+          "type": "Public university",
+          "location_basis": "Primary province; this university may have campuses or distance learners elsewhere."
+        }
+      ],
+      "tvet_colleges": [
+        {
+          "name": "Buffalo City TVET College",
+          "source_url": "https://www.careerhelp.org.za/content/education-system-south-africa/tvet-and-university",
+          "type": "Public TVET college"
+        },
+        {
+          "name": "Eastcape Midlands TVET College",
+          "source_url": "https://www.careerhelp.org.za/content/education-system-south-africa/tvet-and-university",
+          "type": "Public TVET college"
+        },
+        {
+          "name": "Ikhala TVET College",
+          "source_url": "https://www.careerhelp.org.za/content/education-system-south-africa/tvet-and-university",
+          "type": "Public TVET college"
+        },
+        {
+          "name": "Ingwe TVET College",
+          "source_url": "https://www.careerhelp.org.za/content/education-system-south-africa/tvet-and-university",
+          "type": "Public TVET college"
+        },
+        {
+          "name": "King Hintsa TVET College",
+          "source_url": "https://www.careerhelp.org.za/content/education-system-south-africa/tvet-and-university",
+          "type": "Public TVET college"
+        },
+        {
+          "name": "King Sabata Dalindyebo TVET College",
+          "source_url": "https://www.careerhelp.org.za/content/education-system-south-africa/tvet-and-university",
+          "type": "Public TVET college"
+        },
+        {
+          "name": "Lovedale TVET College",
+          "source_url": "https://www.careerhelp.org.za/content/education-system-south-africa/tvet-and-university",
+          "type": "Public TVET college"
+        },
+        {
+          "name": "Port Elizabeth TVET College",
+          "source_url": "https://www.careerhelp.org.za/content/education-system-south-africa/tvet-and-university",
+          "type": "Public TVET college"
+        }
+      ]
+    },
+    {
+      "name": "Free State",
+      "keywords": [
+        "Free State",
+        "Bloemfontein",
+        "Welkom",
+        "Mangaung"
+      ],
+      "population": 2964412,
+      "labour": {
+        "absorption": 39.6,
+        "unemployment": 37.3,
+        "participation": 63.1,
+        "employed_thousands": 769,
+        "working_age_thousands": 1945,
+        "page": 38
+      },
+      "nsc": {
+        "wrote": 38205,
+        "achieved": 34129,
+        "pass_rate": 89.33
+      },
+      "universities": [
+        {
+          "name": "University of the Free State",
+          "url": "https://www.ufs.ac.za/",
+          "source_url": "https://usaf.ac.za/prospective-students/",
+          "type": "Public university",
+          "location_basis": "Primary province; this university may have campuses or distance learners elsewhere."
+        },
+        {
+          "name": "Central University of Technology",
+          "url": "https://www.cut.ac.za/",
+          "source_url": "https://usaf.ac.za/prospective-students/",
+          "type": "Public university",
+          "location_basis": "Primary province; this university may have campuses or distance learners elsewhere."
+        }
+      ],
+      "tvet_colleges": [
+        {
+          "name": "Flavius Mareka TVET College",
+          "source_url": "https://www.careerhelp.org.za/content/education-system-south-africa/tvet-and-university",
+          "type": "Public TVET college"
+        },
+        {
+          "name": "Goldfields TVET College",
+          "source_url": "https://www.careerhelp.org.za/content/education-system-south-africa/tvet-and-university",
+          "type": "Public TVET college"
+        },
+        {
+          "name": "Maluti TVET College",
+          "source_url": "https://www.careerhelp.org.za/content/education-system-south-africa/tvet-and-university",
+          "type": "Public TVET college"
+        },
+        {
+          "name": "Motheo TVET College",
+          "source_url": "https://www.careerhelp.org.za/content/education-system-south-africa/tvet-and-university",
+          "type": "Public TVET college"
+        }
+      ]
+    },
+    {
+      "name": "Gauteng",
+      "keywords": [
+        "Gauteng",
+        "Johannesburg",
+        "Pretoria",
+        "Tshwane",
+        "Ekurhuleni",
+        "Sandton",
+        "Midrand"
+      ],
+      "population": 15099422,
+      "labour": {
+        "absorption": 43.9,
+        "unemployment": 34.6,
+        "participation": 67.2,
+        "employed_thousands": 5094,
+        "working_age_thousands": 11595,
+        "page": 42
+      },
+      "nsc": {
+        "wrote": 140927,
+        "achieved": 125513,
+        "pass_rate": 89.06
+      },
+      "universities": [
+        {
+          "name": "University of Johannesburg",
+          "url": "https://www.uj.ac.za/",
+          "source_url": "https://usaf.ac.za/prospective-students/",
+          "type": "Public university",
+          "location_basis": "Primary province; this university may have campuses or distance learners elsewhere."
+        },
+        {
+          "name": "University of Pretoria",
+          "url": "https://www.up.ac.za/",
+          "source_url": "https://usaf.ac.za/prospective-students/",
+          "type": "Public university",
+          "location_basis": "Primary province; this university may have campuses or distance learners elsewhere."
+        },
+        {
+          "name": "University of the Witwatersrand",
+          "url": "https://www.wits.ac.za/",
+          "source_url": "https://usaf.ac.za/prospective-students/",
+          "type": "Public university",
+          "location_basis": "Primary province; this university may have campuses or distance learners elsewhere."
+        },
+        {
+          "name": "University of South Africa",
+          "url": "https://www.unisa.ac.za/",
+          "source_url": "https://usaf.ac.za/prospective-students/",
+          "type": "Public university",
+          "location_basis": "Primary province; this university may have campuses or distance learners elsewhere."
+        },
+        {
+          "name": "Tshwane University of Technology",
+          "url": "https://www.tut.ac.za/",
+          "source_url": "https://usaf.ac.za/prospective-students/",
+          "type": "Public university",
+          "location_basis": "Primary province; this university may have campuses or distance learners elsewhere."
+        },
+        {
+          "name": "Vaal University of Technology",
+          "url": "https://www.vut.ac.za/",
+          "source_url": "https://usaf.ac.za/prospective-students/",
+          "type": "Public university",
+          "location_basis": "Primary province; this university may have campuses or distance learners elsewhere."
+        },
+        {
+          "name": "Sefako Makgatho Health Sciences University",
+          "url": "https://www.smu.ac.za/",
+          "source_url": "https://usaf.ac.za/prospective-students/",
+          "type": "Public university",
+          "location_basis": "Primary province; this university may have campuses or distance learners elsewhere."
+        }
+      ],
+      "tvet_colleges": [
+        {
+          "name": "Central Johannesburg TVET College",
+          "source_url": "https://www.careerhelp.org.za/content/education-system-south-africa/tvet-and-university",
+          "type": "Public TVET college"
+        },
+        {
+          "name": "Ekurhuleni East TVET College",
+          "source_url": "https://www.careerhelp.org.za/content/education-system-south-africa/tvet-and-university",
+          "type": "Public TVET college"
+        },
+        {
+          "name": "Ekurhuleni West TVET College",
+          "source_url": "https://www.careerhelp.org.za/content/education-system-south-africa/tvet-and-university",
+          "type": "Public TVET college"
+        },
+        {
+          "name": "Sedibeng TVET College",
+          "source_url": "https://www.careerhelp.org.za/content/education-system-south-africa/tvet-and-university",
+          "type": "Public TVET college"
+        },
+        {
+          "name": "South West Gauteng TVET College",
+          "source_url": "https://www.careerhelp.org.za/content/education-system-south-africa/tvet-and-university",
+          "type": "Public TVET college"
+        },
+        {
+          "name": "Tshwane North TVET College",
+          "source_url": "https://www.careerhelp.org.za/content/education-system-south-africa/tvet-and-university",
+          "type": "Public TVET college"
+        },
+        {
+          "name": "Tshwane South TVET College",
+          "source_url": "https://www.careerhelp.org.za/content/education-system-south-africa/tvet-and-university",
+          "type": "Public TVET college"
+        },
+        {
+          "name": "Western TVET College",
+          "source_url": "https://www.careerhelp.org.za/content/education-system-south-africa/tvet-and-university",
+          "type": "Public TVET college"
+        }
+      ]
+    },
+    {
+      "name": "KwaZulu-Natal",
+      "keywords": [
+        "KwaZulu-Natal",
+        "KwaZulu Natal",
+        "KZN",
+        "Durban",
+        "eThekwini",
+        "Pietermaritzburg",
+        "Richards Bay"
+      ],
+      "population": 12423907,
+      "labour": {
+        "absorption": 34.8,
+        "unemployment": 32.5,
+        "participation": 51.6,
+        "employed_thousands": 2725,
+        "working_age_thousands": 7825,
+        "page": 40
+      },
+      "nsc": {
+        "wrote": 171368,
+        "achieved": 155258,
+        "pass_rate": 90.6
+      },
+      "universities": [
+        {
+          "name": "University of KwaZulu-Natal",
+          "url": "https://www.ukzn.ac.za/",
+          "source_url": "https://usaf.ac.za/prospective-students/",
+          "type": "Public university",
+          "location_basis": "Primary province; this university may have campuses or distance learners elsewhere."
+        },
+        {
+          "name": "University of Zululand",
+          "url": "https://www.unizulu.ac.za/",
+          "source_url": "https://usaf.ac.za/prospective-students/",
+          "type": "Public university",
+          "location_basis": "Primary province; this university may have campuses or distance learners elsewhere."
+        },
+        {
+          "name": "Durban University of Technology",
+          "url": "https://www.dut.ac.za/",
+          "source_url": "https://usaf.ac.za/prospective-students/",
+          "type": "Public university",
+          "location_basis": "Primary province; this university may have campuses or distance learners elsewhere."
+        },
+        {
+          "name": "Mangosuthu University of Technology",
+          "url": "https://www.mut.ac.za/",
+          "source_url": "https://usaf.ac.za/prospective-students/",
+          "type": "Public university",
+          "location_basis": "Primary province; this university may have campuses or distance learners elsewhere."
+        }
+      ],
+      "tvet_colleges": [
+        {
+          "name": "Coastal KZN TVET College",
+          "source_url": "https://www.careerhelp.org.za/content/education-system-south-africa/tvet-and-university",
+          "type": "Public TVET college"
+        },
+        {
+          "name": "Elangeni TVET College",
+          "source_url": "https://www.careerhelp.org.za/content/education-system-south-africa/tvet-and-university",
+          "type": "Public TVET college"
+        },
+        {
+          "name": "Esayidi TVET College",
+          "source_url": "https://www.careerhelp.org.za/content/education-system-south-africa/tvet-and-university",
+          "type": "Public TVET college"
+        },
+        {
+          "name": "Majuba TVET College",
+          "source_url": "https://www.careerhelp.org.za/content/education-system-south-africa/tvet-and-university",
+          "type": "Public TVET college"
+        },
+        {
+          "name": "Mnambithi TVET College",
+          "source_url": "https://www.careerhelp.org.za/content/education-system-south-africa/tvet-and-university",
+          "type": "Public TVET college"
+        },
+        {
+          "name": "Mthashana TVET College",
+          "source_url": "https://www.careerhelp.org.za/content/education-system-south-africa/tvet-and-university",
+          "type": "Public TVET college"
+        },
+        {
+          "name": "Thekwini TVET College",
+          "source_url": "https://www.careerhelp.org.za/content/education-system-south-africa/tvet-and-university",
+          "type": "Public TVET college"
+        },
+        {
+          "name": "Umfolozi TVET College",
+          "source_url": "https://www.careerhelp.org.za/content/education-system-south-africa/tvet-and-university",
+          "type": "Public TVET college"
+        },
+        {
+          "name": "Umgungundlovu TVET College",
+          "source_url": "https://www.careerhelp.org.za/content/education-system-south-africa/tvet-and-university",
+          "type": "Public TVET college"
+        }
+      ]
+    },
+    {
+      "name": "Limpopo",
+      "keywords": [
+        "Limpopo",
+        "Polokwane",
+        "Thohoyandou",
+        "Tzaneen",
+        "Mankweng"
+      ],
+      "population": 6572720,
+      "labour": {
+        "absorption": 36.6,
+        "unemployment": 32.0,
+        "participation": 53.9,
+        "employed_thousands": 1512,
+        "working_age_thousands": 4133,
+        "page": 45
+      },
+      "nsc": {
+        "wrote": 100973,
+        "achieved": 86986,
+        "pass_rate": 86.15
+      },
+      "universities": [
+        {
+          "name": "University of Limpopo",
+          "url": "https://www.ul.ac.za/",
+          "source_url": "https://usaf.ac.za/prospective-students/",
+          "type": "Public university",
+          "location_basis": "Primary province; this university may have campuses or distance learners elsewhere."
+        },
+        {
+          "name": "University of Venda",
+          "url": "https://www.univen.ac.za/",
+          "source_url": "https://usaf.ac.za/prospective-students/",
+          "type": "Public university",
+          "location_basis": "Primary province; this university may have campuses or distance learners elsewhere."
+        }
+      ],
+      "tvet_colleges": [
+        {
+          "name": "Capricorn TVET College",
+          "source_url": "https://www.careerhelp.org.za/content/education-system-south-africa/tvet-and-university",
+          "type": "Public TVET college"
+        },
+        {
+          "name": "Lephalale TVET College",
+          "source_url": "https://www.careerhelp.org.za/content/education-system-south-africa/tvet-and-university",
+          "type": "Public TVET college"
+        },
+        {
+          "name": "Letaba TVET College",
+          "source_url": "https://www.careerhelp.org.za/content/education-system-south-africa/tvet-and-university",
+          "type": "Public TVET college"
+        },
+        {
+          "name": "Mopani South East TVET College",
+          "source_url": "https://www.careerhelp.org.za/content/education-system-south-africa/tvet-and-university",
+          "type": "Public TVET college"
+        },
+        {
+          "name": "Sekhukhune TVET College",
+          "source_url": "https://www.careerhelp.org.za/content/education-system-south-africa/tvet-and-university",
+          "type": "Public TVET college"
+        },
+        {
+          "name": "Vhembe TVET College",
+          "source_url": "https://www.careerhelp.org.za/content/education-system-south-africa/tvet-and-university",
+          "type": "Public TVET college"
+        },
+        {
+          "name": "Waterberg TVET College",
+          "source_url": "https://www.careerhelp.org.za/content/education-system-south-africa/tvet-and-university",
+          "type": "Public TVET college"
+        }
+      ]
+    },
+    {
+      "name": "Mpumalanga",
+      "keywords": [
+        "Mpumalanga",
+        "Mbombela",
+        "Nelspruit",
+        "Emalahleni",
+        "eMalahleni",
+        "Witbank"
+      ],
+      "population": 5143324,
+      "labour": {
+        "absorption": 39.1,
+        "unemployment": 36.6,
+        "participation": 61.7,
+        "employed_thousands": 1270,
+        "working_age_thousands": 3247,
+        "page": 44
+      },
+      "nsc": {
+        "wrote": 67114,
+        "achieved": 58084,
+        "pass_rate": 86.55
+      },
+      "universities": [
+        {
+          "name": "University of Mpumalanga",
+          "url": "https://www.ump.ac.za/",
+          "source_url": "https://usaf.ac.za/prospective-students/",
+          "type": "Public university",
+          "location_basis": "Primary province; this university may have campuses or distance learners elsewhere."
+        }
+      ],
+      "tvet_colleges": [
+        {
+          "name": "Ehlanzeni TVET College",
+          "source_url": "https://www.careerhelp.org.za/content/education-system-south-africa/tvet-and-university",
+          "type": "Public TVET college"
+        },
+        {
+          "name": "Gert Sibande TVET College",
+          "source_url": "https://www.careerhelp.org.za/content/education-system-south-africa/tvet-and-university",
+          "type": "Public TVET college"
+        },
+        {
+          "name": "Nkangala TVET College",
+          "source_url": "https://www.careerhelp.org.za/content/education-system-south-africa/tvet-and-university",
+          "type": "Public TVET college"
+        }
+      ]
+    },
+    {
+      "name": "North West",
+      "keywords": [
+        "North West",
+        "North-West",
+        "Mahikeng",
+        "Mafikeng",
+        "Rustenburg",
+        "Potchefstroom"
+      ],
+      "population": 3804548,
+      "labour": {
+        "absorption": 30.6,
+        "unemployment": 38.1,
+        "participation": 49.5,
+        "employed_thousands": 878,
+        "working_age_thousands": 2868,
+        "page": 41
+      },
+      "nsc": {
+        "wrote": 40913,
+        "achieved": 36205,
+        "pass_rate": 88.49
+      },
+      "universities": [
+        {
+          "name": "North-West University",
+          "url": "https://www.nwu.ac.za/",
+          "source_url": "https://usaf.ac.za/prospective-students/",
+          "type": "Public university",
+          "location_basis": "Primary province; this university may have campuses or distance learners elsewhere."
+        }
+      ],
+      "tvet_colleges": [
+        {
+          "name": "Orbit TVET College",
+          "source_url": "https://www.careerhelp.org.za/content/education-system-south-africa/tvet-and-university",
+          "type": "Public TVET college"
+        },
+        {
+          "name": "Taletso TVET College",
+          "source_url": "https://www.careerhelp.org.za/content/education-system-south-africa/tvet-and-university",
+          "type": "Public TVET college"
+        },
+        {
+          "name": "Vuselela TVET College",
+          "source_url": "https://www.careerhelp.org.za/content/education-system-south-africa/tvet-and-university",
+          "type": "Public TVET college"
+        }
+      ]
+    },
+    {
+      "name": "Northern Cape",
+      "keywords": [
+        "Northern Cape",
+        "Kimberley",
+        "Upington",
+        "Kuruman"
+      ],
+      "population": 1355946,
+      "labour": {
+        "absorption": 36.3,
+        "unemployment": 28.7,
+        "participation": 51.0,
+        "employed_thousands": 309,
+        "working_age_thousands": 852,
+        "page": 38
+      },
+      "nsc": {
+        "wrote": 14084,
+        "achieved": 12365,
+        "pass_rate": 87.79
+      },
+      "universities": [
+        {
+          "name": "Sol Plaatje University",
+          "url": "https://www.spu.ac.za/",
+          "source_url": "https://usaf.ac.za/prospective-students/",
+          "type": "Public university",
+          "location_basis": "Primary province; this university may have campuses or distance learners elsewhere."
+        }
+      ],
+      "tvet_colleges": [
+        {
+          "name": "Northern Cape Rural TVET College",
+          "source_url": "https://www.careerhelp.org.za/content/education-system-south-africa/tvet-and-university",
+          "type": "Public TVET college"
+        },
+        {
+          "name": "Northern Cape Urban TVET College",
+          "source_url": "https://www.careerhelp.org.za/content/education-system-south-africa/tvet-and-university",
+          "type": "Public TVET college"
+        }
+      ]
+    },
+    {
+      "name": "Western Cape",
+      "keywords": [
+        "Western Cape",
+        "Cape Town",
+        "Stellenbosch",
+        "George",
+        "Bellville",
+        "Paarl"
+      ],
+      "population": 7433019,
+      "labour": {
+        "absorption": 54.6,
+        "unemployment": 19.5,
+        "participation": 67.8,
+        "employed_thousands": 2835,
+        "working_age_thousands": 5193,
+        "page": 34
+      },
+      "nsc": {
+        "wrote": 65965,
+        "achieved": 58181,
+        "pass_rate": 88.2
+      },
+      "universities": [
+        {
+          "name": "University of Cape Town",
+          "url": "https://www.uct.ac.za/",
+          "source_url": "https://usaf.ac.za/prospective-students/",
+          "type": "Public university",
+          "location_basis": "Primary province; this university may have campuses or distance learners elsewhere."
+        },
+        {
+          "name": "Stellenbosch University",
+          "url": "https://www.sun.ac.za/",
+          "source_url": "https://usaf.ac.za/prospective-students/",
+          "type": "Public university",
+          "location_basis": "Primary province; this university may have campuses or distance learners elsewhere."
+        },
+        {
+          "name": "University of the Western Cape",
+          "url": "https://www.uwc.ac.za/",
+          "source_url": "https://usaf.ac.za/prospective-students/",
+          "type": "Public university",
+          "location_basis": "Primary province; this university may have campuses or distance learners elsewhere."
+        },
+        {
+          "name": "Cape Peninsula University of Technology",
+          "url": "https://www.cput.ac.za/",
+          "source_url": "https://usaf.ac.za/prospective-students/",
+          "type": "Public university",
+          "location_basis": "Primary province; this university may have campuses or distance learners elsewhere."
+        }
+      ],
+      "tvet_colleges": [
+        {
+          "name": "Boland TVET College",
+          "source_url": "https://www.careerhelp.org.za/content/education-system-south-africa/tvet-and-university",
+          "type": "Public TVET college"
+        },
+        {
+          "name": "College of Cape Town",
+          "source_url": "https://www.careerhelp.org.za/content/education-system-south-africa/tvet-and-university",
+          "type": "Public TVET college"
+        },
+        {
+          "name": "False Bay TVET College",
+          "source_url": "https://www.careerhelp.org.za/content/education-system-south-africa/tvet-and-university",
+          "type": "Public TVET college"
+        },
+        {
+          "name": "Northlink TVET College",
+          "source_url": "https://www.careerhelp.org.za/content/education-system-south-africa/tvet-and-university",
+          "type": "Public TVET college"
+        },
+        {
+          "name": "South Cape TVET College",
+          "source_url": "https://www.careerhelp.org.za/content/education-system-south-africa/tvet-and-university",
+          "type": "Public TVET college"
+        },
+        {
+          "name": "West Coast TVET College",
+          "source_url": "https://www.careerhelp.org.za/content/education-system-south-africa/tvet-and-university",
+          "type": "Public TVET college"
+        }
+      ]
+    }
+  ]
+}
