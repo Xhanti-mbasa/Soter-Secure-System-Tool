@@ -4,6 +4,8 @@
 
 South African public-records research: an Android client and an independent document-collection/search engine. The Android app uses a bundled local interface, with a native bridge for engine connections, browser handoff, sharing, and file export.
 
+Version **0.7.2** corrects the shared navigation dock, removes redundant Back and Search controls, hides the dock while typing, and restores employment metrics in exported share cards. Home, Regions, Jobs and Profile use fixed-size icons with only the active tab labelled. Native Android Back and browser history retain the research routes.
+
 Version **0.7.1** is the optimized release of the everyday workflows added in **0.7.0**. It includes bounded provider caches with shared in-flight requests, metadata-only offline-library listings, smaller local PDF assets and improved share rendering. Both APKs remain in `releases/`. See [optimization measurements](docs/OPTIMIZATION.md).
 
 Version **0.7.0** adds Home, Opportunities and a local Profile around the existing research tools. Long-press public cards to share PNGs with frosted/liquid glass, solid colours, a local photo, opacity and blur controls. News has dates, local likes/bookmarks and offline downloads; CV imports and municipal report drafts remain local. Tool workspaces run without redirecting to Search.
@@ -14,7 +16,7 @@ Live search, sourced Party dossiers, alerts, local evidence saving, investigatio
 
 ## Install and use
 
-Install the APK attached to [Sothis 0.7.1](https://github.com/Xhanti-mbasa/Soter-Secure-System-Tool/releases/tag/sothis-v0.7.1) on Android 8.0+. [Sothis 0.7.0](https://github.com/Xhanti-mbasa/Soter-Secure-System-Tool/releases/tag/sothis-v0.7.0) is retained as the feature baseline. It uses the same package and development signing key as previous Sothis releases, so it can update that installation while retaining app data. The signing key is excluded from Git. Every new Android version must have an attached APK GitHub Release; see [RELEASING.md](docs/RELEASING.md).
+Install the APK attached to [Sothis 0.7.2](https://github.com/Xhanti-mbasa/Soter-Secure-System-Tool/releases/tag/sothis-v0.7.2) on Android 8.0+. [Sothis 0.7.0](https://github.com/Xhanti-mbasa/Soter-Secure-System-Tool/releases/tag/sothis-v0.7.0) is retained as the feature baseline. It uses the same package and development signing key as previous Sothis releases, so it can update that installation while retaining app data. The signing key is excluded from Git. Every new Android version must have an attached APK GitHub Release; see [RELEASING.md](docs/RELEASING.md).
 
 - **Search:** choose Live public web, Social profiles, Live government web, Companies / CIPC, or Saved government collection. Live results show retrieved unique hits, profile candidates, name-match ranking, provider availability, retrieval dates and a platform footprint. Account ownership requires a saved researcher decision. Posts, share links and TikTok discovery pages are not counted as accounts.
 - **Party:** search ANC, DA, EFF or another listed party from Search or the Party tab. Browse the captured Parliament roster, filter representatives by name, refresh the official directory, and open member dossiers. Profiles retrieve current public member pages and group live mentions into government, news, remuneration, education, business and social categories. Pin/export a sourced dossier or create a mention alert.
@@ -27,7 +29,7 @@ Install the APK attached to [Sothis 0.7.1](https://github.com/Xhanti-mbasa/Soter
 
 Public search uses best-effort Brave web results with a DuckDuckGo public fallback on request failure. Providers may block or rate-limit requests and do not index every account. Settings accepts an optional **Brave Search API key**, stored privately on the phone; engine deployments use `SOTHIS_BRAVE_API_KEY`. No key is bundled. API usage/storage remains subject to the provider's account terms. Browser search links are actions, never invented account hits.
 
-The app uses internet access, the normal network-state permission, optional notification permission and a persisted Android job. Background scheduling starts after the local screen loads; an unavailable scheduler leaves the foreground app usable and reports the problem in Tools. It requests no contacts, location, camera or broad storage access. Report/ZIP exports use the Android file picker. Background checks depend on network and Android scheduling, may be delayed by battery controls, and stop if the app is force-stopped until it is opened again.
+The app uses internet access, the normal network-state permission, optional notification permission and a persisted Android job. Background scheduling starts after the local screen loads; an unavailable scheduler leaves the foreground app usable and reports the problem in Tools. It requests no contacts or broad storage access. Province location lookup requests Android location access only when chosen; users can select a province manually. Photo, video and audio capture hand off to the device’s capture apps. Report/ZIP exports use the Android file picker. Background checks depend on network and Android scheduling, may be delayed by battery controls, and stop if the app is force-stopped until it is opened again.
 
 ## Included engine foundations
 
@@ -35,7 +37,7 @@ National government plus all nine provinces, HTML/text-bearing PDF ingestion, pe
 
 ## Interface and photography
 
-The dock contains Party, Regions, Tools and Cases. The separate circle opens Search; the header gear opens Settings. Photos on region cards identify the pictured place, rather than claiming the source or every document originated there. Home photo cards open Regions and Party. A representative dossier places the portrait, name and sourced details first; Back returns to the roster.
+The dock contains Home, Regions, Jobs and Profile. Its separate circle opens Search on screens without an inline search; the header gear opens Settings. People & parties, Tools and Investigations are available from Explore. Photos on region cards identify the pictured place, rather than claiming the source or every document originated there. Home photo cards open Regions and Party. A representative dossier places the portrait, name and sourced details first; native Android Back or browser Back returns to the roster.
 
 The APK includes nine compressed landscape photographs (Pretoria is used for both National and Gauteng), the Doto font and Phosphor icons. Landscape credits, original file pages, licenses and modifications are available in Settings and `android/app/src/main/assets/photo-credits.json`. Images retain their listed Creative Commons licenses. Doto is under the SIL Open Font License; Phosphor icons are under MIT, with license files bundled. Representative portraits are loaded from the official Parliament directory over HTTPS and are optional network assets; missing photos show initials. Portraits do not verify the ownership of a social account.
 
@@ -59,7 +61,7 @@ The landing dashboard shows a 400-seat National Assembly tile chart and an inter
 
 Member declarations have a four-section status chart and nominal-ZAR bars when the shares section contains explicit amounts. These charts summarise dated self-disclosures, not CIPC ownership checks. Original text remains expandable. Mentions show local platform/source icons, publication and retrieval dates separately. News view checks up to four source pages for explicit publication metadata; other mentions have a Check article date action. Missing or conflicting dates remain unavailable. A provider page date may be a modified date.
 
-The national outlook has no invented win percentage. Reviewed national voting-intention polls can be installed with sample, population, dates and methodology; the UI retires expired polls or polls for an older completed election. Voting intention is not winning probability. See [analytics validation and updates](docs/ANALYTICS_VALIDATION.md). Browser Back, visible back controls and Android’s native back action share screen history.
+The national outlook has no invented win percentage. Reviewed national voting-intention polls can be installed with sample, population, dates and methodology; the UI retires expired polls or polls for an older completed election. Voting intention is not winning probability. See [analytics validation and updates](docs/ANALYTICS_VALIDATION.md). Browser Back and Android’s native back action share screen history.
 
 ## Party sources and coverage
 
@@ -160,3 +162,5 @@ python3 -m unittest discover -s tests -v
 See `VALIDATION.md` for the checks completed for this version. Project code uses the repository's MIT license. Public source records retain their publishers' rights and source terms; they are not relicensed by this project's code license.
 
 Everyday features and source limits are documented in [DAILY_VALIDATION.md](docs/DAILY_VALIDATION.md). The website uses the same interface and provider services; deploy the updated repository using the existing server guide.
+
+Dock and native-navigation corrections in 0.7.2 are documented in [DOCK_VALIDATION.md](docs/DOCK_VALIDATION.md).

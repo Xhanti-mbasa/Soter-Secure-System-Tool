@@ -53,6 +53,7 @@ public final class MainActivity extends Activity {
     private Uri captureUri;
     private String locationRequest;
     private LocationListener locationListener;
+    private boolean keyboardVisible;
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
@@ -74,6 +75,7 @@ public final class MainActivity extends Activity {
         web.addJavascriptInterface(new Bridge(), "Native");
         web.setWebViewClient(new WebViewClient() {
             @Override public void onPageFinished(WebView view,String url) {
+                view.evaluateJavascript("window.sothisKeyboard && window.sothisKeyboard("+keyboardVisible+")",null);
                 if(!monitoringScheduled && "file:///android_asset/index.html".equals(url)) {
                     monitoringScheduled=true;
                     String error=MonitorJob.schedule(MainActivity.this);
@@ -103,6 +105,19 @@ public final class MainActivity extends Activity {
             }
         });
         setContentView(web);
+        // adjustResize keeps fields above the IME; the dock must not follow it up.
+        web.getViewTreeObserver().addOnGlobalLayoutListener(new android.view.ViewTreeObserver.OnGlobalLayoutListener() {
+          @Override public void onGlobalLayout() {
+            android.graphics.Rect visible = new android.graphics.Rect();
+            web.getWindowVisibleDisplayFrame(visible);
+            int obscured = web.getRootView().getHeight() - visible.bottom;
+            boolean open = obscured > 120 * getResources().getDisplayMetrics().density;
+            if (open != keyboardVisible) {
+                keyboardVisible = open;
+                web.evaluateJavascript("window.sothisKeyboard && window.sothisKeyboard("+open+")",null);
+            }
+          }
+        });
         web.loadUrl("file:///android_asset/index.html");
     }
 

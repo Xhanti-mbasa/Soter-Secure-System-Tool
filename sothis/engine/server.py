@@ -73,7 +73,7 @@ class Handler(BaseHTTPRequestHandler):
                     if not isinstance(data,dict): raise ValueError('JSON object required')
                 else: data = {}
                 return self.api(method,path,urllib.parse.parse_qs(parsed.query),data)
-            public_files = ('/','/index.html','/snapshot.json','/features.js','/parties.js','/party-data.json','/visuals.js','/nothing.css','/photo-credits.json','/analytics.js','/analytics.css','/analytics-data.json','/navigation.js','/provinces.js','/provinces.css','/province-data.json','/education-registers.json','/company-details.js','/daily.js','/personal.js','/share-cards.js','/daily.css','/vendor/pdf.js','/vendor/pdf.worker.js')
+            public_files = ('/','/index.html','/snapshot.json','/features.js','/parties.js','/party-data.json','/visuals.js','/nothing.css','/photo-credits.json','/analytics.js','/analytics.css','/analytics-data.json','/dock.js','/dock.css','/navigation.js','/provinces.js','/provinces.css','/province-data.json','/education-registers.json','/company-details.js','/daily.js','/personal.js','/share-cards.js','/daily.css','/vendor/pdf.js','/vendor/pdf.worker.js')
             resource = path.startswith(('/images/','/fonts/','/icons/')) and Path(path).suffix.lower() in ('.webp','.jpg','.png','.svg','.ttf','.woff2')
             if method == 'GET' and self.server.web_dir and (path in public_files or resource):
                 name = 'index.html' if path in ('/','/index.html') else path.lstrip('/')
@@ -90,7 +90,7 @@ class Handler(BaseHTTPRequestHandler):
     def api(self, method, path, params, data):
         store = self.server.store
         if method == 'GET' and path == '/api/health':
-            return self.send(200,{'ok':True,'version':'0.7.1',**store.stats()})
+            return self.send(200,{'ok':True,'version':'0.7.2',**store.stats()})
         if path in ('/api/daily/news', '/api/daily/opportunities') and method == 'POST':
             return self.send(200,self.server.daily.collect(path.rsplit('/',1)[-1],data))
         if path == '/api/daily/article' and method == 'POST':

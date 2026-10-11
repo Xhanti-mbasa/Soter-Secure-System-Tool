@@ -1,3 +1,4 @@
+const {openSearch}=require('./navigation_helpers.cjs');
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
 (async()=>{
@@ -14,7 +15,7 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
  await page.locator('#sign-in').click();await page.locator('#login-error').filter({hasText:'incorrect'}).waitFor();
  if(shots){await page.locator('#login-error').evaluate(n=>n.textContent='');await page.locator('#username').fill('');await page.locator('#password').fill('');await page.screenshot({path:path.join(shots,'web-login.png')});await page.locator('#username').fill('qa');}
  await page.locator('#password').fill(process.env.SOTHIS_TEST_PASSWORD);await page.locator('#sign-in').click();
- await page.waitForFunction(()=>typeof state!=='undefined'&&state.connected);await page.locator('.nav [data-tab=search]').click();await page.evaluate(()=>document.getElementById('search-scope').open=true);
+ await page.waitForFunction(()=>typeof state!=='undefined'&&state.connected);await openSearch(page);await page.evaluate(()=>document.getElementById('search-scope').open=true);
  assert.match(await page.locator('#status').innerText(),/SERVER CONNECTED/);
  assert.equal(await page.evaluate(()=>document.fonts.ready.then(()=>document.fonts.check('800 30px Doto'))),true);
  await page.waitForFunction(()=>[...document.querySelectorAll('#start-cards>button>img')].every(image=>image.complete&&image.naturalWidth));
@@ -28,7 +29,7 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
  await page.getByLabel('Research question',{exact:true}).fill('Public source verification');
  await page.getByLabel('Research notes',{exact:true}).fill('Check publication date and source context.');
  await page.getByRole('button',{name:'Save investigation',exact:true}).click();
- await page.locator('[data-tab=search]').click();await page.locator('#results .record details summary').first().click();await page.locator('#results button').filter({hasText:'+ Pin'}).first().click();
+ await openSearch(page);await page.locator('#results .record details summary').first().click();await page.locator('#results button').filter({hasText:'+ Pin'}).first().click();
  await page.locator('#toast').filter({hasText:'Pinned to'}).waitFor();
  await page.evaluate(()=>document.querySelector('.header-explore').open=true);await page.locator('[data-tab=cases]').click();let card=page.locator('.case').filter({hasText:'Website QA investigation'});
  await card.getByRole('button',{name:'Export brief',exact:true}).click();
@@ -54,12 +55,12 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
  await page.route('**/api/discover',route=>route.fulfill({json:{results:[],hit_count:0,account_count:0,statuses:[],coverage:'Controlled website discovery fixture.',retrieved_at:'2026-10-10T09:00:00Z'}}));
  await page.getByRole('button',{name:'View ANC',exact:true}).click();await page.locator('#party-analytics .chart-ring').waitFor();
  await page.locator('[data-member="leader-anc-ramaphosa"]').click();await page.locator('#member-name').filter({hasText:'Cyril Ramaphosa'}).waitFor();assert.match(await page.locator('#member-summary').innerText(),/not a sitting National Assembly MP/);
- await page.goBack();await page.locator('#party-body').waitFor({state:'visible'});await page.locator('#party-directory-back').click();await page.locator('#party-overview').waitFor({state:'visible'});
+ await page.goBack();await page.locator('#party-body').waitFor({state:'visible'});await page.evaluate(()=>parentRoute('directory'));await page.locator('#party-overview').waitFor({state:'visible'});
  if(shots)await page.locator('#party-overview').screenshot({path:path.join(shots,'web-party-analytics.png')});
  await page.locator('[data-tab=regions]').click();assert.equal(await page.locator('#regions button').count(),10);
  await page.locator('#region-map [data-region=\"Western Cape\"]').click();await page.locator('#province-news-preview').filter({hasText:'Western Cape website gateway fixture'}).waitFor();
  const provinceNews=await page.evaluate(()=>provinceState.news.get('Western Cape|30').data);assert.ok(provinceNews.results[0].document_id);const provinceDoc=await context.request.get(base+'/api/documents/'+provinceNews.results[0].document_id);assert.equal((await provinceDoc.json()).acquisition,'publisher_feed');
- await page.locator('[data-province-section=education]').click();await page.getByLabel('Education institution sector').selectOption('private_he');await page.locator('#institution-list .register-page').first().waitFor();await page.getByRole('button',{name:'← All provinces',exact:true}).click();await page.locator('#region-directory').waitFor({state:'visible'});
+ await page.locator('[data-province-section=education]').click();await page.getByLabel('Education institution sector').selectOption('private_he');await page.locator('#institution-list .register-page').first().waitFor();await page.evaluate(()=>provinceParent());await page.locator('#region-directory').waitFor({state:'visible'});
  await page.locator('[data-tab=settings]').click();assert.equal(await page.locator('#engine-url').isVisible(),false);
  assert.equal(await page.locator('#search-key').isVisible(),false);
  assert.match(await page.locator('.web-account').innerText(),/Signed in as qa/);
@@ -71,10 +72,10 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
    if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth))console.error(await page.evaluate(()=>[...document.querySelectorAll('body *')].filter(n=>n.getBoundingClientRect().right>innerWidth+1).slice(0,8).map(n=>[n.tagName,n.className,n.getBoundingClientRect().right])));assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'Overflow '+tab+' at '+width);
   }
  }
- await page.setViewportSize({width:390,height:844});await page.locator('[data-tab=search]').click();
+ await page.setViewportSize({width:390,height:844});await openSearch(page);
  await page.locator('#query').fill('');await page.locator('#search-form button[type=submit]').click();
  if(shots)await page.screenshot({path:path.join(shots,'web-mobile.png')});
- await page.reload();await page.locator('.nav [data-tab=search]').click();await page.evaluate(()=>document.getElementById('search-scope').open=true);await page.waitForFunction(()=>state.connected);await page.evaluate(()=>document.querySelector('.header-explore').open=true);await page.locator('[data-tab=cases]').click();
+ await page.reload();await openSearch(page);await page.evaluate(()=>document.getElementById('search-scope').open=true);await page.waitForFunction(()=>state.connected);await page.evaluate(()=>document.querySelector('.header-explore').open=true);await page.locator('[data-tab=cases]').click();
  await page.locator('.case').filter({hasText:'Website QA investigation'}).waitFor();
  await page.locator('[data-tab=settings]').click();await page.getByRole('button',{name:'Sign out',exact:true}).click();
  await page.waitForURL('**/login');assert.equal((await context.request.get(base+'/api/cases')).status(),401);

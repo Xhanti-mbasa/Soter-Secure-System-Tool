@@ -1,3 +1,4 @@
+const {openSearch}=require('./navigation_helpers.cjs');
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
 const root=path.join(__dirname,'../android/app/src/main/assets');
@@ -35,7 +36,7 @@ function discovery(body){const results=body.scope==='social'?hits.filter(h=>h.pl
    await page.route('**/api/member',route=>route.fulfill({json:member}));
    await page.route('**/api/discover',route=>{const d=route.request().postDataJSON();requests.push(d);return route.fulfill({json:discovery(d)})});
   }
-  await page.goto(process.env.SOTHIS_TEST_URL||'http://127.0.0.1:8765');await page.locator('.nav [data-tab=search]').click();await page.evaluate(()=>document.getElementById('search-scope').open=true);await page.locator('#result-count').filter({hasText:/passages/}).waitFor();
+  await page.goto(process.env.SOTHIS_TEST_URL||'http://127.0.0.1:8765');await openSearch(page);await page.evaluate(()=>document.getElementById('search-scope').open=true);await page.locator('#result-count').filter({hasText:/passages/}).waitFor();
   if(!standalone)await page.waitForFunction(()=>state.connected);
   await page.locator('#query').fill('ANC');await page.locator('#search-form button[type=submit]').click();await page.locator('#party-title').filter({hasText:anc.name}).waitFor();
   await page.locator('#member-filter').fill('Gwede Mantashe');assert.equal(await page.locator('#party-members [data-member]').count(),1);
@@ -55,7 +56,7 @@ function discovery(body){const results=body.scope==='social'?hits.filter(h=>h.pl
   await page.evaluate(()=>document.querySelector('.header-explore').open=true);await page.locator('[data-tab=cases]').click();await page.locator('#case-list').filter({hasText:/1 evidence records|1 pinned record|1 evidence|1 pinned/}).waitFor();assert.match(await page.locator('#case-list').innerText(),/1 evidence records|1 pinned record|1 evidence|1 pinned/);
   if(standalone){await page.locator('#case-list .case').filter({hasText:'Party research dossier'}).getByRole('button',{name:'Export brief',exact:true}).click();await page.getByRole('button',{name:'Download evidence bundle',exact:true}).click();const exported=await page.evaluate(()=>JSON.parse(savedReports.find(r=>r.name==='sothis-evidence.zip').text));assert.equal(exported.evidence.length,1);assert.match(exported.evidence[0].url,/53965gon7004/);await page.getByRole('button',{name:'Close',exact:true}).click();}
   await page.evaluate(()=>document.querySelector('.header-explore').open=true);await page.locator('[data-tab=party]').click();await page.locator('#member-alert').click();assert.equal(await page.getByLabel('Person, business number or keyword').inputValue(),'Gwede Mantashe');await page.getByRole('button',{name:'Save alert',exact:true}).click();await page.locator('#monitor-list').filter({hasText:'Gwede Mantashe'}).waitFor();
-  await page.evaluate(()=>document.querySelector('.header-explore').open=true);await page.locator('[data-tab=party]').click();await page.locator('#member-back').click();await page.locator('#party-title').filter({hasText:anc.name}).waitFor();await page.locator('#party-directory-back').click();
+  await page.evaluate(()=>document.querySelector('.header-explore').open=true);await page.locator('[data-tab=party]').click();await page.evaluate(()=>parentRoute('party'));await page.locator('#party-title').filter({hasText:anc.name}).waitFor();await page.evaluate(()=>parentRoute('directory'));
   await page.locator('#party-query').fill('DA');await page.locator('#party-search-form button').click();await page.locator('#party-title').filter({hasText:'Democratic Alliance'}).waitFor();
   if(standalone){await page.locator('#party-refresh').click();await page.locator('#party-note').filter({hasText:'Refresh unavailable'}).waitFor();assert.match(await page.locator('#party-member-count').innerText(),/99 captured/);assert.ok(await page.evaluate(()=>bridgeCalls.some(c=>c.route==='/api/device/member'&&c.d.refresh)));}
   assert.deepEqual(errors,[]);await context.close();

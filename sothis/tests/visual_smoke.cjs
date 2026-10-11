@@ -1,3 +1,4 @@
+const {openSearch}=require('./navigation_helpers.cjs');
 // Visual asset delivery and compact dock regressions, against an isolated engine.
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
@@ -18,7 +19,7 @@ const member={...seed,...data.profiles['5975'],party_name:anc.name,roster_url:an
  await page.route('**/api/party',route=>route.fulfill({json:{...anc,status:'saved_roster'}}));
  await page.route('**/api/discover',route=>route.fulfill({json:{query:member.name,results:[],hit_count:0,account_count:0,statuses:[],retrieved_at:data.captured_at,coverage:'No live provider invoked in this recorded UI check.'}}));
  const base=process.env.SOTHIS_TEST_URL||'http://127.0.0.1:8765';
- await page.goto(base);await page.locator('.nav [data-tab=search]').click();await page.evaluate(()=>document.getElementById('search-scope').open=true);await page.waitForFunction(()=>state.connected);await page.evaluate(()=>document.fonts.ready);
+ await page.goto(base);await openSearch(page);await page.evaluate(()=>document.getElementById('search-scope').open=true);await page.waitForFunction(()=>state.connected);await page.evaluate(()=>document.fonts.ready);
  for(const [url,mime] of [['/nothing.css','text/css'],['/visuals.js','application/javascript'],['/images/cape-town.webp','image/webp'],['/fonts/doto.ttf','font/ttf'],['/icons/flag.svg','image/svg+xml']]){
   const r=await ctx.request.get(base+url);assert.equal(r.status(),200);assert.equal(r.headers()['content-type'].split(';')[0],mime);
  }
@@ -38,10 +39,10 @@ const member={...seed,...data.profiles['5975'],party_name:anc.name,roster_url:an
   await page.setViewportSize({width,height:844});
   for(const tab of ['home','opportunities','profile','search','party','regions','sources','cases','settings']){
    if(['party','sources','cases'].includes(tab))await page.evaluate(()=>document.querySelector('.header-explore').open=true);
-   await page.locator('[data-tab='+tab+']').click();
+   if(tab==='search')await openSearch(page);else await page.locator('[data-tab='+tab+']').click();
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'Overflow: '+tab+' at '+width);
    const dock=await page.locator('.nav').boundingBox();assert.ok(dock.x>=0&&dock.x+dock.width<=width+1);
-   for(const button of await page.locator('.nav button').all()){const b=await button.boundingBox();assert.ok(b.width>=44&&b.height>=44,'Dock touch target at '+width)}
+   for(const button of await page.locator('.nav button:visible').all()){const b=await button.boundingBox();assert.ok(b.width>=44&&b.height>=44,'Dock touch target at '+width)}
   }
  }
  const offline=await browser.newContext({viewport:{width:390,height:844}});

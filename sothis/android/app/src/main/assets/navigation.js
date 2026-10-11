@@ -3,10 +3,8 @@
 const navigationState={restoring:false,sequence:0,routes:[]};
 function currentRoute(){return {tab:state.tab,party:state.tab==='party'?partyState.current?.code||partyState.member?.party_code||null:null,member:state.tab==='party'?partyState.member?.id||null:null,province:state.tab==='regions'?provinceState.current?.name||null:null}}
 function sameRoute(a,b){return a&&b&&a.tab===b.tab&&a.party===b.party&&a.member===b.member&&(a.province||null)===(b.province||null)}
-const routeBack=button('← Back',()=>window.sothisBack(),'route-back');document.querySelector('main').prepend(routeBack);
-function updateBackButton(){routeBack.hidden=state.tab==='home'||state.tab==='search'||state.tab==='party'&&(!!partyState.current||!!partyState.member)||state.tab==='regions'&&!!provinceState.current}
 function recordRoute(){
- updateBackButton();if(navigationState.restoring)return;
+ updateDock();if(navigationState.restoring)return;
  const route=currentRoute(),previous=navigationState.routes[navigationState.sequence];if(sameRoute(route,previous))return;
  navigationState.routes.splice(navigationState.sequence+1);navigationState.routes.push(route);navigationState.sequence++;
  const hash='#'+[route.tab,route.party,route.member,route.province].filter(Boolean).map(encodeURIComponent).join('/');
@@ -15,7 +13,7 @@ function recordRoute(){
 const navigationTab=tab,navigationPartyRender=renderParty,navigationMemberRender=renderPartyMember,navigationDirectory=renderPartyDirectory;
 tab=function(name){navigationTab(name);recordRoute()};
 renderParty=function(p){navigationPartyRender(p);recordRoute()};
-renderPartyMember=function(m){navigationMemberRender(m);recordRoute();$('member-back').onclick=()=>parentRoute('party')};
+renderPartyMember=function(m){navigationMemberRender(m);recordRoute()};
 renderPartyDirectory=function(q){navigationDirectory(q);recordRoute()};
 async function restoreRoute(route){
  navigationState.restoring=true;
@@ -26,14 +24,14 @@ async function restoreRoute(route){
    const m=[...partyState.data.leaders||[],...partyState.data.parties.flatMap(p=>p.members)].find(m=>m.id===route.member);
    partyState.current=p||null;partyState.member=m?localMember(m):null;
    navigationTab('party');
-   if(m){partyState.discoveries={};partyState.section='all';navigationMemberRender(partyState.member);$('member-back').onclick=()=>parentRoute('party');loadMemberMentions('all')}
+   if(m){partyState.discoveries={};partyState.section='all';navigationMemberRender(partyState.member);loadMemberMentions('all')}
    else if(p)navigationPartyRender(p);
    else{$('party-query').value='';navigationDirectory('')}
   }else if(route.tab==='regions'){
    await provinceReady;provinceState.serial++;provinceState.current=provinceState.data?.provinces.find(p=>p.name===route.province)||null;
    navigationTab('regions');if(provinceState.current){provinceState.section='overview';renderProvince();loadProvinceNews()}
   }else tab(route.tab||'home');
-  updateBackButton();
+  updateDock();
  }finally{navigationState.restoring=false}
 }
 function parentRoute(level){
@@ -56,6 +54,5 @@ window.sothisBack=function(){
  if(state.tab!=='home'){tab('home');return true}
  return false;
 };
-$('party-directory-back').onclick=()=>parentRoute('directory');
-navigationState.routes=[currentRoute()];history.replaceState({sothis:currentRoute(),sequence:0},'','#'+state.tab);updateBackButton();
+navigationState.routes=[currentRoute()];history.replaceState({sothis:currentRoute(),sequence:0},'','#'+state.tab);updateDock();
 window.addEventListener('popstate',e=>{if(!e.state?.sothis)return;navigationState.sequence=e.state.sequence;restoreRoute(e.state.sothis)});

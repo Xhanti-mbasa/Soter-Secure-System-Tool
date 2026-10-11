@@ -105,7 +105,6 @@ function renderPartyMember(m) {
  const info=$('member-summary');info.replaceChildren(el('p','member-role',m.role||'Role awaiting member-page retrieval'),el('p','muted',m.chamber||'Chamber awaiting member-page retrieval'),el('p','mono muted',(m.entity_type==='party_leader'?'Leadership captured ':'Roster captured ')+captureLabel(m.captured_at)),el('p','mono muted','Profile '+captureLabel(m.profile_captured_at)));
  sourceRow(info,m.source_url);if(m.membership_note)info.append(el('div','note',m.membership_note));
  if(m.role_source_url)sourceRow(info,m.role_source_url);
- $('member-back').onclick=()=>openParty(m.party_code||partyState.current?.code||'ANC');
  $('member-alert').onclick=()=>editMonitor({query:m.search_name,services:['government','web'],condition:'new_hit',interval_minutes:1440,enabled:true});
  $('member-export').onclick=()=>saveReport('sothis-member-'+m.id+'.md',memberReport(m),'text/markdown');
  $('member-pin').onclick=()=>pinMember(m);
@@ -195,6 +194,5 @@ search=async function(more=false) {
 tab=function(name){partyTabBase(name);if(name==='party'){if(!partyState.member&&!partyState.current)partyReady.then(()=>renderPartyDirectory());refreshAnalytics()}};
 $('party-query').oninput=()=>{partyState.serial++;partyState.memberSerial++;partyState.current=null;partyState.member=null;notice('party-note','');renderPartyDirectory()};
 $('party-search-form').onsubmit=async e=>{e.preventDefault();await partyReady;const p=partyMatch($('party-query').value);if(p)openParty(p.code);else renderPartyDirectory()};
-$('party-directory-back').onclick=()=>{partyState.serial++;partyState.memberSerial++;partyState.current=null;partyState.member=null;$('party-query').value='';notice('party-note','');renderPartyDirectory()};
 $('member-filter').oninput=()=>{partyState.limit=60;renderPartyMembers()};
 $('party-member-more').onclick=()=>{partyState.limit+=60;renderPartyMembers()};
