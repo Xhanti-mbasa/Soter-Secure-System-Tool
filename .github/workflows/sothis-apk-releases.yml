@@ -1,0 +1,35 @@
+name: Sothis APK releases
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'sothis/releases/**'
+      - 'sothis/scripts/publish_releases.py'
+      - '.github/workflows/sothis-apk-releases.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sothis-apk-releases
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify publisher regressions
+        run: python3 -m unittest discover -s sothis/tests -p test_releases.py -v
+      - name: Verify and publish signed APK assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: python3 sothis/scripts/publish_releases.py --repo "$GH_REPO"

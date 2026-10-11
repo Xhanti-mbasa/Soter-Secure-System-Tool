@@ -1,0 +1,8 @@
+{
+  "schema": 1,
+  "latest": "0.7.1",
+  "releases": [
+    {"version": "0.7.0", "commit": "f2f7d5bb703265a0759db307dd407cefc05ebd78", "notes": "0.7.0.md"},
+    {"version": "0.7.1", "commit": "07b64011dcbe39b0c0dfdd1ee53cb2054e7372ab", "notes": "0.7.1.md"}
+  ]
+}

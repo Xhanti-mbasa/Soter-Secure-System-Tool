@@ -14,7 +14,7 @@ Live search, sourced Party dossiers, alerts, local evidence saving, investigatio
 
 ## Install and use
 
-Install `releases/sothis-0.7.1.apk` on Android 8.0+. It uses the same package and development signing key as previous Sothis releases, so it can update that installation while retaining app data. The signing key is excluded from Git.
+Install the APK attached to [Sothis 0.7.1](https://github.com/Xhanti-mbasa/Soter-Secure-System-Tool/releases/tag/sothis-v0.7.1) on Android 8.0+. [Sothis 0.7.0](https://github.com/Xhanti-mbasa/Soter-Secure-System-Tool/releases/tag/sothis-v0.7.0) is retained as the feature baseline. It uses the same package and development signing key as previous Sothis releases, so it can update that installation while retaining app data. The signing key is excluded from Git. Every new Android version must have an attached APK GitHub Release; see [RELEASING.md](docs/RELEASING.md).
 
 - **Search:** choose Live public web, Social profiles, Live government web, Companies / CIPC, or Saved government collection. Live results show retrieved unique hits, profile candidates, name-match ranking, provider availability, retrieval dates and a platform footprint. Account ownership requires a saved researcher decision. Posts, share links and TikTok discovery pages are not counted as accounts.
 - **Party:** search ANC, DA, EFF or another listed party from Search or the Party tab. Browse the captured Parliament roster, filter representatives by name, refresh the official directory, and open member dossiers. Profiles retrieve current public member pages and group live mentions into government, news, remuneration, education, business and social categories. Pin/export a sourced dossier or create a mention alert.
