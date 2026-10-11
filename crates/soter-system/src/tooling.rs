@@ -9,7 +9,7 @@ use std::{
     io::{self, Write},
     os::unix::fs::PermissionsExt,
     path::Path,
-    process::Command,
+
 };
 
 use crate::soterspace;
@@ -117,37 +117,16 @@ fn install_selected(name: &str, selected: &[ToolSpec]) -> Result<(), String> {
         ));
     }
 
-    let rootfs = soterspace::rootfs_path(name)?;
-    if !rootfs.join("usr/bin/env").exists() {
-        return Err(format!(
-            "soterspace '{name}' has not finished provisioning; enter it once before installing tools"
-        ));
-    }
-
-    ensure_security_workspace(&rootfs)?;
-
-    let packages = selected.iter().map(|tool| tool.package).collect::<Vec<_>>();
+    let packages = selected.iter().map(|tool| tool.package.to_string()).collect::<Vec<_>>();
     println!(
         "\nInstalling {} into Soterspace '{}'...",
         selected.iter().map(|tool| tool.name).collect::<Vec<_>>().join(", "),
         name
     );
-
-    let status = Command::new("pacstrap")
-        .args(["-c", "-G", "-M"])
-        .arg(&rootfs)
-        .args(&packages)
-        .status()
-        .map_err(|e| format!(
-            "failed to start workspace package installation: {e}; install arch-install-scripts"
-        ))?;
-
-    if !status.success() {
-        return Err(format!("workspace package installation failed with status {status}"));
-    }
-
+    soterspace::install_apps(name, &packages)?;
+    let rootfs = soterspace::rootfs_path(name)?;
+    ensure_security_workspace(&rootfs)?;
     clean_package_cache(&rootfs)?;
-    let baseline_invalidated = soterspace::invalidate_core_hash(name)?;
 
     println!("\nInstalled:");
     for tool in selected {
@@ -155,10 +134,7 @@ fn install_selected(name: &str, selected: &[ToolSpec]) -> Result<(), String> {
     }
     println!("Starter wordlist: /usr/share/wordlists/soter/common.txt");
     println!("Secure case directory: /root/soter/cases");
-    if baseline_invalidated {
-        println!("Integrity baseline cleared because this was an authorized system change.");
-        println!("Run 'soter --hash {name}' after you finish installing tools.");
-    }
+    println!("Run 'soter --hash {name}' after you finish installing tools.");
     Ok(())
 }
 

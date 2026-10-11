@@ -13,8 +13,32 @@ pub struct Soterspace {
     pub path: PathBuf,
 }
 
+fn invoking_user_home() -> Option<PathBuf> {
+    let sudo_user = env::var("SUDO_USER").ok()?;
+    if sudo_user.is_empty() || sudo_user == "root" {
+        return None;
+    }
+
+    // sudo normally changes HOME to /root. Resolve the original caller from
+    // /etc/passwd so privileged Soter operations still use that user's state.
+    fs::read_to_string("/etc/passwd").ok()?.lines().find_map(|line| {
+        let mut fields = line.split(':');
+        let name = fields.next()?;
+        if name != sudo_user {
+            return None;
+        }
+        let _password = fields.next()?;
+        let _uid = fields.next()?;
+        let _gid = fields.next()?;
+        let _gecos = fields.next()?;
+        fields.next().map(PathBuf::from)
+    })
+}
+
 fn root() -> io::Result<PathBuf> {
-    let base = env::var_os("XDG_STATE_HOME").map(PathBuf::from)
+    let base = invoking_user_home()
+        .map(|home| home.join(".local/state"))
+        .or_else(|| env::var_os("XDG_STATE_HOME").map(PathBuf::from))
         .or_else(|| env::var_os("HOME").map(|h| PathBuf::from(h).join(".local/state")))
         .ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "HOME is not set"))?;
     Ok(base.join("soter/spaces"))
@@ -28,17 +52,25 @@ pub fn create(name: &str, empty: bool, temporary: bool) -> Result<Soterspace, St
     if !valid_name(name) { return Err("soterspace names may contain only letters, numbers, '-' and '_'".into()); }
     let path = root().map_err(|e| e.to_string())?.join(name);
     if path.exists() { return Err(format!("soterspace '{name}' already exists")); }
-    for dir in ["root", "runtime"] {
-        fs::create_dir_all(path.join(dir)).map_err(|e| e.to_string())?;
+    fs::create_dir_all(path.parent().ok_or("invalid soterspace path")?).map_err(|e| e.to_string())?;
+    fs::create_dir(&path).map_err(|e| e.to_string())?;
+    let initialize = || -> io::Result<()> {
+        fs::create_dir(path.join("root"))?;
+        fs::create_dir(path.join("runtime"))?;
+        let metadata = format!("name={name}\nempty={empty}\ntemporary={temporary}\n");
+        fs::write(path.join("space.conf"), metadata)
+    };
+    if let Err(error) = initialize() {
+        let _ = fs::remove_dir_all(&path);
+        return Err(format!("failed to initialize soterspace '{name}': {error}"));
     }
-    let metadata = format!("name={name}\nempty={empty}\ntemporary={temporary}\n");
-    fs::write(path.join("space.conf"), metadata).map_err(|e| e.to_string())?;
     Ok(Soterspace { name: name.into(), path })
 }
 
 pub fn remove(name: &str) -> Result<(), String> {
+    if !exists(name)? { return Err(format!("soterspace '{name}' does not exist")); }
+    if is_running(name)? { return Err(format!("soterspace '{name}' is running; exit it before removing it")); }
     let path = root().map_err(|e| e.to_string())?.join(name);
-    if !path.exists() { return Err(format!("soterspace '{name}' does not exist")); }
     fs::remove_dir_all(path).map_err(|e| e.to_string())
 }
 
@@ -46,14 +78,17 @@ pub fn list() -> Result<Vec<String>, String> {
     let root = root().map_err(|e| e.to_string())?;
     if !root.exists() { return Ok(Vec::new()); }
     let mut names = fs::read_dir(root).map_err(|e| e.to_string())?
-        .filter_map(Result::ok).filter(|e| e.path().is_dir())
+        .filter_map(Result::ok).filter(|e| e.file_type().map(|t| t.is_dir()).unwrap_or(false) && e.path().join("space.conf").is_file())
         .filter_map(|e| e.file_name().into_string().ok()).collect::<Vec<_>>();
     names.sort();
     Ok(names)
 }
 
 pub fn exists(name: &str) -> Result<bool, String> {
-    Ok(root().map_err(|e| e.to_string())?.join(name).is_dir())
+    if !valid_name(name) { return Err("soterspace names may contain only letters, numbers, '-' and '_'".into()); }
+    let path = root().map_err(|e| e.to_string())?.join(name);
+    Ok(fs::symlink_metadata(&path).map(|m| m.file_type().is_dir()).unwrap_or(false)
+        && path.join("space.conf").is_file())
 }
 
 pub fn rootfs_path(name: &str) -> Result<PathBuf, String> {
@@ -84,32 +119,209 @@ pub fn invalidate_core_hash(name: &str) -> Result<bool, String> {
 }
 
 pub fn set_value(name: &str, key: &str, value: &str) -> Result<(), String> {
+    if !exists(name)? { return Err(format!("soterspace '{name}' does not exist")); }
+    if !matches!(key, "password" | "openvpn.conf") { return Err("unsupported setting".into()); }
     let dir = root().map_err(|e| e.to_string())?.join(name);
-    if !dir.exists() { return Err(format!("soterspace '{name}' does not exist")); }
     fs::write(dir.join(key), value).map_err(|e| e.to_string())
 }
 
 pub fn remove_value(name: &str, key: &str) -> Result<(), String> {
+    if !exists(name)? { return Err(format!("soterspace '{name}' does not exist")); }
+    if !matches!(key, "password" | "openvpn.conf") { return Err("unsupported setting".into()); }
     let path = root().map_err(|e| e.to_string())?.join(name).join(key);
     if path.exists() { fs::remove_file(path).map_err(|e| e.to_string())?; }
     Ok(())
 }
 
+fn validate_rootfs(rootfs: &Path) -> Result<(), String> {
+    // A failed pacstrap can leave package files behind without installing their
+    // database records. Installing over that root produces thousands of file
+    // conflicts, so refuse to reuse it and preserve the files for inspection.
+    let mut packages = vec!["filesystem"];
+    for (file, package) in [
+        ("usr/share/man/man3/OSSL_PARAM_get_uint64.3ssl.gz", "openssl"),
+        ("usr/bin/pcre2-config", "pcre2"),
+    ] {
+        if rootfs.join(file).exists() {
+            packages.push(package);
+        }
+    }
+    let output = Command::new("pacman")
+        .arg("--root").arg(rootfs).arg("-Q").args(&packages)
+        .output()
+        .map_err(|e| format!("failed to inspect the workspace package database: {e}"))?;
+    if !output.status.success() || !rootfs.join("usr/bin/env").is_file() {
+        return Err(format!(
+            "workspace root '{}' has files but its package database is incomplete; keep it for recovery and create a new Soterspace instead",
+            rootfs.display()
+        ));
+    }
+    Ok(())
+}
+
+fn configure_guest_pacman(rootfs: &Path) -> Result<(), String> {
+    let guest_conf = rootfs.join("etc/pacman.conf");
+    if !guest_conf.is_file() {
+        fs::copy("/etc/pacman.conf", &guest_conf)
+            .map_err(|e| format!("failed to configure workspace pacman: {e}"))?;
+    }
+    let guest_dir = rootfs.join("etc/pacman.d");
+    fs::create_dir_all(&guest_dir).map_err(|e| e.to_string())?;
+    // CachyOS and other Arch derivatives may include repository mirror files
+    // beyond the single mirrorlist that pacstrap copies by default.
+    let status = Command::new("cp")
+        .args(["-a", "-n", "/etc/pacman.d/."])
+        .arg(&guest_dir)
+        .status()
+        .map_err(|e| format!("failed to copy workspace pacman configuration: {e}"))?;
+    if !status.success() { return Err("failed to copy workspace pacman configuration".into()); }
+    Ok(())
+}
+
 fn provision_rootfs(rootfs: &Path) -> Result<(), String> {
-    if rootfs.join("usr/bin/env").exists() { return Ok(()); }
+    if fs::read_dir(rootfs).map_err(|e| e.to_string())?.next().is_some() {
+        validate_rootfs(rootfs)?;
+        return configure_guest_pacman(rootfs);
+    }
 
     let status = Command::new("pacstrap")
-        .args(["-c", "-G", "-M"])
+        .args(["-c", "-P"])
         .arg(rootfs)
         .args(["base", "bash", "coreutils", "util-linux", "iproute2"])
         .status()
         .map_err(|e| format!("failed to start pacstrap: {e}; install arch-install-scripts to provision Soterspaces"))?;
 
-    if status.success() {
-        Ok(())
-    } else {
-        Err(format!("root filesystem provisioning failed with status {status}"))
+    if !status.success() {
+        return Err(format!("root filesystem provisioning failed with status {status}; keep the partial root for inspection"));
     }
+    validate_rootfs(rootfs)?;
+    configure_guest_pacman(rootfs)
+}
+
+/// Install native Arch packages into a Soterspace without touching the host package set.
+pub fn install_apps(name: &str, packages: &[String]) -> Result<(), String> {
+    if packages.is_empty() { return Err("choose at least one app".into()); }
+    if is_running(name)? { return Err(format!("soterspace '{name}' is running; exit it before installing apps")); }
+    for package in packages {
+        if package.is_empty() || !package.chars().all(|c| c.is_ascii_alphanumeric() || matches!(c, '-' | '_' | '.' | '+' | '@')) {
+            return Err(format!("invalid Arch package name '{package}'"));
+        }
+    }
+    let rootfs = rootfs_path(name)?;
+    provision_rootfs(&rootfs)?;
+    // Run pacman inside the guest. Host pacman drops downloads to the alpm
+    // user, which cannot traverse a Soterspace stored under /root.
+    // arch-chroot also supplies /dev and /proc for package hooks and GPG.
+    // arch-chroot expects a mountpoint. Self-bind the root in a private mount
+    // namespace so it sees one without leaving mounts behind on the host.
+    let status = Command::new("unshare")
+        .args(["--mount", "--propagation", "private", "sh", "-c",
+            "set -eu; root=$1; shift; mount --bind \"$root\" \"$root\"; exec arch-chroot \"$root\" pacman -Syu --needed --noconfirm \"$@\"", "soter-pacman"])
+        .arg(&rootfs).args(packages)
+        .status()
+        .map_err(|e| format!("failed to install workspace apps with arch-chroot: {e}"))?;
+    if !status.success() { return Err(format!("app installation failed with status {status}")); }
+    let _ = invalidate_core_hash(name)?;
+    println!("Installed {} into Soterspace '{name}'.", packages.join(", "));
+    Ok(())
+}
+
+// sudo normally strips XAUTHORITY. Read only the desktop session variable
+// from the parent shell (identified by SUDO_UID), without copying its whole
+// environment or exposing any other values inside the workspace.
+fn desktop_env(key: &str, uid: Option<u32>) -> Option<String> {
+    let uid = match uid {
+        Some(uid) => uid,
+        None => return env::var(key).ok().filter(|value| !value.is_empty()),
+    };
+    let mut pid = std::process::id();
+    for _ in 0..6 {
+        let status = fs::read_to_string(format!("/proc/{pid}/status")).ok()?;
+        let parent = status.lines().find_map(|line| {
+            line.strip_prefix("PPid:")?.trim().parse::<u32>().ok()
+        })?;
+        if parent <= 1 { break; }
+        let parent_status = fs::read_to_string(format!("/proc/{parent}/status")).ok()?;
+        let parent_uid = parent_status.lines().find_map(|line| {
+            line.strip_prefix("Uid:")?.split_whitespace().next()?.parse::<u32>().ok()
+        });
+        if parent_uid == Some(uid) {
+            let environ = fs::read(format!("/proc/{parent}/environ")).ok()?;
+            let prefix = format!("{key}=");
+            if let Some(value) = environ.split(|b| *b == 0)
+                .find_map(|entry| entry.strip_prefix(prefix.as_bytes()))
+                .and_then(|bytes| std::str::from_utf8(bytes).ok())
+            {
+                if !value.is_empty() { return Some(value.to_owned()); }
+            }
+        }
+        pid = parent;
+    }
+    env::var(key).ok().filter(|value| !value.is_empty())
+}
+
+struct SessionXAuthority(PathBuf);
+impl Drop for SessionXAuthority {
+    fn drop(&mut self) { let _ = fs::remove_file(&self.0); }
+}
+
+// Copy only the current display's X11 cookie into the guest. FamilyWild
+// makes it match Soter's different hostname without changing host X access.
+fn prepare_xauthority(rootfs: &Path, display: &str, uid: Option<u32>) -> Result<Option<SessionXAuthority>, String> {
+    let mut sources = Vec::new();
+    if let Some(path) = desktop_env("XAUTHORITY", uid) {
+        sources.push(PathBuf::from(path));
+    }
+    if let Some(home) = desktop_env("HOME", uid) {
+        sources.push(PathBuf::from(home).join(".Xauthority"));
+    }
+    if let Some(uid) = uid {
+        if let Ok(entries) = fs::read_dir(format!("/run/user/{uid}")) {
+            for entry in entries.flatten() {
+                if entry.file_name().to_string_lossy().starts_with("xauth_") {
+                    sources.push(entry.path());
+                }
+            }
+        }
+    }
+
+    for source in sources {
+        if !source.is_file() { continue; }
+        let output = match Command::new("xauth").arg("-f").arg(&source)
+            .arg("nlist").arg(display).output()
+        {
+            Ok(output) if output.status.success() => output,
+            _ => continue,
+        };
+        let records = String::from_utf8_lossy(&output.stdout).lines()
+            .filter_map(|line| {
+                let family = line.get(..4)?;
+                let rest = line.get(4..)?;
+                if !family.bytes().all(|byte| byte.is_ascii_hexdigit()) { return None; }
+                Some(format!("ffff{rest}\n"))
+            }).collect::<String>();
+        if records.is_empty() { continue; }
+
+        let guest_auth = rootfs.join("root/.soter-Xauthority");
+        if guest_auth.exists() || guest_auth.is_symlink() {
+            fs::remove_file(&guest_auth).map_err(|e| e.to_string())?;
+        }
+        let mut child = Command::new("xauth").arg("-f").arg(&guest_auth)
+            .args(["nmerge", "-"])
+            .stdin(Stdio::piped()).stdout(Stdio::null()).stderr(Stdio::null())
+            .spawn().map_err(|e| format!("failed to prepare X11 display credentials: {e}"))?;
+        use io::Write;
+        child.stdin.take().ok_or("failed to send X11 credentials")?
+            .write_all(records.as_bytes()).map_err(|e| e.to_string())?;
+        if !child.wait().map_err(|e| e.to_string())?.success() {
+            let _ = fs::remove_file(&guest_auth);
+            return Err("failed to prepare X11 display credentials".into());
+        }
+        fs::set_permissions(&guest_auth, fs::Permissions::from_mode(0o600))
+            .map_err(|e| format!("failed to protect X11 credentials: {e}"))?;
+        return Ok(Some(SessionXAuthority(guest_auth)));
+    }
+    Ok(None)
 }
 
 pub fn enter_or_run(name: &str, command: &[String], shell_override: Option<&str>, flakes: &[String], network_mode: Option<&str>) -> Result<i32, String> {
@@ -128,13 +340,24 @@ pub fn enter_or_run(name: &str, command: &[String], shell_override: Option<&str>
     let display = env::var("DISPLAY").ok();
     let wayland_display = env::var("WAYLAND_DISPLAY").ok();
     let xdg_runtime_dir = env::var("XDG_RUNTIME_DIR").ok();
-    let term = env::var("TERM").ok();
+    // Minimal root filesystems do not usually ship Ghostty's terminfo.
+    // Use a widely available terminal entry for clear, editors, and prompts.
+    let term = env::var("TERM").ok().map(|value| {
+        if value == "xterm-ghostty" { "xterm-256color".into() } else { value }
+    });
     // When Soter is started through sudo, recover the desktop user's identity.
     // That UID/GID must be mapped into the user namespace so Wayland's socket
     // remains owned by, and accessible to, the same user inside the Soterspace.
     let desktop_uid = env::var("SUDO_UID").ok().and_then(|v| v.parse::<u32>().ok());
     let desktop_gid = env::var("SUDO_GID").ok().and_then(|v| v.parse::<u32>().ok());
     provision_rootfs(&rootfs)?;
+    let guest_xauth = match display.as_deref() {
+        Some(display) => prepare_xauthority(&rootfs, display, desktop_uid)?,
+        None => None,
+    };
+    if display.is_some() && guest_xauth.is_none() {
+        eprintln!("soter: X11 credentials unavailable; install xorg-xauth or pass the desktop XAUTHORITY with sudo --preserve-env");
+    }
 
     // "open" shares the host network. "isolate" is deliberately simpler:
     // create a fresh network namespace with loopback only and no veth/NAT,
@@ -148,13 +371,7 @@ pub fn enter_or_run(name: &str, command: &[String], shell_override: Option<&str>
     // Resolve Soter's Nix browser wrappers without hard-coding store hashes.
     let nix_profile = rootfs.join("opt/soter/bin");
     fs::create_dir_all(&nix_profile).map_err(|e| e.to_string())?;
-    let available_flakes = [
-        ("firefox-pentesting", "firefox"),
-        ("chromium-pentesting", "chromium"),
-    ];
-    let requested_flakes: Vec<(&str, &str)> = if flakes.is_empty() {
-        available_flakes.to_vec()
-    } else {
+    let requested_flakes: Vec<(&str, &str)> = {
         flakes.iter().map(|name| match name.as_str() {
             "firefox" | "firefox-pentesting" => Ok(("firefox-pentesting", "firefox")),
             "chromium" | "chromium-pentesting" => Ok(("chromium-pentesting", "chromium")),
@@ -162,16 +379,8 @@ pub fn enter_or_run(name: &str, command: &[String], shell_override: Option<&str>
         }).collect::<Result<Vec<_>, _>>()?
     };
 
-    // /opt/soter/bin persists with the Soterspace. Remove managed launchers
-    // that were exposed by an earlier session but are not selected now.
-    for (_, binary) in available_flakes {
-        if !requested_flakes.iter().any(|(_, selected)| *selected == binary) {
-            let link = nix_profile.join(binary);
-            if link.exists() || link.is_symlink() {
-                fs::remove_file(&link).map_err(|e| e.to_string())?;
-            }
-        }
-    }
+    // Existing launchers remain available on later entries. Browser builds
+    // happen only when --flakes explicitly requests them.
 
     for (package, binary) in requested_flakes {
         let output = Command::new("nix")
@@ -223,7 +432,7 @@ pub fn enter_or_run(name: &str, command: &[String], shell_override: Option<&str>
 
     let mut script = String::from("set -eu; mount --make-rprivate /; ");
     script.push_str(&format!(
-        "mkdir -p {0}/proc {0}/tmp {0}/run {0}/dev {0}/nix/store; mount -t proc proc {0}/proc; mount -t tmpfs -o mode=1777 tmpfs {0}/tmp; ",
+        "mkdir -p {0}/proc {0}/tmp {0}/run {0}/dev {0}/nix/store; mount -t proc proc {0}/proc; mount --rbind /dev {0}/dev; mount --make-rslave {0}/dev; mount -t tmpfs -o mode=1777 tmpfs {0}/tmp; ",
         rootfs.display()
     ));
     if !offline_network {
@@ -271,6 +480,9 @@ pub fn enter_or_run(name: &str, command: &[String], shell_override: Option<&str>
     ));
     if let Some(value) = &display {
         script.push_str(&format!("DISPLAY={} ", shell_quote(value)));
+    }
+    if guest_xauth.is_some() {
+        script.push_str("XAUTHORITY=/root/.soter-Xauthority ");
     }
     if let Some(value) = &wayland_display {
         script.push_str(&format!("WAYLAND_DISPLAY={} ", shell_quote(value)));
@@ -701,6 +913,8 @@ pub fn scan(target: Option<&str>) -> Result<(), String> {
 }
 
 pub fn backup(name: &str, destination: &Path) -> Result<(), String> {
+    if !exists(name)? { return Err(format!("soterspace '{name}' does not exist")); }
+    if is_running(name)? { return Err(format!("soterspace '{name}' is running; exit it before backing up")); }
     let source = root().map_err(|e| e.to_string())?.join(name);
     if !source.exists() { return Err(format!("soterspace '{name}' does not exist")); }
     let status = Command::new("tar").arg("-cf").arg(destination).arg("-C")
