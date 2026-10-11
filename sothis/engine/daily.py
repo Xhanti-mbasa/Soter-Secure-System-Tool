@@ -1,5 +1,7 @@
 """Everyday public content. Providers publish capabilities, never inferred submissions."""
 import datetime as dt
+from collections import OrderedDict
+from concurrent.futures import Future
 import hashlib
 import re
 import threading
@@ -103,8 +105,9 @@ class ECPage(HTMLParser):
 
 
 class JobsProvider(Provider):
-    def collect(self):
-        parser = ECPage(); parser.feed(self.read(EC_URL).decode('utf-8', errors='replace'))
+    def collect(self, url=EC_URL):
+        if url != EC_URL: raise ValueError('Unknown vacancy provider')
+        parser = ECPage(); parser.feed(self.read(url).decode('utf-8', errors='replace'))
         rows = []
         def date(s):
             try: return dt.datetime.strptime(s.strip(), '%d/%m/%Y').date().isoformat()
@@ -125,42 +128,69 @@ class JobsProvider(Provider):
         return rows[:100]
 
 
+class ProviderCache:
+    """Bounded LRU with per-key in-flight sharing; unrelated providers run independently."""
+    def __init__(self, capacity=32, ttl=300):
+        self.capacity, self.ttl = capacity, ttl
+        self.values = OrderedDict(); self.pending = {}; self.lock = threading.Lock()
+
+    def get(self, key, loader, refresh=False):
+        with self.lock:
+            cached = self.values.get(key)
+            if cached and not refresh and time.monotonic()-cached[0] < self.ttl:
+                self.values.move_to_end(key); return cached[1]
+            future = self.pending.get(key)
+            owner = future is None
+            if owner:
+                if len(self.pending) >= self.capacity: raise ValueError('Provider queue is busy; retry shortly')
+                future = Future(); self.pending[key] = future
+        if not owner: return future.result(timeout=60)
+        try:
+            result = loader()
+            with self.lock:
+                self.values[key] = (time.monotonic(), result); self.values.move_to_end(key)
+                while len(self.values) > self.capacity: self.values.popitem(last=False)
+            future.set_result(result); return result
+        except Exception as error:
+            future.set_exception(error); raise
+        finally:
+            with self.lock: self.pending.pop(key, None)
+
+
 class DailyService:
     def __init__(self, reader=None):
         self.news_provider = NewsProvider(reader); self.jobs_provider = JobsProvider(reader)
-        self.cache = {}; self.lock = threading.Lock()
+        self.providers = {'news': self.news_provider, 'opportunities': self.jobs_provider}
+        self.cache = ProviderCache()
 
     def collect(self, kind, data):
-        if kind not in ('news', 'opportunities'): raise ValueError('Unknown collection')
+        if kind not in self.providers: raise ValueError('Unknown collection')
         name = str(data.get('province', ''))
-        if name and name not in [p['name'] for p in snapshot()['provinces']]: raise ValueError('Unknown province')
+        definitions = snapshot()['provinces']
+        if name and name not in [p['name'] for p in definitions]: raise ValueError('Unknown province')
         query = str(data.get('query', ''))[:200].lower().strip()
         feeds = data.get('feeds', [])
-        if not isinstance(feeds, list) or len(feeds) > 3: raise ValueError('Choose up to three custom feeds')
-        urls = [FEED, *feeds] if kind == 'news' else [EC_URL]
+        if not isinstance(feeds, list) or len(feeds) > 3 or any(not isinstance(u, str) for u in feeds):
+            raise ValueError('Choose up to three custom HTTPS feeds')
+        urls = list(dict.fromkeys([FEED, *feeds] if kind == 'news' else [EC_URL]))
         rows, statuses = [], []
         for url in urls:
-            key = (kind, str(url))
             try:
-                with self.lock:
-                    cached = self.cache.get(key)
-                    if cached and time.monotonic()-cached[0] < 300 and not data.get('refresh'):
-                        items = cached[1]
-                    else:
-                        items = self.news_provider.collect(url) if kind == 'news' else self.jobs_provider.collect()
-                        if len(self.cache) >= 32: self.cache.pop(next(iter(self.cache)))
-                        self.cache[key] = (time.monotonic(), items)
+                key = (kind, canonical(url))
+                loader = lambda: self.providers[kind].collect(url)
+                items = self.cache.get(key, loader, bool(data.get('refresh')))
                 rows.extend(items); statuses.append(dict(provider=url, status='completed', count=len(items)))
             except Exception as exc:
                 statuses.append(dict(provider=str(url), status='unavailable', detail=str(exc)[:180]))
-        p = next((p for p in snapshot()['provinces'] if p['name'] == name), None)
-        seen, result = set(), []
+        p = next((p for p in definitions if p['name'] == name), None)
+        seen, result = set(), []; today = dt.datetime.now(dt.timezone.utc).date().isoformat()
         for item in rows:
             if item['id'] in seen: continue
             text = item['title']+' '+item.get('description', '')+' '+item.get('location', '')
             if query and not all(t in text.lower() for t in query.split()): continue
             if p and not (kind == 'opportunities' and item.get('province') == name) and not mentions(text, p['keywords']): continue
-            if item.get('published_at') and item['published_at'][:10] > dt.datetime.now(dt.timezone.utc).date().isoformat(): continue
+            if item.get('published_at') and item['published_at'][:10] > today: continue
+            if item.get('closing_at') and item['closing_at'] < today: continue
             seen.add(item['id']); result.append(item)
         return dict(results=sorted(result, key=lambda i: i.get('published_at') or '', reverse=True), statuses=statuses,
                     retrieved_at=now(), coverage='Current publisher feed items and supported public listings. Other providers are available as official browser handoffs.')

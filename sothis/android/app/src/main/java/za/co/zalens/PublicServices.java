@@ -17,8 +17,9 @@ import java.util.regex.*;
 public final class PublicServices {
     static final String PORTAL="https://www.etenders.gov.za/Home/opportunities";
     private final Context context;
+    private final DailyServices daily;
     private final SharedPreferences prefs;
-    public PublicServices(Context context) { this.context=context; prefs=context.getSharedPreferences("services",Context.MODE_PRIVATE); }
+    public PublicServices(Context context) { this.context=context; daily=new DailyServices(context); prefs=context.getSharedPreferences("services",Context.MODE_PRIVATE); }
     public static String stamp() { SimpleDateFormat f=new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'",Locale.US);f.setTimeZone(TimeZone.getTimeZone("UTC"));return f.format(new Date()); }
     public static String hash(byte[] bytes) throws Exception { StringBuilder s=new StringBuilder();for(byte b:MessageDigest.getInstance("SHA-256").digest(bytes))s.append(String.format(Locale.US,"%02x",b&255));return s.toString(); }
     static String hash(String text) throws Exception { return hash(text.getBytes(StandardCharsets.UTF_8)); }
@@ -169,7 +170,7 @@ public final class PublicServices {
     }
     public String execute(String route,String method,String body) throws Exception {
         JSONObject data=new JSONObject(body);
-        if(route.startsWith("/api/daily/"))return new DailyServices(context).execute(route,data);
+        if(route.startsWith("/api/daily/"))return daily.execute(route,data);
         if(route.equals("/api/province/news")&&method.equals("POST"))return new ProvinceServices(context).news(data.optString("province"),data.optInt("days",30),data.optBoolean("refresh",false),this).toString();
         if(route.equals("/api/publication")&&method.equals("POST"))return PublicationServices.publication(data.optString("url")).toString();
         if(route.equals("/api/parties")&&method.equals("GET"))return new PartyServices(context).catalog().toString();

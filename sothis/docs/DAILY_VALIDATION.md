@@ -34,4 +34,4 @@ No physical Android device/emulator, installed social-app share target, location
 
 ## Optimized release 0.7.1
 
-The second release and measured changes are recorded after the optimization pass in OPTIMIZATION.md. Both APKs are retained for comparison.
+The second release passed 73 Python checks, the seven shared suites and the authenticated website suite. Measured changes and reproducible checks are in [OPTIMIZATION.md](OPTIMIZATION.md). Both APKs are retained for comparison.

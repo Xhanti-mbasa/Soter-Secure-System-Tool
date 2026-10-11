@@ -40,7 +40,7 @@ def main():
         run(['keytool','-genkeypair','-keystore',args.keystore,'-storepass','android','-keypass','android','-alias','androiddebugkey','-keyalg','RSA','-keysize','2048','-validity','10000','-dname','CN=Android Debug,O=Android,C=US'])
         args.keystore.chmod(0o600)
     args.output.parent.mkdir(parents=True,exist_ok=True)
-    run(['java','-jar',args.tools/'lib/apksigner.jar','sign','--ks',args.keystore,'--ks-pass','pass:android','--key-pass','pass:android','--ks-key-alias','androiddebugkey','--out',args.output,aligned])
+    run(['java','-jar',args.tools/'lib/apksigner.jar','sign','--v4-signing-enabled','false','--ks',args.keystore,'--ks-pass','pass:android','--key-pass','pass:android','--ks-key-alias','androiddebugkey','--out',args.output,aligned])
     run(['java','-jar',args.tools/'lib/apksigner.jar','verify','--verbose',args.output])
     run([args.tools/'aapt2','dump','badging',args.output])
     print('APK written:',args.output)

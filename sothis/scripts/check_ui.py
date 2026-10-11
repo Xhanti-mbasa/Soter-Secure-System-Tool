@@ -10,6 +10,8 @@ import urllib.request
 def no_external_network(*args, **kwargs):
     raise OSError("External network disabled in UI verification")
 urllib.request.urlopen = no_external_network
+from engine.connectors import Fetcher
+Fetcher.fetch = no_external_network
 
 from engine.core import Store
 from engine.server import LensServer

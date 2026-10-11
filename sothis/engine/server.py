@@ -90,7 +90,7 @@ class Handler(BaseHTTPRequestHandler):
     def api(self, method, path, params, data):
         store = self.server.store
         if method == 'GET' and path == '/api/health':
-            return self.send(200,{'ok':True,'version':'0.7.0',**store.stats()})
+            return self.send(200,{'ok':True,'version':'0.7.1',**store.stats()})
         if path in ('/api/daily/news', '/api/daily/opportunities') and method == 'POST':
             return self.send(200,self.server.daily.collect(path.rsplit('/',1)[-1],data))
         if path == '/api/daily/article' and method == 'POST':

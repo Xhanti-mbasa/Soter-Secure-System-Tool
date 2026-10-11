@@ -16,6 +16,7 @@ public final class LocalFileProvider extends ContentProvider {
     @Override public boolean onCreate(){return true;}
     private File file(Uri uri)throws FileNotFoundException{
         String area=uri.getPathSegments().size()==2?uri.getPathSegments().get(0):"",name=uri.getLastPathSegment();
+        if(name==null)throw new FileNotFoundException("Unknown private file");
         if(area.equals("share")&&name.matches("[a-f0-9]{32}\\.(png|jpg|pdf|txt|eml|docx|bin)"))return new File(new File(getContext().getCacheDir(),"share"),name);
         if(area.equals("evidence")&&name.matches("[a-f0-9]{64}\\.(pdf|html|bin|txt)"))return new File(new File(getContext().getFilesDir(),"evidence"),name.substring(0,64));
         if(area.equals("capture")&&name.matches("[a-f0-9]{32}\\.jpg"))return new File(new File(getContext().getCacheDir(),"capture"),name);

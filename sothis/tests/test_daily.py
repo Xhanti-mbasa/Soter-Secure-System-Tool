@@ -1,6 +1,6 @@
 import datetime as dt
 import unittest
-from engine.daily import DailyService, JobsProvider, NewsProvider, EC_URL
+from engine.daily import DailyService, JobsProvider, NewsProvider, ProviderCache, EC_URL
 from engine.provinces import FEED
 
 RSS=b'''<rss><channel><item><title>Eastern Cape libraries</title><link>https://www.sanews.gov.za/node/123</link><description>Library programme in Gqeberha</description><pubDate>Fri, 09 Oct 2026 12:00:00 +0200</pubDate></item></channel></rss>'''
@@ -46,3 +46,32 @@ class DailyTests(unittest.TestCase):
   self.assertIn('Credited text',p.article('https://www.sanews.gov.za/node/1')['text'])
   for url in ['https://example.org/article','http://www.sanews.gov.za/article','https://www.sanews.gov.za.evil.test/a']:
    with self.assertRaises(ValueError):p.article(url)
+
+
+class ProviderCacheTests(unittest.TestCase):
+ def test_same_provider_requests_share_one_fetch(self):
+  import threading
+  from concurrent.futures import ThreadPoolExecutor
+  cache=ProviderCache();calls=[];entered=threading.Event();release=threading.Event();start=threading.Barrier(4)
+  def loader():
+   calls.append(1);entered.set();self.assertTrue(release.wait(3));return ['record']
+  def request():start.wait(3);return cache.get('same',loader)
+  with ThreadPoolExecutor(max_workers=4) as pool:
+   futures=[pool.submit(request) for _ in range(4)]
+   self.assertTrue(entered.wait(3));release.set()
+   self.assertEqual([f.result(3) for f in futures],[['record']]*4)
+  self.assertEqual(len(calls),1);self.assertFalse(cache.pending)
+ def test_unrelated_providers_can_fetch_concurrently(self):
+  import threading
+  from concurrent.futures import ThreadPoolExecutor
+  cache=ProviderCache();together=threading.Barrier(2)
+  def load():together.wait(3);return 7
+  with ThreadPoolExecutor(max_workers=2) as pool:
+   a=pool.submit(cache.get,'a',load);b=pool.submit(cache.get,'b',load)
+   self.assertEqual([a.result(4),b.result(4)],[7,7])
+ def test_bounded_lru_and_failure_recovery(self):
+  cache=ProviderCache(capacity=2)
+  for n in range(3):cache.get(n,lambda:n)
+  self.assertEqual(list(cache.values),[1,2])
+  with self.assertRaises(ValueError):cache.get('failure',lambda:(_ for _ in ()).throw(ValueError('offline')))
+  self.assertFalse(cache.pending);self.assertEqual(cache.get('failure',lambda:'recovered'),'recovered')

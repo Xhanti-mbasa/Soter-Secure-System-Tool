@@ -1,0 +1,10 @@
+{
+  "apk_bytes": 2502906,
+  "pdf_bundle_bytes": 3040896,
+  "optimized_apk_bytes": 2330874,
+  "optimized_pdf_bundle_bytes": 1532374,
+  "controlled_parallel_provider_ms_feature": 81.37,
+  "controlled_parallel_provider_ms_optimized": 41.02,
+  "reader_delay_ms": 40,
+  "pairs_per_version": 10
+}

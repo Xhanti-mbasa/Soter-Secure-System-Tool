@@ -1,5 +1,13 @@
 # Changes
 
+## 0.7.1 — 2026-10-10
+
+- Added bounded provider registries/caches with shared in-flight requests and independent provider concurrency; reused native service instances.
+- Migrated offline files to atomic metadata/file stores so library listings do not load every original. Preserved previous downloads.
+- Minified pinned local PDF.js assets, added hash-checked rebuild tooling, coalesced client startup requests, reused share render buffers and bounded background resizing.
+- Tightened story-card spacing and source wrapping; retained both release APKs and documented measured size/concurrency results.
+- Android versionCode 9; 73 Python checks, seven shared UI suites and the authenticated web suite pass.
+
 ## 0.7.0 — 2026-10-10
 
 - Added Home / Regions / Opportunities / Profile navigation, header Explore, separate Search, remembered region layout and compact province actions.

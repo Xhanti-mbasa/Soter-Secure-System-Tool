@@ -4,6 +4,8 @@
 
 South African public-records research: an Android client and an independent document-collection/search engine. The Android app uses a bundled local interface, with a native bridge for engine connections, browser handoff, sharing, and file export.
 
+Version **0.7.1** is the optimized release of the everyday workflows added in **0.7.0**. It includes bounded provider caches with shared in-flight requests, metadata-only offline-library listings, smaller local PDF assets and improved share rendering. Both APKs remain in `releases/`. See [optimization measurements](docs/OPTIMIZATION.md).
+
 Version **0.7.0** adds Home, Opportunities and a local Profile around the existing research tools. Long-press public cards to share PNGs with frosted/liquid glass, solid colours, a local photo, opacity and blur controls. News has dates, local likes/bookmarks and offline downloads; CV imports and municipal report drafts remain local. Tool workspaces run without redirecting to Search.
 
 Version **0.6.0** added a province map and dashboards for news, population, education, employment, activities and public data banks. Salaries remain visible; company declaration details and sourced links to authorised company records sit alongside the member charts. It retains the Nothing-inspired interface with a charcoal palette, Doto dot-matrix headings, blue accents, rounded cards and a floating four-tab dock with a separate search button. Settings is available from the header. Landscape photos and their metadata are loaded locally through the native asset bridge for National and all nine provinces, and representatives use sourced Parliament portraits with initials when the image is unavailable. The native launch fix from 0.3.1 remains in place.
@@ -12,7 +14,7 @@ Live search, sourced Party dossiers, alerts, local evidence saving, investigatio
 
 ## Install and use
 
-Install `releases/sothis-0.7.0.apk` on Android 8.0+. It uses the same package and development signing key as previous Sothis releases, so it can update that installation while retaining app data. The signing key is excluded from Git.
+Install `releases/sothis-0.7.1.apk` on Android 8.0+. It uses the same package and development signing key as previous Sothis releases, so it can update that installation while retaining app data. The signing key is excluded from Git.
 
 - **Search:** choose Live public web, Social profiles, Live government web, Companies / CIPC, or Saved government collection. Live results show retrieved unique hits, profile candidates, name-match ranking, provider availability, retrieval dates and a platform footprint. Account ownership requires a saved researcher decision. Posts, share links and TikTok discovery pages are not counted as accounts.
 - **Party:** search ANC, DA, EFF or another listed party from Search or the Party tab. Browse the captured Parliament roster, filter representatives by name, refresh the official directory, and open member dossiers. Profiles retrieve current public member pages and group live mentions into government, news, remuneration, education, business and social categories. Pin/export a sourced dossier or create a mention alert.

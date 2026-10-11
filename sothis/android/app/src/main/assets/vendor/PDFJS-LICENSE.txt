@@ -1,6 +1,6 @@
 PDF.js 5.4.296 — Copyright Mozilla Foundation and contributors. Apache License 2.0.
 Source: https://github.com/mozilla/pdf.js/tree/v5.4.296
-Local adaptation: ES module exports wrapped as classic-script globals; import.meta URL used only in Node paths replaced. No remote loading during CV import.
+Local adaptation: ES module exports wrapped as classic-script globals; import.meta URL used only in Node paths replaced. No remote loading during CV import. Minified with Terser 5.44.0; class names retained. Rebuild using scripts/vendor_pdf.py and its pinned source hashes.
 Full license: https://www.apache.org/licenses/LICENSE-2.0
 
 
