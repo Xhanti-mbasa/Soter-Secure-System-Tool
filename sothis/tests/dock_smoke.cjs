@@ -13,7 +13,7 @@ const {openSearch}=require('./navigation_helpers.cjs');
   await page.setViewportSize({width,height:844});
   for(const tab of ['home','regions','opportunities','profile','settings','search','sources','tenders','party','cases']){
    await page.evaluate(name=>tab(name),tab);
-   const expected=['search','sources','tenders','opportunities','party'].includes(tab);
+   const expected=['home','search','sources','tenders','opportunities','party'].includes(tab);
    assert.equal(await page.locator('.search-orb').isVisible(),!expected,tab+' search visibility');
    const state=await page.evaluate(()=>{
     const dock=document.querySelector('.nav'),b=dock.getBoundingClientRect();

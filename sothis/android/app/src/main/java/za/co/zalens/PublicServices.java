@@ -15,6 +15,8 @@ import java.util.regex.*;
 
 /** Native public adapters work without a hosted engine. No platform login scraping. */
 public final class PublicServices {
+    // Only shared monitor state is serialized across the foreground and job instances.
+    static final Object MONITOR_LOCK=new Object();
     static final String PORTAL="https://www.etenders.gov.za/Home/opportunities";
     private final Context context;
     private final DailyServices daily;
@@ -23,7 +25,7 @@ public final class PublicServices {
     public static String stamp() { SimpleDateFormat f=new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'",Locale.US);f.setTimeZone(TimeZone.getTimeZone("UTC"));return f.format(new Date()); }
     public static String hash(byte[] bytes) throws Exception { StringBuilder s=new StringBuilder();for(byte b:MessageDigest.getInstance("SHA-256").digest(bytes))s.append(String.format(Locale.US,"%02x",b&255));return s.toString(); }
     static String hash(String text) throws Exception { return hash(text.getBytes(StandardCharsets.UTF_8)); }
-    static String clean(String text) { return Html.fromHtml(text,Html.FROM_HTML_MODE_LEGACY).toString().replaceAll("\\s+"," ").trim(); }
+    static String clean(String text) { return Html.fromHtml(text,Html.FROM_HTML_MODE_LEGACY).toString().replace('\u00a0',' ').replaceAll("\\s+"," ").trim(); }
     static String enc(String text) throws Exception { return URLEncoder.encode(text,"UTF-8"); }
     static String registration(String value) { String s=value.replaceAll("[\\s/\\-]","");return s.matches("(?:19|20)\\d{10}")?s.substring(0,4)+"/"+s.substring(4,10)+"/"+s.substring(10):""; }
     static byte[] fetch(String address, int maximum, boolean publicOnly, String token) throws Exception {
@@ -74,6 +76,26 @@ public final class PublicServices {
             .put("match_reason","Text relevance, not proof of identity. Confirm account ownership yourself.").put("ownership","unreviewed").put("retrieved_at",stamp())
             .put("content_hash",hash(title+"\n"+description)).put("acquisition","search_index");
     }
+    static JSONArray searchRows(String html)throws Exception {
+        JSONArray rows=new JSONArray();
+        Matcher a=Pattern.compile("<a\\b([^>]+)>(.*?)</a>",Pattern.DOTALL|Pattern.CASE_INSENSITIVE).matcher(html);
+        while(a.find()) {
+            String attrs=a.group(1);Matcher cls=Pattern.compile("class\\s*=\\s*([\"'])(.*?)\\1",Pattern.CASE_INSENSITIVE).matcher(attrs),href=Pattern.compile("href\\s*=\\s*([\"'])(.*?)\\1",Pattern.CASE_INSENSITIVE).matcher(attrs);
+            if(!cls.find()||!(Arrays.asList(cls.group(2).split("\\s+")).contains("l1")||Arrays.asList(cls.group(2).split("\\s+")).contains("result-link"))||!href.find())continue;
+            String body=a.group(2);Matcher t=Pattern.compile("<(?:div|span)[^>]*class=[\"'][^\"']*(?:snippet-title|title)[^\"']*[\"'][^>]*>(.*?)</(?:div|span)>",Pattern.DOTALL|Pattern.CASE_INSENSITIVE).matcher(body);
+            String found=clean(href.group(2));if(found.startsWith("//duckduckgo.com/l/")){Matcher target=Pattern.compile("[?&]uddg=([^&]+)").matcher(found);found=target.find()?URLDecoder.decode(target.group(1),"UTF-8"):"";}
+            if(found.startsWith("https://")||found.startsWith("http://"))rows.put(new JSONObject().put("url",found).put("title",t.find()?clean(t.group(1)):clean(body)).put("description",clean(body)));
+        }
+        if(rows.length()==0){String lower=html.toLowerCase(Locale.US);if(lower.matches("(?s).*(captcha|verify you are human|too many requests|anomaly-modal|challenge-form).*"))throw new IOException("Provider needs a browser check. Open browser search or try again later.");
+            if(!lower.matches("(?s).*(no results found|no results were found|no more results|no results for|did not match any).*"))throw new IOException("Provider returned an unreadable search page. Open browser search or try again later.");}
+        return rows;
+    }
+    private void cacheDiscovery(String key,JSONObject result)throws Exception {
+        synchronized(PublicServices.class){SharedPreferences.Editor edit=prefs.edit();int count=0;String oldest="";long oldestTime=Long.MAX_VALUE;
+            for(String candidate:prefs.getAll().keySet())if(candidate.startsWith("cache-")&&candidate.endsWith("-time")){count++;long value=prefs.getLong(candidate,0);if(value<oldestTime){oldestTime=value;oldest=candidate;}}
+            if(!prefs.contains(key)&&count>=100&&!oldest.isEmpty()){edit.remove(oldest).remove(oldest.substring(0,oldest.length()-5));}
+            edit.putString(key,result.toString()).putLong(key+"-time",System.currentTimeMillis()).apply();}
+    }
     public JSONObject discover(String query,String scope,boolean fresh) throws Exception {
         return discover(query,scope,fresh,"");
     }
@@ -98,13 +120,11 @@ public final class PublicServices {
                     try { if(c.getResponseCode()!=200)throw new IOException("Search API HTTP "+c.getResponseCode());ByteArrayOutputStream out=new ByteArrayOutputStream();try(InputStream in=c.getInputStream()){byte[] b=new byte[8192];int n;while((n=in.read(b))!=-1){out.write(b,0,n);if(out.size()>8*1024*1024)throw new IOException("Response too large");}}rows=new JSONObject(new String(out.toByteArray(),StandardCharsets.UTF_8)).optJSONObject("web")==null?new JSONArray():new JSONObject(new String(out.toByteArray(),StandardCharsets.UTF_8)).getJSONObject("web").optJSONArray("results");if(rows==null)rows=new JSONArray(); }
                     finally {c.disconnect();}
                 } else {
-                    String html;try{html=read("https://search.brave.com/search?q="+enc(search)+"&source=web");}catch(Exception failed){html=read("https://lite.duckduckgo.com/lite/?q="+enc(search));provider="DuckDuckGo public search (best effort)";}
+                    try{rows=searchRows(read("https://search.brave.com/search?q="+enc(search)+"&source=web"));}
+                    catch(Exception failed){rows=searchRows(read("https://lite.duckduckgo.com/lite/?q="+enc(search)));provider="DuckDuckGo public search (best effort)";}
 
-                    Matcher a=Pattern.compile("<a\\b([^>]+)>(.*?)</a>",Pattern.DOTALL|Pattern.CASE_INSENSITIVE).matcher(html);
-                    while(a.find()) { String attrs=a.group(1);Matcher cls=Pattern.compile("class=\"([^\"]*)\"").matcher(attrs),href=Pattern.compile("href=\"([^\"]*)\"").matcher(attrs);if(!cls.find()||!(Arrays.asList(cls.group(1).split(" ")).contains("l1")||Arrays.asList(cls.group(1).split(" ")).contains("result-link"))||!href.find())continue;String body=a.group(2);Matcher t=Pattern.compile("<(?:div|span)[^>]*class=\"[^\"]*(?:snippet-title|title)[^\"]*\"[^>]*>(.*?)</(?:div|span)>",Pattern.DOTALL).matcher(body);String found=clean(href.group(1));if(found.startsWith("//duckduckgo.com/l/")){Matcher target=Pattern.compile("[?&]uddg=([^&]+)").matcher(found);found=target.find()?URLDecoder.decode(target.group(1),"UTF-8"):"";}rows.put(new JSONObject().put("url",found).put("title",t.find()?clean(t.group(1)):clean(body)).put("description",clean(body))); }
-                    if(rows.length()==0&&html.toLowerCase(Locale.US).matches("(?s).*(captcha|verify you are human|too many requests).*"))throw new IOException("Provider needs a browser check. Open browser search or configure a Search API key.");
                 }
-                for(int i=0;i<rows.length();i++){JSONObject row=rows.getJSONObject(i),h=hit(row.optString("url"),row.optString("title"),row.optString("description"),reg.isEmpty()?query:reg);if(h!=null&&(!scope.equals("social")||!h.isNull("platform"))&&(!scope.equals("government")||h.optString("category").equals("government"))){h.put("published_at",JSONObject.NULL);String age=row.optString("page_age");try{if(age.length()>=10)h.put("index_date",java.time.LocalDate.parse(age.substring(0,10)).toString());}catch(Exception unknown){}JSONObject previous=hits.get(h.getString("url"));if(previous==null||h.optString("description").length()>previous.optString("description").length())hits.put(h.getString("url"),h);}}
+                for(int i=0;i<rows.length();i++){try{JSONObject row=rows.getJSONObject(i),h=hit(row.optString("url"),row.optString("title"),row.optString("description"),reg.isEmpty()?query:reg);if(h!=null&&(!scope.equals("social")||!h.isNull("platform"))&&(!scope.equals("government")||h.optString("category").equals("government"))){h.put("published_at",JSONObject.NULL);String age=row.optString("page_age");try{if(age.length()>=10)h.put("index_date",java.time.LocalDate.parse(age.substring(0,10)).toString());}catch(Exception unknown){}JSONObject previous=hits.get(h.getString("url"));if(previous==null||h.optString("description").length()>previous.optString("description").length())hits.put(h.getString("url"),h);}}catch(Exception invalid){}}
                 statuses.put(new JSONObject().put("service",apiKey.isEmpty()?provider:"Brave Search API").put("status","completed").put("retrieved",rows.length()));
             } catch(Exception e) { statuses.put(new JSONObject().put("service","Web discovery").put("status","unavailable").put("detail",e.getMessage())); }
         }
@@ -118,15 +138,34 @@ public final class PublicServices {
         JSONObject result=new JSONObject().put("query",query).put("topic",topic).put("registration_number",reg.isEmpty()?JSONObject.NULL:reg).put("results",results).put("hit_count",results.length()).put("account_count",accounts).put("companies",companies).put("statuses",statuses).put("retrieved_at",stamp()).put("cached",false)
             .put("cipc",new JSONObject().put("status","authorised_access_required").put("url","https://www.bizportal.gov.za/").put("detail","BizProfile requires login. Import an authorised disclosure; a missing public hit does not mean the company is unregistered."))
             .put("coverage","Counts describe retrieved unique hits and profile candidates. Index coverage is incomplete. Account ownership needs your review.");
-        if(!fresh)prefs.edit().putString(cacheKey,result.toString()).putLong(cacheKey+"-time",System.currentTimeMillis()).apply();return result;
+        boolean completed=false;for(int i=0;i<statuses.length();i++)if(statuses.getJSONObject(i).optString("status").equals("completed"))completed=true;
+        if(completed)cacheDiscovery(cacheKey,result);return result;
     }
     public JSONObject tenders(String query,String status,int start) throws Exception {return tenders(query,status,start,"keyword");}
+    static String tenderValues(Object value)throws Exception {
+        if(value==null||value==JSONObject.NULL)return "";StringBuilder result=new StringBuilder();
+        if(value instanceof JSONObject){JSONObject object=(JSONObject)value;Iterator<String> keys=object.keys();while(keys.hasNext())result.append(' ').append(tenderValues(object.opt(keys.next())));}
+        else if(value instanceof JSONArray){JSONArray list=(JSONArray)value;for(int i=0;i<list.length();i++)result.append(' ').append(tenderValues(list.opt(i)));}
+        else result.append(String.valueOf(value));return result.toString();
+    }
+    static boolean tenderMatches(JSONObject row,String query,String searchBy)throws Exception {
+        if(query.isEmpty())return true;String hay;
+        if(searchBy.equals("number")){String number=query.toLowerCase(Locale.US).replaceAll("[^\\p{L}\\p{N}_]","");return !number.isEmpty()&&row.optString("tender_No").toLowerCase(Locale.US).replaceAll("[^\\p{L}\\p{N}_]","").contains(number);}
+        if(searchBy.equals("company")||searchBy.equals("supplier")){StringBuilder award=new StringBuilder();for(String key:Arrays.asList("awards","company","supplierNumber","supplier_number"))award.append(' ').append(tenderValues(row.opt(key)));hay=award.toString();}
+        else {StringBuilder value=new StringBuilder();for(String key:Arrays.asList("description","tenderDescription","tender_No","organ_of_State","department","category"))value.append(' ').append(row.optString(key));hay=value.toString();}
+        hay=hay.toLowerCase(Locale.US);for(String token:query.toLowerCase(Locale.US).split("\\s+"))if(!hay.contains(token))return false;return true;
+    }
     public JSONObject tenders(String query,String status,int start,String searchBy) throws Exception {
         int number=status.equals("open")?1:status.equals("awarded")?2:status.equals("closed")?3:status.equals("cancelled")?4:0;if(number==0)throw new IOException("Unknown tender status");
-        String url="https://www.etenders.gov.za/Home/PaginatedTenderOpportunities?status="+number+"&draw=1&start="+Math.max(0,start)+"&length=30&search%5Bvalue%5D="+enc(query)+"&order%5B0%5D%5Bcolumn%5D=2&order%5B0%5D%5Bdir%5D=desc";
-        if(!query.isEmpty()&&!searchBy.equals("keyword")){String parameter=searchBy.equals("company")?"company":searchBy.equals("supplier")?"supplierNumber":searchBy.equals("number")?"tenderNumber":"";if(parameter.isEmpty())throw new IOException("Unknown tender search field");url=url.replace("PaginatedTenderOpportunities","TenderFilter/").replace("search%5Bvalue%5D="+enc(query),"search%5Bvalue%5D=")+"&"+parameter+"="+enc(query);}
-        JSONObject raw=new JSONObject(read(url));JSONArray rows=raw.optJSONArray("data");if(rows==null)rows=new JSONArray();
-        return new JSONObject().put("query",query).put("status",status).put("results",rows).put("total",raw.optInt("recordsFiltered",rows.length())).put("offset",start).put("retrieved_at",stamp()).put("source_url",PORTAL).put("coverage","Check amendments, requirements and submission method in each original notice.");
+        if(!Arrays.asList("keyword","company","supplier","number").contains(searchBy))throw new IOException("Unknown tender search field");
+        query=query.trim();if(query.length()>160)query=query.substring(0,160);start=Math.max(0,Math.min(start,100000));int length=query.isEmpty()?30:90;
+        String url="https://www.etenders.gov.za/Home/PaginatedTenderOpportunities?status="+number+"&draw=1&start="+start+"&length="+length+"&search%5Bvalue%5D="+enc(query)+"&order%5B0%5D%5Bcolumn%5D=2&order%5B0%5D%5Bdir%5D=desc";
+        if(!query.isEmpty()&&!searchBy.equals("keyword")){String parameter=searchBy.equals("company")?"company":searchBy.equals("supplier")?"supplierNumber":"tenderNumber";url=url.replace("PaginatedTenderOpportunities","TenderFilter/").replace("search%5Bvalue%5D="+enc(query),"search%5Bvalue%5D=")+"&"+parameter+"="+enc(query);}
+        JSONObject raw=new JSONObject(read(url));JSONArray all=raw.optJSONArray("data");if(all==null)throw new IOException("Tender provider returned an unreadable response. Open the official portal.");JSONArray rows=new JSONArray();int scanned=Math.min(length,all.length());
+        for(int i=0;i<scanned;i++){JSONObject row=all.getJSONObject(i);if(row.isNull("id"))throw new IOException("Tender provider returned invalid notice data");if(tenderMatches(row,query,searchBy))rows.put(row);}
+        int total=Math.max(0,raw.optInt("recordsFiltered",scanned)),next=start+scanned;
+        return new JSONObject().put("query",query).put("status",status).put("results",rows).put("total",query.isEmpty()?total:JSONObject.NULL).put("provider_total",total).put("scanned",scanned).put("offset",start).put("next_offset",next).put("has_more",scanned>0&&next<total).put("filtered_locally",!query.isEmpty()).put("retrieved_at",stamp()).put("source_url",PORTAL)
+            .put("coverage",(query.isEmpty()?"Portal publication coverage. ":"Matches are verified within each fetched window of up to 90 notices. Load more to check the next window; this is not a complete match count. ")+"Check amendments, requirements and submission method in each original notice.");
     }
     public synchronized JSONArray rules() throws Exception { return new JSONArray(prefs.getString("monitors","[]")); }
     public synchronized JSONArray alerts() throws Exception { return new JSONArray(prefs.getString("alerts","[]")); }
@@ -176,7 +215,7 @@ public final class PublicServices {
         if(route.equals("/api/parties")&&method.equals("GET"))return new PartyServices(context).catalog().toString();
         if(route.equals("/api/party")&&method.equals("POST"))return new PartyServices(context).party(data.optString("code"),data.optBoolean("refresh",false)).toString();
         if(route.equals("/api/member")&&method.equals("POST"))return new PartyServices(context).member(data.optString("id"),data.optBoolean("refresh",false)).toString();
-        if(route.equals("/api/discover")&&method.equals("POST"))return discover(data.optString("query"),data.optString("scope","all"),false,data.optString("topic","")).toString();
+        if(route.equals("/api/discover")&&method.equals("POST"))return discover(data.optString("query"),data.optString("scope","all"),data.optBoolean("refresh",false),data.optString("topic","")).toString();
         if(route.equals("/api/tenders")&&method.equals("POST"))return tenders(data.optString("query"),data.optString("status","open"),data.optInt("start",0),data.optString("search_by","keyword")).toString();
         if(route.equals("/api/monitors"))return method.equals("GET")?rules().toString():saveRule(data).toString();
         if(route.equals("/api/monitors/check")&&method.equals("POST"))return check(data.optString("id")).toString();

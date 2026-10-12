@@ -1,7 +1,8 @@
-// Exercise the single global entry through Home when the current screen owns a query.
+// Enter global search through the current screen's query or the compact Home form.
 exports.openSearch=async function(page){
  if(await page.evaluate(()=>state.tab==='search'))return;
- const search=page.locator('.nav [data-tab=search]');
- if(!await search.isVisible())await page.locator('.nav [data-tab=home]').click();
- await search.click();
+ const orb=page.locator('.nav [data-tab=search]');
+ if(await orb.isVisible()){await orb.click();return;}
+ if(!await page.locator('#home-search-form').isVisible())await page.locator('.nav [data-tab=home]').click();
+ await page.locator('#home-search-form button[type=submit]').click();
 };

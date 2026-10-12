@@ -37,9 +37,9 @@ class ServiceTests(unittest.TestCase):
         self.assertTrue(all(s['status']=='unavailable' for s in r['statuses']))
     def test_tender_api_passes_real_search_and_status(self):
         calls=[]
-        def reader(u,h=None):calls.append(u);return json.dumps({'data':[{'id':1,'eSubmission':False}],'recordsFiltered':15})
+        def reader(u,h=None):calls.append(u);return json.dumps({'data':[{'id':1,'description':'Construction services','eSubmission':False}],'recordsFiltered':15})
         r=PublicServices(reader).tenders('construction','awarded',30)
-        self.assertEqual(r['total'],15);self.assertIn('status=2',calls[0]);self.assertIn('start=30',calls[0]);self.assertIn('construction',calls[0])
+        self.assertIsNone(r['total']);self.assertEqual(r['provider_total'],15);self.assertEqual(len(r['results']),1);self.assertIn('status=2',calls[0]);self.assertIn('start=30',calls[0]);self.assertIn('construction',calls[0])
     def test_alert_baseline_dedupe_failure_and_changed_trigger(self):
         with tempfile.TemporaryDirectory() as root:
             store=Store(root);body=[HTML]

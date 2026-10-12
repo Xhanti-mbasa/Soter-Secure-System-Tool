@@ -1,3 +1,4 @@
+import html
 """Dated province evidence and bounded public-news feeds.
 
 Only the configured public publisher feed is fetched. Province selection is not
@@ -41,6 +42,11 @@ def published(value):
     if date.tzinfo is None:date=date.replace(tzinfo=dt.timezone.utc)
     return date.astimezone(dt.timezone.utc).isoformat().replace('+00:00','Z')
 
+def feed_text(value):
+    # RSS descriptions may contain HTML whose entities are escaped inside XML/CDATA.
+    decoded=html.unescape(html.unescape(value))
+    return text(re.sub('<[^>]+>',' ',decoded))
+
 def parse_feed(raw, retrieved_at=None):
     if isinstance(raw,str):raw=raw.encode()
     if len(raw)>2*1024*1024 or b'<!DOCTYPE' in raw.upper() or b'<!ENTITY' in raw.upper():
@@ -56,8 +62,8 @@ def parse_feed(raw, retrieved_at=None):
         if parts.scheme!='https' or parts.hostname not in ('www.sanews.gov.za','sanews.gov.za') or parts.username:continue
         # Preserve the publisher's URL query; different articles may use node URLs.
         url=urllib.parse.urlunsplit((parts.scheme,parts.netloc,parts.path,parts.query,''))
-        title=text(re.sub('<[^>]+>',' ',fields.get('title','')))[:500]
-        description=text(re.sub('<[^>]+>',' ',fields.get('description',fields.get('summary',''))))[:1200]
+        title=feed_text(fields.get('title',''))[:500]
+        description=feed_text(fields.get('description',fields.get('summary','')))[:1200]
         if not title:continue
         date=published(fields.get('pubDate',fields.get('published',fields.get('date',''))))
         items[url]={'id':digest(url)[:24],'title':title,'description':description,'url':url,'category':'government','publisher':'SAnews / GCIS','published_at':date,'publication_date_source':'Publisher RSS publication field' if date else None,'retrieved_at':stamp,'content_hash':digest(title+'\n'+description),'acquisition':'publisher_feed'}

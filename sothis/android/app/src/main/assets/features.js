@@ -21,6 +21,11 @@ function ownership(h){return reviewed()[reviewKey(h)]||'unreviewed'}
 function docFromHit(h){const id=h.document_id||'web-'+h.id;const d={id,url:h.url,title:h.title,source_id:'public-web',province:'National',category:h.category==='government'?'government':'news',published_at:h.published_at||null,retrieved_at:h.retrieved_at,content_hash:h.content_hash,acquisition:h.acquisition||'search_index',text:h.title+'\n'+(h.description||''),publication_date_source:h.publication_date_source||null,ownership:ownership(h),social_links:[],platform:h.platform};state.docs.set(id,d);return d}
 search=async function(more=false){
  const q=$('query').value.trim(),mode=$('search-mode').value;
+ $('search-scope')?.querySelector('summary')?.replaceChildren(document.createTextNode('Search · '+$('search-mode').selectedOptions[0].textContent));$('watch-query').hidden=!q;
+ $('start-cards').hidden=!!q;$('snapshot-label').hidden=mode!=='index';
+ if(!q&&mode!=='index'){
+  state.liveSerial++;state.searchSerial++;$('live-discovery').hidden=true;$('results').hidden=true;$('result-heading').parentElement.hidden=true;$('stats').hidden=true;$('more').hidden=true;$('coverage').hidden=true;$('region-chips').hidden=true;$('toggle-filters').hidden=true;$('filter-tray').hidden=true;notice('search-note','');$('suggestions').replaceChildren();return;
+ }
  const provinceMatch=provinces.find(p=>p.toLowerCase()===q.toLowerCase());if(mode==='live'&&provinceMatch&&typeof openProvince==='function'){state.liveSerial++;state.searchSerial++;await openProvince(provinceMatch);return}
  if(mode==='index'||!q||provinces.some(p=>p.toLowerCase()===q.toLowerCase())){
   state.liveSerial++;$('snapshot-label').textContent=state.connected?'Engine collection':'Saved collection · '+snapshotDate();$('live-discovery').hidden=true;$('results').hidden=false;$('result-heading').parentElement.hidden=false;$('coverage').hidden=false;$('region-chips').hidden=false;$('toggle-filters').hidden=false;await indexedSearch(more);return;
@@ -105,10 +110,22 @@ function editMonitor(rule){
 }
 function openTenders(query,status){$('tender-query').value=query;$('tender-status').value=status;$('tender-find-by').value=status==='awarded'?'company':'keyword';tab('tenders');fetchTenders();}
 async function fetchTenders(more=false){
- if(!more){state.tenderOffset=0;state.tenders=[];state.bidSelected.clear();$('tender-list').replaceChildren(el('div','loading','Retrieving official tender notices…'))}else state.tenderOffset+=30;
- notice('tender-note','');try{if(!supported())throw new Error('Use the Android app or connect your engine.');const r=await api('/api/tenders','POST',{query:$('tender-query').value.trim(),status:$('tender-status').value,start:state.tenderOffset,search_by:$('tender-find-by').value});state.tenders=more?state.tenders.concat(r.results):r.results;state.tenderTotal=r.total;$('tender-count').textContent=r.total+' matching notices · '+state.tenders.length+' loaded';notice('tender-note',r.coverage+' Retrieved '+r.retrieved_at);renderTenders();$('tender-more').hidden=state.tenders.length>=r.total}catch(e){notice('tender-note',e.message,true);if(!more)$('tender-list').replaceChildren(el('div','empty','Provider unavailable. Open the official eTenders portal to continue.'));else state.tenderOffset-=30}
- renderBids();
+ if(state.tenderLoading&&more)return;const serial=state.tenderSerial=(state.tenderSerial||0)+1;
+ const start=more?(state.tenderNextOffset??state.tenderOffset+30):0;
+ if(!more){state.tenderOffset=0;state.tenderScanned=0;state.tenders=[];state.bidSelected.clear();$('tender-list').replaceChildren(el('div','loading','Retrieving official tender notices…'));}
+ state.tenderLoading=true;$('tender-more').disabled=true;notice('tender-note','');
+ try{
+  if(!supported())throw new Error('Use the Android app or connect your engine.');
+  const r=await api('/api/tenders','POST',{query:$('tender-query').value.trim(),status:$('tender-status').value,start,search_by:$('tender-find-by').value});if(serial!==state.tenderSerial)return;
+  const combined=more?state.tenders.concat(r.results):r.results;state.tenders=[...new Map(combined.map(t=>[t.id,t])).values()];state.tenderOffset=start;state.tenderNextOffset=r.next_offset??start+30;state.tenderScanned=(more?state.tenderScanned:0)+(r.scanned??r.results.length);state.tenderTotal=r.total;
+  $('tender-count').textContent=r.filtered_locally?state.tenders.length+' matches found · '+state.tenderScanned+' notices checked':state.tenders.length+' notices loaded'+(Number.isFinite(r.total)?' · '+r.total+' reported by the portal':'');
+  notice('tender-note',r.coverage+' Retrieved '+r.retrieved_at);renderTenders();
+  if(!state.tenders.length)$('tender-list').replaceChildren(el('div','empty',r.filtered_locally?'No matching notice was found in the checked window. Load more to check the next notices, or search directly on eTenders.':'No notices were returned by the portal for these filters.'));
+  const hasMore=typeof r.has_more==='boolean'?r.has_more:state.tenders.length<r.total;$('tender-more').hidden=!hasMore;$('tender-more').textContent=r.filtered_locally?'Check next notices':'Load more';
+ }catch(e){if(serial!==state.tenderSerial)return;notice('tender-note',e.message,true);if(!more)$('tender-list').replaceChildren(el('div','empty','Provider unavailable. Open the official eTenders portal to continue.'));}
+ finally{if(serial===state.tenderSerial){state.tenderLoading=false;$('tender-more').disabled=false;renderBids();}}
 }
+
 function tenderURL(t){return 'https://www.etenders.gov.za/Home/tenderdetails?id='+encodeURIComponent(t.id)}
 function submissionURL(t){return t.eSubmission?'https://www.etenders.gov.za/Esubmission/esubmission?id='+encodeURIComponent(t.id):'https://www.etenders.gov.za/Home/opportunities'}
 function renderTenders(){const box=$('tender-list');box.replaceChildren();if(!state.tenders.length)box.append(el('div','empty','No matching published notices were returned. A number-only award search may not match a supplier name. Try the registered business name or review the official supplier search.'));

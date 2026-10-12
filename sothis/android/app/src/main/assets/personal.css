@@ -1,0 +1,49 @@
+/* Personal information stays local; the layout follows Sothis foundations. */
+.profile-heading{margin-bottom:24px}
+.profile-heading p{font-size:14px;line-height:1.6;margin-top:10px}
+.profile-groups{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
+.profile-group{min-width:0}
+.profile-group:last-child{grid-column:1/-1}
+.profile-group h2,.profile-section h2{font-size:16px;line-height:1.45;letter-spacing:0;margin:0 0 10px}
+.profile-list{min-width:0;overflow:hidden;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--card)}
+.profile-row{display:flex;align-items:center;gap:14px;width:100%;min-height:68px;border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent;padding:14px 16px;text-align:left;transform:none}
+.profile-row:last-child{border-bottom:0}
+.profile-row:active{transform:none;background:var(--surface-raised)}
+.profile-row:focus-visible{outline-offset:-3px}
+.profile-row>.ui-icon{flex:0 0 20px;width:20px;height:20px;color:var(--muted)}
+.profile-row-copy{display:block;min-width:0}
+.profile-row-copy strong{display:block;font-size:14px;line-height:1.5;font-weight:600}
+.profile-row-detail{display:block;color:var(--muted);font-size:12px;line-height:1.5;margin-top:2px;overflow-wrap:anywhere}
+.profile-activity{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;margin-top:28px}
+.profile-activity .profile-section{min-width:0;margin-top:0}
+.profile-empty{padding:16px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--card);font-size:13px;line-height:1.6}
+.profile-empty strong{display:block;font-size:14px;font-weight:500;margin-bottom:4px}
+.profile-reading-summary{font-size:13px;line-height:1.6;color:var(--muted)}
+.profile-reading-summary strong{color:var(--ink);font-weight:600}
+.profile-section>.local-warning{margin:6px 0 14px}
+.profile-section>.profile-list+.local-warning{margin:10px 0 0}
+.preferences-form{display:grid;gap:20px;margin-top:20px}
+.preference-group{min-width:0;margin:0;padding:0 0 20px;border:0;border-bottom:1px solid var(--line)}
+.preference-group legend{font-size:16px;font-weight:600;line-height:1.5;padding:0;margin-bottom:2px}
+.preferences-form .field{margin:14px 0}
+.preferences-form label{margin-top:0}
+.preference-group>.local-warning{margin-top:8px}
+.preference-group button{font-size:13px}
+.preference-check{display:flex;align-items:center;gap:12px;min-height:44px;padding:8px 0;margin:8px 0 0!important;font-size:14px;line-height:1.5;color:var(--ink);cursor:pointer}
+.preference-check input{margin:0}
+.preference-check span{min-width:0}
+.preference-hours{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;min-width:0}
+.preference-save{justify-self:start}
+.preference-data{min-width:0;border:1px solid var(--line);border-radius:var(--radius-md);padding:0 16px}
+.preference-data summary{cursor:pointer;min-height:44px;display:list-item;list-style-position:inside;padding:10px 0;font-size:14px;font-weight:500}
+.preference-data>.local-warning{margin:0 0 14px}
+.preference-data-actions{display:flex;flex-wrap:wrap;gap:8px;padding-bottom:16px}
+.preference-data-actions button{font-size:13px}
+@media(max-width:720px){
+ .profile-groups,.profile-activity{grid-template-columns:1fr;gap:22px}
+ .profile-group:last-child{grid-column:auto}
+ .profile-heading{margin-bottom:22px}
+ .profile-activity{margin-top:24px}
+ .profile-row{padding:13px 14px;gap:12px}
+}
+@media(max-width:359px){.profile-row{padding:12px;gap:10px}.preference-hours{grid-template-columns:1fr;gap:0}}

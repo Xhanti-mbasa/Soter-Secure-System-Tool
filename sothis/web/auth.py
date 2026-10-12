@@ -6,6 +6,8 @@ import sqlite3
 import time
 from pathlib import Path
 
+from engine.core import ClosingConnection
+
 
 def password_hash(password):
     if not 12 <= len(password) <= 1024:
@@ -55,7 +57,7 @@ class Auth:
                 db.execute("INSERT OR REPLACE INTO config VALUES ('credential',?)", (stamp,))
 
     def connect(self):
-        return sqlite3.connect(self.path, timeout=30)
+        return sqlite3.connect(self.path, timeout=30, factory=ClosingConnection)
 
     def allow_login(self, address):
         # The socket peer is used; untrusted forwarded/client-IP headers are ignored.

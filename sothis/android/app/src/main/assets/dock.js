@@ -7,13 +7,11 @@ function createNavigationDock() {
  for(const [name,label,asset] of [['home','HOME','newspaper'],['regions','REGIONS','map-trifold'],['opportunities','JOBS','briefcase'],['profile','PROFILE','users-three']]) {
   const b=button('',()=>tab(name));b.dataset.tab=name;
   b.setAttribute('aria-label',label==='JOBS'?'Jobs':label[0]+label.slice(1).toLowerCase());
-  const glyph=el('span','dock-icon');glyph.setAttribute('aria-hidden','true');
-  glyph.style.setProperty('--icon',`url('icons/${asset}.svg')`);
+  const glyph=icon(asset);glyph.classList.add('dock-icon');
   b.append(glyph,el('span','dock-label',label));dock.append(b);
  }
  const search=document.querySelector('.search-orb');
- search.replaceChildren();const glyph=el('span','dock-icon');glyph.setAttribute('aria-hidden','true');
- glyph.style.setProperty('--icon',"url('icons/magnifying-glass.svg')");search.append(glyph);
+ search.replaceChildren();const glyph=icon('magnifying-glass');glyph.classList.add('dock-icon');search.append(glyph);
  updateDock();
 }
 
@@ -28,7 +26,7 @@ function updateDock() {
  }
  dock.classList.toggle('unassigned',!active);
  // A dossier has no inline query; its directory and party roster do.
- const inlineSearch=['search','sources','tenders','opportunities'].includes(state.tab)||(state.tab==='party'&&!partyState.member);
+ const inlineSearch=['home','search','sources','tenders','opportunities'].includes(state.tab)||(state.tab==='party'&&!partyState.member);
  dock.querySelector('.search-orb').hidden=inlineSearch;
  dock.classList.toggle('search-hidden',inlineSearch);
 }

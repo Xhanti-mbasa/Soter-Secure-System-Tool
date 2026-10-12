@@ -8,9 +8,9 @@ const settings = $('settings-panel');
 settings.querySelector('h1').textContent = 'Your workspace.';
 settings.querySelector('h1').nextElementSibling.textContent = 'Your server collects government sources, stores investigations and checks alerts while you are away.';
 for (const id of ['engine-url','engine-token','search-key']) $(id).closest('.field').hidden = true;
-$('connect').parentElement.hidden = true;
+$('engine-settings').hidden = true;$('reading-settings').textContent='Reading preferences';
 $('save-search-key').hidden = true;
-settings.querySelector('h3').nextElementSibling.textContent = 'An optional Brave Search API key can be configured on the server. Live search otherwise uses the public provider and reports its availability.';
+$('provider-settings').querySelector('p').textContent = 'An optional Brave Search API key can be configured on the server. Live search otherwise uses the public provider and reports its availability.';
 const account = el('div', 'web-account'), copy = el('p','muted','Private workspace · loading account…');
 account.append(copy, button('Sign out', async () => {
   try {

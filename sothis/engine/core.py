@@ -32,6 +32,19 @@ def date_value(value):
             continue
     return None
 
+class ClosingConnection(sqlite3.Connection):
+    """Commit or roll back a transaction, then release the connection.
+
+    Unlike sqlite3's default transaction context, a with block owns this
+    connection's lifetime. Direct callers still receive a normal connection
+    and can close it explicitly.
+    """
+    def __exit__(self, exc_type, exc_value, traceback):
+        try:
+            return super().__exit__(exc_type, exc_value, traceback)
+        finally:
+            self.close()
+
 class Store:
     def __init__(self, data_dir):
         self.root = Path(data_dir)
@@ -58,7 +71,7 @@ class Store:
             ''')
 
     def connect(self):
-        c = sqlite3.connect(self.path, timeout=30)
+        c = sqlite3.connect(self.path, timeout=30, factory=ClosingConnection)
         c.row_factory = sqlite3.Row
         return c
 

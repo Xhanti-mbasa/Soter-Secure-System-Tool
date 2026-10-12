@@ -15,7 +15,7 @@ Fetcher.fetch = no_external_network
 
 from engine.core import Store
 from engine.server import LensServer
-p=argparse.ArgumentParser();p.add_argument('--chrome');p.add_argument('--chrome-zip');p.add_argument('--playwright',default='playwright');p.add_argument('--suite',choices=('ui_smoke.cjs','features_smoke.cjs','party_smoke.cjs','visual_smoke.cjs','analytics_smoke.cjs','province_smoke.cjs','daily_smoke.cjs','dock_smoke.cjs'));args=p.parse_args()
+p=argparse.ArgumentParser();p.add_argument('--chrome');p.add_argument('--chrome-zip');p.add_argument('--playwright',default='playwright');p.add_argument('--suite',choices=('ui_smoke.cjs','features_smoke.cjs','party_smoke.cjs','visual_smoke.cjs','analytics_smoke.cjs','province_smoke.cjs','daily_smoke.cjs','dock_smoke.cjs','ux_smoke.cjs'));args=p.parse_args()
 with tempfile.TemporaryDirectory() as tmp:
  store=Store(Path(tmp)/'data');snapshot=json.loads((ROOT/'android/app/src/main/assets/snapshot.json').read_text());store.seed_sources(snapshot['sources'])
  for d in snapshot['documents']:
@@ -28,5 +28,5 @@ with tempfile.TemporaryDirectory() as tmp:
  env={**os.environ,'PLAYWRIGHT_MODULE':args.playwright,'SOTHIS_TEST_URL':f'http://127.0.0.1:{server.server_port}'}
  if chrome:env['CHROME_EXECUTABLE']=chrome
  try:
-  for suite in ((args.suite,) if args.suite else ('ui_smoke.cjs','features_smoke.cjs','party_smoke.cjs','visual_smoke.cjs','analytics_smoke.cjs','province_smoke.cjs','daily_smoke.cjs','dock_smoke.cjs')):subprocess.run(['node',str(ROOT/'tests'/suite)],env=env,check=True,timeout=110,cwd=ROOT)
+  for suite in ((args.suite,) if args.suite else ('ui_smoke.cjs','features_smoke.cjs','party_smoke.cjs','visual_smoke.cjs','analytics_smoke.cjs','province_smoke.cjs','daily_smoke.cjs','dock_smoke.cjs','ux_smoke.cjs')):subprocess.run(['node',str(ROOT/'tests'/suite)],env=env,check=True,timeout=110,cwd=ROOT)
  finally:server.shutdown();server.server_close()

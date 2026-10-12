@@ -1,18 +1,17 @@
-@font-face{font-family:'Roboto Mono';src:url('fonts/roboto-mono-400.ttf') format('truetype');font-weight:400;font-display:swap}
 
 /* Fixed geometry prevents long labels and imported icon bounds changing the dock. */
 .nav{position:fixed;z-index:5;left:50%;right:auto;bottom:calc(16px + env(safe-area-inset-bottom));transform:translateX(-50%);display:flex;align-items:center;justify-content:center;gap:8px;width:336px;max-width:calc(100% - 24px);height:64px;padding:0;background:none;border:0;backdrop-filter:none}
-.navinner{display:flex;flex:0 0 272px;gap:4px;width:272px;height:64px;min-width:0;margin:0;padding:6px;border-radius:999px;background:#303030;box-shadow:inset 0 0 0 1px #7a7a7a,0 8px 24px #0003}
+.navinner{display:flex;flex:0 0 272px;gap:4px;width:272px;height:64px;min-width:0;margin:0;padding:6px;border-radius:999px;background:#303030;box-shadow:inset 0 0 0 1px #5a5a5a,0 8px 24px #0003}
 .nav .navinner button{position:relative;display:flex;align-items:center;justify-content:center;flex:0 0 52px;width:52px;height:52px;min-height:52px;min-width:52px;padding:0;gap:0;border:0;border-radius:999px;background:transparent;color:#b1b1ad;transform:none}
 .nav .navinner button.active{flex-basis:92px;width:92px;background:#1e1e1e;color:#719aff}
 .nav .navinner button:hover{background:#383838}
 .nav .navinner button.active:hover{background:#1e1e1e}
-.dock-icon{display:block;flex:none;width:20px;height:20px;background:currentColor;mask:var(--icon) center/contain no-repeat;-webkit-mask:var(--icon) center/contain no-repeat}
+.dock-icon{display:block;flex:none;width:20px;height:20px;color:inherit;filter:none}
 .nav .active .dock-icon{position:absolute;top:6px;left:36px}
 .dock-label{display:none}
 .nav .active .dock-label{display:block;position:absolute;top:30px;left:0;width:92px;height:16px;color:#f4f4f1;font:400 10px/16px 'Roboto Mono',monospace;letter-spacing:.5px;text-align:center}
 .nav.unassigned .navinner{padding-inline:26px}
-.nav button.search-orb{display:grid;place-items:center;flex:0 0 56px;width:56px;height:56px;min-height:56px;min-width:56px;padding:0;border:0;border-radius:999px;background:#303030;color:#b1b1ad;box-shadow:inset 0 0 0 1px #7a7a7a;transform:none}
+.nav button.search-orb{display:grid;place-items:center;flex:0 0 56px;width:56px;height:56px;min-height:56px;min-width:56px;padding:0;border:0;border-radius:999px;background:#303030;color:#b1b1ad;box-shadow:inset 0 0 0 1px #5a5a5a;transform:none}
 .nav button.search-orb:hover{background:#383838}
 .nav button:focus-visible{outline:2px solid #719aff;outline-offset:2px}
 .dock-shade{position:fixed;z-index:4;bottom:0;left:0;right:0;height:105px;background:linear-gradient(transparent,#242424 60%);pointer-events:none}

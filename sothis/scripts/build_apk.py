@@ -20,6 +20,8 @@ def main():
     p.add_argument('--keystore',required=True,type=Path)
     p.add_argument('--output',required=True,type=Path)
     args=p.parse_args()
+    if not args.keystore.is_file():
+        raise SystemExit('Existing signing key is required. Refusing to generate a different update identity.')
     source=ROOT/'android/app/src/main';build=ROOT/'android/app/build/manual'
     # Do not carry anonymous/removed class files from a previous release into DEX.
     if build.exists():shutil.rmtree(build)
@@ -35,10 +37,6 @@ def main():
         for entry in original.infolist():out.writestr(entry,original.read(entry.filename))
         for entry in dex.glob('*.dex'):out.write(entry,entry.name)
     run([args.tools/'zipalign','-f','4',unsigned,aligned])
-    if not args.keystore.exists():
-        args.keystore.parent.mkdir(parents=True,exist_ok=True)
-        run(['keytool','-genkeypair','-keystore',args.keystore,'-storepass','android','-keypass','android','-alias','androiddebugkey','-keyalg','RSA','-keysize','2048','-validity','10000','-dname','CN=Android Debug,O=Android,C=US'])
-        args.keystore.chmod(0o600)
     args.output.parent.mkdir(parents=True,exist_ok=True)
     run(['java','-jar',args.tools/'lib/apksigner.jar','sign','--v4-signing-enabled','false','--ks',args.keystore,'--ks-pass','pass:android','--key-pass','pass:android','--ks-key-alias','androiddebugkey','--out',args.output,aligned])
     run(['java','-jar',args.tools/'lib/apksigner.jar','verify','--verbose',args.output])

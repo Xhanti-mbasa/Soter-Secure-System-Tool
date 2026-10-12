@@ -124,7 +124,7 @@ class JobsProvider(Provider):
                 location=f.get('lblCity', ''), province='Eastern Cape', url=EC_URL, published_at=date(f.get('lblPostDate', '')),
                 closing_at=close, retrieved_at=now(), publisher='Eastern Cape Provincial eRecruitment',
                 application_method='official_portal_handoff', verified_listing=True))
-        if not rows: raise ValueError('No readable current vacancies; use the official portal')
+        if not rows and not parser.rows: raise ValueError('No readable current vacancies; use the official portal')
         return rows[:100]
 
 

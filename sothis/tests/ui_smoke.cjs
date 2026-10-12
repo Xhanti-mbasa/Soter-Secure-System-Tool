@@ -16,12 +16,12 @@ const snapshot=JSON.parse(fs.readFileSync(path.join(__dirname,'../android/app/sr
    window.savedReports=[];window.Native={snapshot:()=>JSON.stringify(s),config:()=>JSON.stringify({url:'',configured:false}),configure:()=>'',save:(name,text,mime)=>window.savedReports.push({name,text,mime}),share:()=>{},open:()=>{},request:()=>{throw new Error('Offline snapshot must not call engine')}};
   },snapshot);
   const page=await ctx.newPage();page.on('pageerror',e=>{errors.push(e.message);console.error(e.stack)});
-  await page.goto(base);await openSearch(page);await page.evaluate(()=>document.getElementById('search-scope').open=true);await page.locator('#result-count').filter({hasText:/passages/}).waitFor();
-  await page.locator('#search-mode').selectOption('index');
+  await page.goto(base);await openSearch(page);await page.evaluate(()=>document.getElementById('search-scope').open=true);await page.locator('#search-mode').selectOption('index');
+  await page.locator('#result-count').filter({hasText:/passages/}).waitFor();
   return {ctx,page};
  }
  const {ctx,page}=await setup(false,{width:1200,height:900});
- await page.locator('#status').filter({hasText:'ENGINE CONNECTED'}).waitFor();
+ await page.waitForFunction(()=>state.connected);assert.match(await page.locator('#status').textContent(),/ENGINE CONNECTED/);
  await page.locator('#query').fill('Geordin Hill-Lewis');await page.locator('#search-form button[type=submit]').click();
  await page.waitForFunction(()=>document.querySelectorAll('#results .record').length===4);
  assert.match(await page.locator('#result-count').innerText(),/4 passages/);
@@ -66,7 +66,7 @@ const snapshot=JSON.parse(fs.readFileSync(path.join(__dirname,'../android/app/sr
  await m.getByRole('button',{name:'Save investigation',exact:true}).click();
  await openSearch(m);await m.locator('#results .record details summary').first().click();await m.locator('#results button').filter({hasText:'+ Pin'}).first().click();
  await m.locator('#toast').filter({hasText:'Pinned to'}).waitFor();
- await m.reload();await openSearch(m);await m.evaluate(()=>document.getElementById('search-scope').open=true);await m.locator('#result-count').filter({hasText:/passages/}).waitFor();
+ await m.reload();await openSearch(m);await m.evaluate(()=>document.getElementById('search-scope').open=true);await m.locator('#search-mode').selectOption('index');await m.locator('#result-count').filter({hasText:/passages/}).waitFor();
  await m.evaluate(()=>document.querySelector('.header-explore').open=true);await m.locator('[data-tab=cases]').click();await m.getByRole('button',{name:'Export brief',exact:true}).click();
  await m.getByRole('button',{name:'Save Markdown',exact:true}).click();
  const report=await m.evaluate(()=>savedReports[0]);assert.match(report.text,/https:\/\//);assert.match(report.text,/SHA-256/);

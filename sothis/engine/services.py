@@ -55,6 +55,31 @@ class SearchPage(HTMLParser):
             self.anchor['title']=text(self.anchor['title']) or text(self.anchor['description'])
             self.anchor['description']=text(self.anchor['description']);self.results.append(self.anchor);self.anchor=None
 
+def public_search_rows(markup):
+    parser=SearchPage();parser.feed(markup)
+    if parser.results:return parser.results
+    lowered=markup.casefold()
+    if any(value in lowered for value in ('captcha','verify you are human','too many requests','anomaly-modal','challenge-form')):
+        raise ValueError('Provider requires a browser check; open browser search or try again later.')
+    if not any(value in lowered for value in ('no results found','no results were found','no more results','no results for','did not match any')):
+        raise ValueError('Provider returned an unreadable search page; open browser search or try again later.')
+    return []
+
+def tender_matches(row,query,search_by):
+    if not query:return True
+    if search_by=='number':
+        number=re.sub(r'[^\w]','',query.casefold())
+        return bool(number) and number in re.sub(r'[^\w]','',str(row.get('tender_No','')).casefold())
+    if search_by in ('company','supplier'):
+        def values(item):
+            if isinstance(item,dict):return ' '.join(values(value) for value in item.values())
+            if isinstance(item,list):return ' '.join(values(value) for value in item)
+            return str(item) if item is not None else ''
+        value=' '.join(values(row.get(key)) for key in ('awards','company','supplierNumber','supplier_number'))
+    else:
+        value=' '.join(str(row.get(key) or '') for key in ('description','tenderDescription','tender_No','organ_of_State','department','category'))
+    return all(token in value.casefold() for token in query.casefold().split())
+
 def profile(url):
     p=urlparse.urlsplit(url);host=(p.hostname or '').removeprefix('www.').removeprefix('m.')
     platform=PLATFORMS.get(host);parts=[x for x in p.path.split('/') if x]
@@ -115,13 +140,12 @@ class PublicServices:
                     rows=response.get('web',{}).get('results',[]);provider='Brave Search API'
                 else:
                     try:
-                        html=self.read('https://search.brave.com/search?'+urlparse.urlencode({'q':search,'source':'web'}));provider='Brave public search (best effort)'
+                        html=self.read('https://search.brave.com/search?'+urlparse.urlencode({'q':search,'source':'web'}));rows=public_search_rows(html);provider='Brave public search (best effort)'
                     except Exception:
-                        html=self.read('https://lite.duckduckgo.com/lite/?'+urlparse.urlencode({'q':search}));provider='DuckDuckGo public search (best effort)'
-                    parser=SearchPage();parser.feed(html);rows=parser.results
-                    if not rows and any(x in html.lower() for x in ('captcha','verify you are human','too many requests')):raise ValueError('Provider requires a browser check. Open search in your browser or configure a search API key.')
+                        html=self.read('https://lite.duckduckgo.com/lite/?'+urlparse.urlencode({'q':search}));rows=public_search_rows(html);provider='DuckDuckGo public search (best effort)'
                 for row in rows:
-                    hit=normalize_hit(row,reg or query)
+                    try:hit=normalize_hit(row,reg or query)
+                    except (ValueError,TypeError):continue
                     if hit and (scope!='social' or hit['platform']) and (scope!='government' or hit['category']=='government'):
                         previous=hits.get(hit['url'])
                         if not previous or len(hit['description'])>len(previous['description']):hits[hit['url']]=hit
@@ -139,26 +163,39 @@ class PublicServices:
             companies=companies,cipc={'status':'authorised_access_required','url':BIZPORTAL,
              'detail':'BizProfile requires login. Import an authorised disclosure to search and monitor CIPC records in your engine.'},
             retrieved_at=now(),cached=False,coverage='Counts describe retrieved, deduplicated index hits. No provider indexes every account. Name matches do not establish account ownership.')
-        with self.lock:
-            if len(self.cache)>=100:self.cache.pop(next(iter(self.cache)))
-            self.cache[key]=(time.time(),result)
+        if any(status['status']=='completed' for status in statuses):
+            with self.lock:
+                if len(self.cache)>=100:self.cache.pop(next(iter(self.cache)))
+                self.cache[key]=(time.time(),result)
         return result
     def tenders(self,query='',status='open',start=0,search_by='keyword'):
         if status not in ('open','awarded','closed','cancelled'):raise ValueError('Unknown tender status')
+        if search_by not in ('keyword','company','supplier','number'):raise ValueError('Unknown tender search field')
         start=max(0,min(int(start),100000));query=text(query)[:160]
-        params={'status':{'open':1,'awarded':2,'closed':3,'cancelled':4}[status],'draw':1,'start':start,'length':30,
+        # The public portal currently ignores DataTables keyword search. Scan one
+        # bounded window and verify the returned text rather than claiming its
+        # whole notice total is a query match count.
+        length=90 if query else 30
+        params={'status':{'open':1,'awarded':2,'closed':3,'cancelled':4}[status],'draw':1,'start':start,'length':length,
                 'search[value]':query,'order[0][column]':2,'order[0][dir]':'desc'}
         endpoint='PaginatedTenderOpportunities'
         if search_by in ('company','supplier','number') and query:
             endpoint='TenderFilter/'
             params['search[value]']=''
             params[{'company':'company','supplier':'supplierNumber','number':'tenderNumber'}[search_by]]=query
-        elif search_by!='keyword':raise ValueError('Unknown tender search field')
         data=json.loads(self.read('https://www.etenders.gov.za/Home/'+endpoint+'?'+urlparse.urlencode(params)))
-        rows=data.get('data',[])
-        return {'query':query,'status':status,'results':rows,'total':data.get('recordsFiltered',len(rows)),
-            'offset':start,'retrieved_at':now(),'source_url':TENDERPORTAL,
-            'coverage':'Portal publication coverage. Verify requirements, amendments and submission method in the original notice.'}
+        if not isinstance(data,dict) or not isinstance(data.get('data'),list):raise ValueError('Tender provider returned an unreadable response; open the official portal.')
+        raw=data['data'][:length]
+        if any(not isinstance(row,dict) or row.get('id') is None for row in raw):raise ValueError('Tender provider returned invalid notice data.')
+        provider_total=max(0,int(data.get('recordsFiltered',len(raw))))
+        rows=[row for row in raw if tender_matches(row,query,search_by)]
+        next_offset=start+len(raw)
+        return {'query':query,'status':status,'results':rows,'total':None if query else provider_total,
+            'provider_total':provider_total,'scanned':len(raw),'offset':start,'next_offset':next_offset,
+            'has_more':bool(raw) and next_offset<provider_total,'filtered_locally':bool(query),
+            'retrieved_at':now(),'source_url':TENDERPORTAL,
+            'coverage':('Matches are verified within each fetched window of up to 90 notices. Load more to check the next window; this is not a complete match count. ' if query else 'Portal publication coverage. ')+
+                'Verify requirements, amendments and submission method in the original notice.'}
 
 class Monitoring:
     def __init__(self,store,services):

@@ -1,14 +1,18 @@
 import json
+import sqlite3
 import tempfile
 import threading
 import unittest
 import urllib.error
 import urllib.request
-from unittest.mock import patch
+from concurrent.futures import ThreadPoolExecutor
+from types import SimpleNamespace
+from unittest.mock import Mock, patch
 
 from engine.core import Store
 from engine.connectors import Page, Connector, source_record, public_url, GuardedRedirect, extract
 from engine.server import LensServer
+from web.runtime import APIAdapter
 
 class EngineTests(unittest.TestCase):
     def setUp(self):
@@ -57,15 +61,31 @@ class EngineTests(unittest.TestCase):
         try:
             with self.assertRaises(urllib.error.HTTPError) as e:urllib.request.urlopen(url+'/api/health')
             self.assertEqual(e.exception.code,401)
+            e.exception.close()
             req=urllib.request.Request(url+'/api/search?q=Geordin',headers={'Authorization':'Bearer test-token'})
-            self.assertEqual(json.load(urllib.request.urlopen(req))['total'],2)
+            with urllib.request.urlopen(req) as response:
+                self.assertEqual(json.load(response)['total'],2)
             req=urllib.request.Request(url+'/api/cases',json.dumps({'title':'API investigation','pins':[self.id]}).encode(),{'Authorization':'Bearer test-token','Content-Type':'application/json'})
-            case=json.load(urllib.request.urlopen(req))
+            with urllib.request.urlopen(req) as response:
+                case=json.load(response)
             req=urllib.request.Request(url+'/api/cases/'+case['id']+'/export',headers={'Authorization':'Bearer test-token'})
-            self.assertIn('Evidence register',json.load(urllib.request.urlopen(req))['content'])
+            with urllib.request.urlopen(req) as response:
+                self.assertIn('Evidence register',json.load(response)['content'])
         finally:server.shutdown();server.server_close()
     def test_remote_binding_requires_token(self):
         with self.assertRaises(ValueError):LensServer(('0.0.0.0',0),self.store)
+    def test_discovery_forwards_only_boolean_refresh(self):
+        discover=Mock(return_value={'results':[]})
+        adapter=APIAdapter(SimpleNamespace(store=self.store,services=SimpleNamespace(discover=discover)))
+        for value in (True,False,'true',1,None):
+            with self.subTest(refresh=value):
+                discover.reset_mock()
+                adapter.api('POST','/api/discover',{}, {'query':'Public query','scope':'web','topic':'transport','refresh':value})
+                discover.assert_called_once_with('Public query','web',fresh=value is True,topic='transport')
+                self.assertEqual(adapter.response[0],200)
+        discover.reset_mock()
+        adapter.api('POST','/api/discover',{}, {'query':'Public query'})
+        discover.assert_called_once_with('Public query','all',fresh=False,topic='')
     def test_gated_source_never_fetches(self):
         s=source_record('CIPC','https://www.bizportal.gov.za/',access='login_required',enabled=False)
         self.store.seed_sources([s]);r=Connector(self.store).crawl(s['id']);self.assertEqual(r['fetched'],0)
@@ -90,5 +110,83 @@ class EngineTests(unittest.TestCase):
         writer=PdfWriter();writer.add_blank_page(width=200,height=200);out=io.BytesIO();writer.write(out)
         with self.assertRaisesRegex(ValueError,'OCR required'):
             extract(self.store,self.n,'https://www.parliament.gov.za/scanned.pdf',out.getvalue(),'application/pdf')
+
+class ConnectionLifecycleTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp=tempfile.TemporaryDirectory()
+        self.store=Store(self.tmp.name)
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def assert_closed(self,connection):
+        with self.assertRaisesRegex(sqlite3.ProgrammingError,'closed database'):
+            connection.execute('SELECT 1')
+
+    def test_transaction_commits_and_closes(self):
+        connection=self.store.connect()
+        self.assertIsInstance(connection,sqlite3.Connection)
+        with connection as db:
+            db.execute('INSERT INTO cases VALUES (?,?)',('committed','{"title":"Committed"}'))
+            self.assertIsInstance(db.execute('SELECT * FROM cases').fetchone(),sqlite3.Row)
+        self.assert_closed(connection)
+        self.assertEqual(self.store.cases(),[{'title':'Committed'}])
+
+    def test_transaction_rolls_back_and_closes(self):
+        connection=self.store.connect()
+        with self.assertRaisesRegex(RuntimeError,'failed operation'):
+            with connection as db:
+                db.execute('INSERT INTO cases VALUES (?,?)',('rolled-back','{}'))
+                raise RuntimeError('failed operation')
+        self.assert_closed(connection)
+        self.assertEqual(self.store.cases(),[])
+
+    def test_commit_failure_rolls_back_and_closes(self):
+        connection=self.store.connect()
+        with self.assertRaises(sqlite3.IntegrityError):
+            with connection as db:
+                db.execute('PRAGMA foreign_keys=ON')
+                db.execute('CREATE TABLE parents(id INTEGER PRIMARY KEY)')
+                db.execute('CREATE TABLE children(parent INTEGER REFERENCES parents(id) DEFERRABLE INITIALLY DEFERRED)')
+                db.execute('INSERT INTO children VALUES (99)')
+        self.assert_closed(connection)
+        with self.store.connect() as db:
+            self.assertEqual(db.execute('SELECT count(*) FROM children').fetchone()[0],0)
+
+    def test_internal_failure_closes_and_rolls_back_partial_work(self):
+        connections=[]
+        original=self.store.connect
+        def record():
+            connection=original();connections.append(connection);return connection
+        source=source_record('Transaction fixture','https://www.gov.za/')
+        with patch.object(self.store,'connect',side_effect=record):
+            with self.assertRaises(KeyError):
+                self.store.seed_sources([source,{}])
+        self.assertTrue(connections)
+        for connection in connections:self.assert_closed(connection)
+        self.assertEqual(self.store.sources(),[])
+
+    def test_raw_connection_still_allows_explicit_lifetime(self):
+        connection=self.store.connect()
+        try:
+            connection.execute('INSERT INTO cases VALUES (?,?)',('direct','{"title":"Direct"}'))
+            connection.commit()
+            self.assertEqual(connection.execute('SELECT count(*) FROM cases').fetchone()[0],1)
+        finally:
+            connection.close()
+        self.assert_closed(connection)
+        self.assertEqual(self.store.cases(),[{'title':'Direct'}])
+
+    def test_threads_keep_independent_connections(self):
+        barrier=threading.Barrier(4)
+        def read(_):
+            with self.store.connect() as connection:
+                barrier.wait(timeout=5)
+                self.assertEqual(connection.execute('SELECT count(*) FROM cases').fetchone()[0],0)
+            self.assert_closed(connection)
+            return connection
+        with ThreadPoolExecutor(max_workers=4) as workers:
+            connections=list(workers.map(read,range(4)))
+        self.assertEqual(len({id(connection) for connection in connections}),4)
 
 if __name__=='__main__':unittest.main()

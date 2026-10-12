@@ -73,7 +73,7 @@ class Handler(BaseHTTPRequestHandler):
                     if not isinstance(data,dict): raise ValueError('JSON object required')
                 else: data = {}
                 return self.api(method,path,urllib.parse.parse_qs(parsed.query),data)
-            public_files = ('/','/index.html','/snapshot.json','/features.js','/parties.js','/party-data.json','/visuals.js','/nothing.css','/photo-credits.json','/analytics.js','/analytics.css','/analytics-data.json','/dock.js','/dock.css','/navigation.js','/provinces.js','/provinces.css','/province-data.json','/education-registers.json','/company-details.js','/daily.js','/personal.js','/share-cards.js','/daily.css','/vendor/pdf.js','/vendor/pdf.worker.js')
+            public_files = ('/','/index.html','/snapshot.json','/features.js','/parties.js','/party-data.json','/visuals.js','/icons.js','/nothing.css','/photo-credits.json','/analytics.js','/analytics.css','/analytics-data.json','/dock.js','/dock.css','/navigation.js','/provinces.js','/provinces.css','/province-data.json','/education-registers.json','/company-details.js','/daily.js','/personal.js','/share-cards.js','/daily.css','/personal.css','/vendor/pdf.js','/vendor/pdf.worker.js')
             resource = path.startswith(('/images/','/fonts/','/icons/')) and Path(path).suffix.lower() in ('.webp','.jpg','.png','.svg','.ttf','.woff2')
             if method == 'GET' and self.server.web_dir and (path in public_files or resource):
                 name = 'index.html' if path in ('/','/index.html') else path.lstrip('/')
@@ -122,7 +122,7 @@ class Handler(BaseHTTPRequestHandler):
         if path == '/api/member' and method == 'POST':
             return self.send(200,self.server.parties.member(data.get('id',''),data.get('refresh') is True))
         if path == '/api/discover' and method == 'POST':
-            result = self.server.services.discover(data.get('query',''),data.get('scope','all'),topic=data.get('topic',''))
+            result = self.server.services.discover(data.get('query',''),data.get('scope','all'),fresh=data.get('refresh') is True,topic=data.get('topic',''))
             # Persist index metadata as evidence, distinct from downloaded originals.
             from .connectors import source_record
             source = source_record('Public web discovery','https://search.brave.com/','National','news')

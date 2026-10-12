@@ -36,7 +36,7 @@ function discovery(body){const results=body.scope==='social'?hits.filter(h=>h.pl
    await page.route('**/api/member',route=>route.fulfill({json:member}));
    await page.route('**/api/discover',route=>{const d=route.request().postDataJSON();requests.push(d);return route.fulfill({json:discovery(d)})});
   }
-  await page.goto(process.env.SOTHIS_TEST_URL||'http://127.0.0.1:8765');await openSearch(page);await page.evaluate(()=>document.getElementById('search-scope').open=true);await page.locator('#result-count').filter({hasText:/passages/}).waitFor();
+  await page.goto(process.env.SOTHIS_TEST_URL||'http://127.0.0.1:8765');await openSearch(page);await page.evaluate(()=>document.getElementById('search-scope').open=true);await page.waitForFunction(()=>state.docs.size>0);
   if(!standalone)await page.waitForFunction(()=>state.connected);
   await page.locator('#query').fill('ANC');await page.locator('#search-form button[type=submit]').click();await page.locator('#party-title').filter({hasText:anc.name}).waitFor();
   await page.locator('#member-filter').fill('Gwede Mantashe');assert.equal(await page.locator('#party-members [data-member]').count(),1);

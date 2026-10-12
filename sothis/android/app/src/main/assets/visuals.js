@@ -1,7 +1,9 @@
 'use strict';
 // Photos enrich navigation and biographies; they do not verify a web candidate's identity.
 let photoCredits=[];
-const icon=(name)=>{const i=el('img','ui-icon');i.src='icons/'+name+'.svg';i.alt='';return i};
+const icon=(name)=>{const i=el('span','ui-icon');i.setAttribute('aria-hidden','true');i.dataset.icon=name;i.innerHTML=SOTHIS_ICONS[name]||SOTHIS_ICONS['dots-three'];return i};
+// Normalise the static header/search icons through the same local vector factory.
+for(const image of document.querySelectorAll('img.ui-icon')){const name=(image.getAttribute('src')||'').split('/').pop().replace('.svg','');image.replaceWith(icon(name));}
 function portrait(member,large=false){
  const wrap=el('span','portrait'),initials=member.name.replace(/^(Mr|Ms|Mrs|Dr|Prof)\.?\s+/,'').split(/\s+/).filter(Boolean).map(n=>n[0]).slice(0,2).join('');
  const fallback=el('span','portrait-fallback',initials);fallback.setAttribute('aria-hidden','true');wrap.append(fallback);

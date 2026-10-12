@@ -6,10 +6,12 @@ import tempfile
 import time
 import unittest
 import zipfile
+from contextlib import closing
 from pathlib import Path
+from unittest.mock import patch
 
 from web.app import create_app
-from web.auth import password_hash, verify_password
+from web.auth import Auth, password_hash, verify_password
 from web.backup import make_backup
 
 
@@ -184,6 +186,40 @@ class WebsiteTests(unittest.TestCase):
         self.app = create_app(self.config)
         self.assertEqual(self.request('/auth/login','POST',{'username':'researcher','password':self.password})['status'],429)
 
+    def test_auth_connections_commit_or_rollback_then_close(self):
+        auth=self.app.auth
+        committed=auth.connect()
+        with committed as db:
+            db.execute('INSERT INTO config VALUES (?,?)',('lifecycle','committed'))
+        with self.assertRaisesRegex(sqlite3.ProgrammingError,'closed database'):
+            committed.execute('SELECT 1')
+        failed=auth.connect()
+        with self.assertRaisesRegex(RuntimeError,'failed authentication transaction'):
+            with failed as db:
+                db.execute('UPDATE config SET value=? WHERE key=?',('rolled-back','lifecycle'))
+                raise RuntimeError('failed authentication transaction')
+        with self.assertRaisesRegex(sqlite3.ProgrammingError,'closed database'):
+            failed.execute('SELECT 1')
+        with auth.connect() as db:
+            self.assertEqual(db.execute('SELECT value FROM config WHERE key=?',('lifecycle',)).fetchone()[0],'committed')
+
+    def test_auth_initialization_and_session_calls_close_connections(self):
+        connections=[]
+        original=Auth.connect
+        def record(auth):
+            connection=original(auth);connections.append(connection);return connection
+        with patch.object(Auth,'connect',record):
+            auth=Auth(self.tmp.name,'researcher',self.encoded)
+            self.assertTrue(auth.allow_login('127.0.0.1'))
+            token,csrf=auth.login('researcher',self.password)
+            self.assertEqual(auth.session(token)['csrf'],csrf)
+            auth.logout(token)
+            self.assertIsNone(auth.session(token))
+        self.assertEqual(len(connections),6)
+        for connection in connections:
+            with self.assertRaisesRegex(sqlite3.ProgrammingError,'closed database'):
+                connection.execute('SELECT 1')
+
     def test_original_download_and_bundle_hashes(self):
         self.login()
         raw = b'Original public evidence\n'
@@ -210,13 +246,52 @@ class WebsiteTests(unittest.TestCase):
         sha = hashlib.sha256(raw).hexdigest()
         (Path(self.tmp.name)/'archive'/sha).write_bytes(raw)
         output = io.BytesIO()
-        make_backup(self.tmp.name,output)
+        connections=[]
+        original=sqlite3.connect
+        def record(*args,**kwargs):
+            connection=original(*args,**kwargs);connections.append(connection);return connection
+        with patch('web.backup.sqlite3.connect',side_effect=record):
+            make_backup(self.tmp.name,output)
+        self.assertEqual(len(connections),4)
+        for connection in connections:
+            with self.assertRaisesRegex(sqlite3.ProgrammingError,'closed database'):
+                connection.execute('SELECT 1')
         with tempfile.TemporaryDirectory() as restored, zipfile.ZipFile(io.BytesIO(output.getvalue())) as archive:
             archive.extractall(restored)
-            with sqlite3.connect(Path(restored)/'lens.sqlite3') as db:
+            with closing(sqlite3.connect(Path(restored)/'lens.sqlite3')) as db:
                 self.assertEqual(json.loads(db.execute('SELECT data FROM cases').fetchone()[0])['notes'],'Saved notes')
             self.assertEqual((Path(restored)/'archive'/sha).read_bytes(),raw)
             self.assertTrue((Path(restored)/'auth.sqlite3').is_file())
+
+    def test_backup_closes_both_connections_when_copy_fails(self):
+        class FailedBackup(sqlite3.Connection):
+            def backup(self,destination):
+                raise sqlite3.OperationalError('backup failed')
+        connections=[]
+        original=sqlite3.connect
+        def record(*args,**kwargs):
+            connection=original(*args,factory=FailedBackup,**kwargs);connections.append(connection);return connection
+        with patch('web.backup.sqlite3.connect',side_effect=record):
+            with self.assertRaisesRegex(sqlite3.OperationalError,'backup failed'):
+                make_backup(self.tmp.name,io.BytesIO())
+        self.assertEqual(len(connections),2)
+        for connection in connections:
+            with self.assertRaisesRegex(sqlite3.ProgrammingError,'closed database'):
+                connection.execute('SELECT 1')
+        self.assertGreater(self.app.runtime.store.stats()['documents'],0)
+
+    def test_backup_closes_origin_when_destination_cannot_open(self):
+        connections=[]
+        original=sqlite3.connect
+        def record(*args,**kwargs):
+            if connections:raise sqlite3.OperationalError('destination unavailable')
+            connection=original(*args,**kwargs);connections.append(connection);return connection
+        with patch('web.backup.sqlite3.connect',side_effect=record):
+            with self.assertRaisesRegex(sqlite3.OperationalError,'destination unavailable'):
+                make_backup(self.tmp.name,io.BytesIO())
+        self.assertEqual(len(connections),1)
+        with self.assertRaisesRegex(sqlite3.ProgrammingError,'closed database'):
+            connections[0].execute('SELECT 1')
 
 
 if __name__ == '__main__':unittest.main()

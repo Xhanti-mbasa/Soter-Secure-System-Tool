@@ -18,6 +18,11 @@ class DailyTests(unittest.TestCase):
   items=NewsProvider(lambda url:raw).collect('https://example.org/feed');self.assertEqual(len(items),1)
   self.assertFalse(items[0]['reader_allowed']);self.assertEqual(items[0]['description'],'');self.assertEqual(items[0]['url'],'https://example.org/article')
   default=NewsProvider(lambda url:RSS).collect();self.assertTrue(default[0]['reader_allowed'])
+ def test_publisher_feed_decodes_nested_entities(self):
+  raw=RSS.replace(b'Library programme in Gqeberha',b'<![CDATA[<p>Library&amp;nbsp;programme &amp;amp; training.</p>]]>')
+  item=NewsProvider(lambda url:raw).collect()[0]
+  self.assertEqual(item['description'],'Library programme & training.')
+  self.assertNotIn('&nbsp;',item['description'])
  def test_invalid_feed_and_limits(self):
   for raw in [b'<!DOCTYPE rss [<!ENTITY e "bad">]><rss/>',b'<html/>',b'x'*(2*1024*1024+1)]:
    with self.assertRaises((ValueError,Exception)):NewsProvider(lambda url:raw).collect('https://example.org/feed')

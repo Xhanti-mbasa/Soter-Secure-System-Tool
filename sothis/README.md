@@ -4,6 +4,8 @@
 
 South African public-records research: an Android client and an independent document-collection/search engine. The Android app uses a bundled local interface, with a native bridge for engine connections, browser handoff, sharing, and file export.
 
+Version **0.8.0** refines the established charcoal/blue interface with compact headings, bundled regular-weight vectors, contextual controls, grouped Profile and Settings, and keyboard-safe dialogs. Home owns a direct public-records search, Regions retains its layout switch, and Jobs remembers its filters. Provider and export reliability fixes are documented in [refinement validation](docs/REFINEMENT_VALIDATION.md).
+
 Version **0.7.2** corrects the shared navigation dock, removes redundant Back and Search controls, hides the dock while typing, and restores employment metrics in exported share cards. Home, Regions, Jobs and Profile use fixed-size icons with only the active tab labelled. Native Android Back and browser history retain the research routes.
 
 Version **0.7.1** is the optimized release of the everyday workflows added in **0.7.0**. It includes bounded provider caches with shared in-flight requests, metadata-only offline-library listings, smaller local PDF assets and improved share rendering. Both APKs remain in `releases/`. See [optimization measurements](docs/OPTIMIZATION.md).
@@ -16,7 +18,7 @@ Live search, sourced Party dossiers, alerts, local evidence saving, investigatio
 
 ## Install and use
 
-Install the APK attached to [Sothis 0.7.2](https://github.com/Xhanti-mbasa/Soter-Secure-System-Tool/releases/tag/sothis-v0.7.2) on Android 8.0+. [Sothis 0.7.0](https://github.com/Xhanti-mbasa/Soter-Secure-System-Tool/releases/tag/sothis-v0.7.0) is retained as the feature baseline. It uses the same package and development signing key as previous Sothis releases, so it can update that installation while retaining app data. The signing key is excluded from Git. Every new Android version must have an attached APK GitHub Release; see [RELEASING.md](docs/RELEASING.md).
+Install the APK attached to [Sothis 0.8.0](https://github.com/Xhanti-mbasa/Soter-Secure-System-Tool/releases/tag/sothis-v0.8.0) on Android 8.0+. [Sothis 0.7.0](https://github.com/Xhanti-mbasa/Soter-Secure-System-Tool/releases/tag/sothis-v0.7.0) is retained as the feature baseline. It uses the same package and development signing key as previous Sothis releases, so it can update that installation while retaining app data. The signing key is excluded from Git. Every new Android version must have an attached APK GitHub Release; see [RELEASING.md](docs/RELEASING.md).
 
 - **Search:** choose Live public web, Social profiles, Live government web, Companies / CIPC, or Saved government collection. Live results show retrieved unique hits, profile candidates, name-match ranking, provider availability, retrieval dates and a platform footprint. Account ownership requires a saved researcher decision. Posts, share links and TikTok discovery pages are not counted as accounts.
 - **Party:** search ANC, DA, EFF or another listed party from Search or the Party tab. Browse the captured Parliament roster, filter representatives by name, refresh the official directory, and open member dossiers. Profiles retrieve current public member pages and group live mentions into government, news, remuneration, education, business and social categories. Pin/export a sourced dossier or create a mention alert.
@@ -37,7 +39,7 @@ National government plus all nine provinces, HTML/text-bearing PDF ingestion, pe
 
 ## Interface and photography
 
-The dock contains Home, Regions, Jobs and Profile. Its separate circle opens Search on screens without an inline search; the header gear opens Settings. People & parties, Tools and Investigations are available from Explore. Photos on region cards identify the pictured place, rather than claiming the source or every document originated there. Home photo cards open Regions and Party. A representative dossier places the portrait, name and sourced details first; native Android Back or browser Back returns to the roster.
+The dock contains Home, Regions, Jobs and Profile. Its separate circle opens Search on screens without an inline search; the header gear opens Settings. People & parties, Tools and Investigations are available from Explore. Photos on region cards identify the pictured place, rather than claiming the source or every document originated there. Home includes public-records search. Search photo cards open Regions and Party. A representative dossier places the portrait, name and sourced details first; native Android Back or browser Back returns to the roster.
 
 The APK includes nine compressed landscape photographs (Pretoria is used for both National and Gauteng), the Doto font and Phosphor icons. Landscape credits, original file pages, licenses and modifications are available in Settings and `android/app/src/main/assets/photo-credits.json`. Images retain their listed Creative Commons licenses. Doto is under the SIL Open Font License; Phosphor icons are under MIT, with license files bundled. Representative portraits are loaded from the official Parliament directory over HTTPS and are optional network assets; missing photos show initials. Portraits do not verify the ownership of a social account.
 

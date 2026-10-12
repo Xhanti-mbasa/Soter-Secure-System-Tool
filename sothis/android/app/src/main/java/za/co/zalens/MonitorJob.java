@@ -36,7 +36,7 @@ public final class MonitorJob extends JobService {
         Set<String> delivered=new HashSet<>(prefs.getStringSet("delivered",new HashSet<String>()));
         for(int i=0;i<alerts.length();i++) {
             JSONObject a=alerts.getJSONObject(i);String id=a.getString("id");if(delivered.contains(id)||a.optBoolean("read"))continue;
-            Intent open=new Intent(c,MainActivity.class).putExtra("alerts",true);
+            Intent open=new Intent(c,MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_SINGLE_TOP).putExtra("alerts",true);
             PendingIntent pending=PendingIntent.getActivity(c,0,open,PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
             manager.notify(id.hashCode(),new Notification.Builder(c,"monitoring").setSmallIcon(android.R.drawable.ic_popup_reminder).setContentTitle("New evidence: "+a.optString("query"))
                 .setContentText(a.optString("service")+" · "+a.optJSONObject("hit").optString("title","New matching result")).setContentIntent(pending).setAutoCancel(true).build());delivered.add(id);
@@ -48,7 +48,7 @@ public final class MonitorJob extends JobService {
             try {
                 SharedPreferences engine=getSharedPreferences("engine",MODE_PRIVATE);String base=engine.getString("url","");JSONArray inbox;
                 if(!base.isEmpty()&&getSharedPreferences("services",MODE_PRIVATE).getString("monitor_backend","engine").equals("engine"))inbox=new JSONArray(new String(PublicServices.fetch(base+"/api/alerts",8*1024*1024,false,engine.getString("token","")),StandardCharsets.UTF_8));
-                else {PublicServices services=new PublicServices(MonitorJob.this);JSONArray rules=services.rules();for(int i=0;i<rules.length();i++){JSONObject r=rules.getJSONObject(i);if(r.optBoolean("enabled",true)&&System.currentTimeMillis()-r.optLong("last_checked_ms",0)>=r.optInt("interval_minutes",120)*60000L){synchronized(PublicServices.class){services.check(r.getString("id"));}}}inbox=services.alerts();}
+                else {PublicServices services=new PublicServices(MonitorJob.this);JSONArray rules=services.rules();for(int i=0;i<rules.length();i++){JSONObject r=rules.getJSONObject(i);if(r.optBoolean("enabled",true)&&System.currentTimeMillis()-r.optLong("last_checked_ms",0)>=r.optInt("interval_minutes",120)*60000L){synchronized(PublicServices.MONITOR_LOCK){services.check(r.getString("id"));}}}inbox=services.alerts();}
                 notifyAlerts(MonitorJob.this,inbox);
             }catch(Exception ignored){}finally{jobFinished(parameters,false);}
         }});return true;
