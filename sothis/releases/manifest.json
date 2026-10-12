@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "latest": "0.7.2",
+  "latest": "0.8.0",
   "releases": [
     {
       "version": "0.7.0",
@@ -16,6 +16,11 @@
       "version": "0.7.2",
       "commit": "fca499e681424ebf636e0efca721149a90ec758b",
       "notes": "0.7.2.md"
+    },
+    {
+      "version": "0.8.0",
+      "commit": "1346d25e63f95897f8f486f1e4800b2bf8fe9138",
+      "notes": "0.8.0.md"
     }
   ]
 }
