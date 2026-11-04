@@ -16,6 +16,16 @@ Member charts summarise four business-disclosure sections: shares, outside work,
 
 Article dates use explicit `article:published_time`, `datePublished`/`pubdate` metadata or Article/WebPage JSON-LD. Conflicting dates stay unavailable. A generic `<time>`, copyright year, modified date and search `page_age` cannot substitute for publication. News view checks at most four articles with two workers; other results offer manual lookup. The server uses its existing bounded fetcher, host restrictions, public-address checks and robots rules. Android uses bounded public HTTPS requests. Access failures remain visible. Dossier exports include date evidence, source-page hash and date-check time when retrieved.
 
+## Election calendar
+
+The party page's former "Next national election" card is now an **Elections** section grouped into **Now**, **Upcoming** and **Previous**; the Assembly overview shows the same timeline. It covers national/provincial and municipal elections from `elections` in `analytics-data.json`.
+
+Status is derived in the client from SAST dates and times, never stored: an upcoming election counts down, special-voting days and polling day show as in progress ("Polling day", "Voting now" until `polls_close`, then "Counting"), and an election moves to Previous only once `results_declared_at` and `shares` are installed. No party share is shown for an in-progress election. The national outlook (no forecast, or a reviewed voting-intention poll) is attached to the next national election.
+
+Capture of 4 Nov 2026: 2019 and 2024 National Assembly ballot shares (IEC results report / PMG), 2021 municipal ward + PR shares (secondary compilation of IEC results, labelled as such), the 2026 Local Government Elections (polling 07:00–21:00 SAST, special votes 2–3 Nov) and the 2029 national and provincial elections (date not proclaimed). Validation requires https evidence, results only after polling day, shares only with a declaration date and ballot measure, and a matching seat allocation for declared national results.
+
+When the IEC declares the 2026 results, set `results_declared_at`, `measure` (for example "Ward + PR vote share, all municipalities") and `shares` on `lge-2026`, then install with `--reviewed-json`. A source recapture keeps the reviewed calendar.
+
 ## Election outlook and updates
 
 No reviewed national-election forecast was available for this capture. The default outlook assigns **no win probability**. Local-election polls are excluded. National voting-intention percentages, when sourced, are labelled as intention rather than chances of winning.

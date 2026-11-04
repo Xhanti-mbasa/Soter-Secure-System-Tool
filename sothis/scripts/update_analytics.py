@@ -132,6 +132,10 @@ def main():
             national_elections=[dict(date='2019-05-08',total_seats=400,seats=historic,source_url=PREVIOUS,source_hash=hashlib.sha256(old).hexdigest()),dict(date='2024-05-29',total_seats=400,seats=current,source_url=SEATS,source_hash=hashlib.sha256(raw).hexdigest())],
             provincial_election=dict(date='2024-05-29',ballot='Provincial Ballot',reported_at='2024-06-21T13:51:28+02:00',source_url=PROVINCIAL,source_hash=hashlib.sha256(pdf).hexdigest(),coverage='Provincial-ballot plurality, not coalition control. Charts cover the 18 parties in the current Parliament directory; other parties and independents also contested.'),
             provinces=provinces,map_credit=dict(source='geoBoundaries / OCHA ROSEA / South African Municipal Demarcation Board',url='https://www.geoboundaries.org/api/current/gbOpen/ZAF/ADM1/',license='CC BY 3.0 IGO',license_url='https://creativecommons.org/licenses/by/3.0/igo/',boundary_year=2020),polls=[])
+        # The election calendar is reviewed by hand; a source recapture keeps it.
+        previous=json.loads(DATA.read_text()) if DATA.exists() else {}
+        for key in ('elections','elections_captured_at'):
+            if key in previous:data[key]=previous[key]
         validate(data)
     temporary=DATA.with_suffix('.tmp')
     temporary.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n');temporary.replace(DATA)
