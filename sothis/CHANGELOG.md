@@ -1,5 +1,11 @@
 # Changes
 
+## Unreleased
+
+- Replaced the party page's "Next national election" card with an Elections section (Now / Upcoming / Previous) covering national, provincial and municipal elections; the Assembly overview shows the same timeline.
+- Added the 2026 Local Government Elections (4 Nov 2026) with SAST-derived status: special voting, polling day, voting now, counting, then final results once declared. Added 2019/2024 national ballot shares, 2021 municipal shares and the 2029 national and provincial elections.
+- Validated election entries in the engine; source recapture keeps the reviewed calendar.
+
 ## 0.7.1 — 2026-10-10
 
 - Added bounded provider registries/caches with shared in-flight requests and independent provider concurrency; reused native service instances.

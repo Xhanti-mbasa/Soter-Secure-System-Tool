@@ -50,7 +50,7 @@ function renderPartyOverview(){
  card.append(metric('TOTAL SEATS','400',sortedSeats(e).length+' represented parties'),seatTiles(e));
  const bars=el('div','seat-bars');for(const [code,count] of sortedSeats(e))bars.append(chartBar(code,count,400,data.colors[code]||'#bbb',String(count),()=>openParty(code)));card.append(bars,el('p','coverage','Each tile is one National Assembly seat. Roster counts also include NCOP members and are shown separately.'));
  evidenceLink(card,'Parliament · allocation captured '+evidenceDate(data.captured_at),e.source_url);
- renderProvinceMap(map);grid.append(card,map);box.append(grid);box.append(el('h2','directory-heading','Explore a party.'));
+ renderProvinceMap(map);grid.append(card,map);box.append(grid,electionsCard(null));box.append(el('h2','directory-heading','Explore a party.'));
 }
 function renderProvinceMap(card){
  const data=analyticsState.data,svg=svgNode('svg',{viewBox:'0 0 460 425',class:'province-map',role:'group','aria-label':'South Africa: highest provincial-ballot vote share by province'}),info=el('div','province-detail');
@@ -68,7 +68,7 @@ function renderProvinceMap(card){
 function renderPartyAnalytics(p){
  const box=$('party-analytics');box.replaceChildren();const data=analyticsState.data,e=latestElection();if(!data||!e)return;
  const count=e.seats[p.code]||0,color=data.colors[p.code]||'#aaa';
- const grid=el('div','analytics-grid party-chart-grid'),share=chartCard('Assembly share','PARLIAMENT'),trend=chartCard('Seats over time','ELECTION RESULTS'),outlook=chartCard('Next national election','OUTLOOK');
+ const grid=el('div','analytics-grid party-chart-grid'),share=chartCard('Assembly share','PARLIAMENT'),trend=chartCard('Seats over time','ELECTION RESULTS');
  share.append(ringChart(count,400,color,'of Assembly seats'),metric('SEAT ALLOCATION',count+' / 400','Election · '+evidenceDate(e.date)));
  const majority=201;share.append(chartBar('Seats',count,400,color,String(count)),el('p','coverage',count>=majority?'At least 201 allocated seats.':(majority-count)+' seats short of a 201-seat majority in a full Assembly. This is seat share, not ownership or a voting forecast.'));
  evidenceLink(share,'Parliament · seat allocation',e.source_url);
@@ -80,18 +80,81 @@ function renderPartyAnalytics(p){
  for(const h of history){const seats=h.seats[p.code]||0;trend.append(chartBar(h.date.slice(0,4),seats,400,color,seats+' seats'));evidenceLink(trend,'Allocation · '+h.date.slice(0,4),h.source_url)}
  const delta=count-(history.length>1?history.at(-2).seats[p.code]||0:count);trend.append(metric('CHANGE',delta>0?'+'+delta:String(delta),'Seats since the previous captured election'));
  trend.append(el('p','coverage','Comparable National Assembly allocations. A zero means no allocated Assembly seats in that election.'));
- const poll=activeNationalPoll();
- if(poll){const share=poll.shares[p.code];outlook.append(el('p','mono muted',poll.publisher+' · published '+evidenceDate(poll.published_at)));
-  if(share===undefined)outlook.append(el('p','muted','This party was not reported separately in the poll.'));
-  else outlook.append(chartBar('Voting intention',share,100,color,share.toFixed(1)+'%'));
-  outlook.append(el('p','coverage',poll.population+' · sample '+poll.sample_size+' · fieldwork '+evidenceDate(poll.fieldwork_from)+'–'+evidenceDate(poll.fieldwork_to)),el('p','coverage',poll.methodology),el('p','coverage','Voting intention is not the probability of winning. Polls for an earlier election cycle are retired when newer results are installed.'));
-  evidenceLink(outlook,'Read poll and methodology',poll.source_url);
- }else{outlook.append(el('div','outlook-unavailable','NO REVIEWED FORECAST'),el('p','muted','A credible national-election forecast has not been added to this capture.'),el('div','unavailable-track'),el('p','coverage','No percentage is assigned. The '+e.date.slice(0,4)+' results and local-election polls cannot establish a national win probability. New national polls must include dates, sample and methodology.'))}
- outlook.append(el('p','mono muted','Current cycle · after '+evidenceDate(e.date)));
- grid.append(share,trend,outlook);box.append(grid);
+ grid.append(share,trend);box.append(grid,electionsCard(p));
  const provinces=chartCard('Provincial footprint',data.provincial_election.date.slice(0,4)+' PROVINCIAL BALLOT');for(const province of data.provinces){const r=province.results.find(r=>r.code===p.code);if(r)provinces.append(chartBar(province.name,r.share,100,color,r.share.toFixed(2)+'%'))}
  provinces.append(el('p','coverage','Share of valid provincial-ballot votes, not national-ballot share or governing control. Captured '+evidenceDate(data.captured_at)+'.'));evidenceLink(provinces,'IEC · detailed provincial results',data.provincial_election.source_url);box.append(provinces);
 }
+// Election calendar. Phase is derived from dates in SAST, never stored, so
+// polling day becomes "voting now", then "counting", then a previous result
+// once a declaration date and shares are installed.
+const SAST_OFFSET_MS=2*3600e3;
+function sastNow(now=new Date()){const iso=new Date(now.getTime()+SAST_OFFSET_MS).toISOString();return {day:iso.slice(0,10),time:iso.slice(11,16)}}
+function daysBetween(from,to){return Math.round((Date.parse(to+'T00:00:00Z')-Date.parse(from+'T00:00:00Z'))/864e5)}
+function electionStatus(e,now=new Date()){
+ const {day,time}=sastNow(now);
+ if(!e.date)return {phase:'upcoming',label:'Due '+e.due_year,detail:'Date not yet proclaimed'};
+ if(e.results_declared_at&&e.results_declared_at<=day)return {phase:'previous',label:'Final',detail:'Declared '+evidenceDate(e.results_declared_at)};
+ const special=(e.special_votes||[]).slice().sort();
+ if(special.includes(day))return {phase:'current',label:'Special voting',detail:'Approved special votes · election day '+evidenceDate(e.date)};
+ if(day<(special[0]||e.date)){const n=daysBetween(day,e.date);return {phase:'upcoming',label:n===1?'Tomorrow':'In '+n+' days',detail:evidenceDate(e.date)}}
+ if(day<e.date)return {phase:'current',label:'Special voting complete',detail:'Election day '+evidenceDate(e.date)};
+ if(day===e.date){
+  if(e.polls_open&&time<e.polls_open)return {phase:'current',label:'Polling day',detail:'Polls open '+e.polls_open+' SAST'};
+  if(!e.polls_close||time<e.polls_close)return {phase:'current',label:'Voting now',detail:e.polls_close?'Polls close '+e.polls_close+' SAST · voters already in the queue are assisted':'Polling day'};
+  return {phase:'current',label:'Counting',detail:'Polls closed '+e.polls_close+' SAST · results not yet declared'};
+ }
+ return {phase:'current',label:'Counting',detail:'Results not yet declared'};
+}
+function electionKindLabel(e){return {national_provincial:'NATIONAL + PROVINCIAL',municipal:'MUNICIPAL',by_election:'BY-ELECTION'}[e.kind]||e.kind.toUpperCase()}
+function electionRow(e,party,status,withOutlook){
+ const data=analyticsState.data,row=el('div','election-row '+status.phase),head=el('div','election-row-head');
+ const chip=el('span','election-chip '+status.phase,status.label);head.append(el('span','mono muted',electionKindLabel(e)+' · '+(e.date?evidenceDate(e.date):'Due '+e.due_year)),chip);
+ row.append(head,el('h4','election-name',e.name));if(status.detail)row.append(el('p','election-detail muted',status.detail));
+ if(status.phase==='previous'){
+  if(party){const share=e.shares[party.code],color=data.colors[party.code]||'#aaa';
+   if(share===undefined)row.append(el('p','muted election-none','No separate result for '+party.code+' in this capture.'));
+   else row.append(chartBar(e.measure,share,100,color,share.toFixed(2)+'%'));
+   const alloc=e.kind==='national_provincial'&&data.national_elections.find(n=>n.date===e.date);if(alloc)row.append(el('p','mono muted',(alloc.seats[party.code]||0)+' / 400 National Assembly seats'));
+  }else{for(const [code,share] of Object.entries(e.shares).sort((a,b)=>b[1]-a[1]).slice(0,3))row.append(chartBar(code,share,100,data.colors[code]||'#aaa',share.toFixed(2)+'%',()=>openParty(code)));if(e.measure)row.append(el('p','coverage',e.measure+'.'))}
+  if(e.turnout)row.append(el('p','mono muted','Turnout '+e.turnout.toFixed(2)+'%'));
+ }else if(status.phase==='current'){
+  if(e.registered_voters)row.append(el('p','mono muted',(e.registered_voters/1e6).toLocaleString('en-ZA',{maximumFractionDigits:1})+' million registered voters'+(e.voting_stations?' · '+e.voting_stations.toLocaleString('en-ZA')+' voting stations':'')));
+  row.append(el('p','coverage',party?'No share is shown for '+party.code+' until the IEC declares results. Early counts are not final.':'Party shares appear once the IEC declares results. Early counts are not final.'));
+ }else if(party&&withOutlook)row.append(nationalOutlook(party));
+ if(e.summary)row.append(el('p','coverage',e.summary));if(e.source_note)row.append(el('p','coverage',e.source_note));
+ for(const s of e.sources||[])evidenceLink(row,s.label,s.url);
+ return row;
+}
+function nationalOutlook(p){
+ const box=el('div','national-outlook'),poll=activeNationalPoll(),e=latestElection(),color=analyticsState.data.colors[p.code]||'#aaa';
+ if(poll){const share=poll.shares[p.code];box.append(el('p','mono muted',poll.publisher+' · published '+evidenceDate(poll.published_at)));
+  if(share===undefined)box.append(el('p','muted','This party was not reported separately in the poll.'));
+  else box.append(chartBar('Voting intention',share,100,color,share.toFixed(1)+'%'));
+  box.append(el('p','coverage',poll.population+' · sample '+poll.sample_size+' · fieldwork '+evidenceDate(poll.fieldwork_from)+'–'+evidenceDate(poll.fieldwork_to)),el('p','coverage',poll.methodology),el('p','coverage','Voting intention is not the probability of winning. Polls for an earlier election cycle are retired when newer results are installed.'));
+  evidenceLink(box,'Read poll and methodology',poll.source_url);
+ }else{box.append(el('div','outlook-unavailable','NO REVIEWED FORECAST'),el('div','unavailable-track'),el('p','coverage','No percentage is assigned. The '+e.date.slice(0,4)+' results and local-election polls cannot establish a national win probability. New national polls must include dates, sample and methodology.'))}
+ return box;
+}
+function electionsCard(party,now=new Date()){
+ const data=analyticsState.data,card=chartCard('Elections','PREVIOUS · NOW · UPCOMING');card.classList.add('elections-card');card.dataset.elections=party?party.code:'';
+ const items=(data?.elections||[]).map(e=>({e,status:electionStatus(e,now)}));
+ if(!items.length){card.append(el('p','muted','No election calendar in this capture.'));return card}
+ const nextNational=items.filter(i=>i.status.phase==='upcoming'&&i.e.kind==='national_provincial').sort((a,b)=>(a.e.date||String(a.e.due_year)).localeCompare(b.e.date||String(b.e.due_year)))[0]?.e.id;
+ const cols=el('div','election-columns');
+ const groups=[['current','Now',(a,b)=>a.e.date.localeCompare(b.e.date)],['upcoming','Upcoming',(a,b)=>(a.e.date||String(a.e.due_year)).localeCompare(b.e.date||String(b.e.due_year))],['previous','Previous',(a,b)=>b.e.date.localeCompare(a.e.date)]];
+ for(const [phase,title,order] of groups){
+  const list=items.filter(i=>i.status.phase===phase).sort(order),col=el('section','election-group '+phase);col.append(el('h3','election-group-title',title));
+  if(!list.length)col.append(el('p','muted election-none',phase==='current'?'No election is in progress.':phase==='upcoming'?'No upcoming election in this capture.':'No previous results in this capture.'));
+  for(const {e,status} of list)col.append(electionRow(e,party,status,e.id===nextNational));cols.append(col);
+ }
+ card.append(cols,el('p','coverage','Status follows South African time (SAST). Results are shown only after the IEC declares them'+(data.elections_captured_at?' · calendar captured '+evidenceDate(data.elections_captured_at):'')+'.'));
+ return card;
+}
+function refreshElectionCards(){
+ if(!analyticsState.data)return;
+ for(const card of document.querySelectorAll('.elections-card')){const code=card.dataset.elections,party=code?(partyState.current&&partyState.current.code===code?partyState.current:{code}):null;card.replaceWith(electionsCard(party))}
+}
+setInterval(refreshElectionCards,60000);
 function disclosureSections(text){
  const headings=[...text.matchAll(/(?:^|\n)\s*([1-4])\.\s*([^\n]+)/g)],columns=[/Name of Company[^\n]*/i,/Name of Employer[^\n]*/i,/Name of the Company[^\n]*/i,/Name of Org(?:an|na)ization[^\n]*/i];
  const labels=['Shares & financial interests','Outside employment','Directorships & partnerships','Consultancies & retainers'];

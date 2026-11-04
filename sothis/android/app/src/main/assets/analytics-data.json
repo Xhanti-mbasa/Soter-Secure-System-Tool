@@ -968,5 +968,158 @@
     "license_url": "https://creativecommons.org/licenses/by/3.0/igo/",
     "boundary_year": 2020
   },
-  "polls": []
+  "polls": [],
+  "elections": [
+    {
+      "id": "npe-2019",
+      "name": "2019 National and Provincial Elections",
+      "kind": "national_provincial",
+      "date": "2019-05-08",
+      "results_declared_at": "2019-05-11",
+      "measure": "National Assembly ballot share",
+      "shares": {
+        "ANC": 57.5,
+        "DA": 20.77,
+        "EFF": 10.8,
+        "IFP": 3.38,
+        "FF PLUS": 2.38,
+        "ACDP": 0.84,
+        "UDM": 0.45,
+        "ATM": 0.44,
+        "GOOD": 0.4,
+        "PAC": 0.19,
+        "ALJAMA'AH": 0.18
+      },
+      "turnout": 66.05,
+      "summary": "Elected the 6th Parliament and nine provincial legislatures.",
+      "sources": [
+        {
+          "label": "PMG · 2019 and 2024 results and seat allocation",
+          "url": "https://pmg.org.za/blog/Election%20Results%20and%20Allocation%20of%20Seats%20in%20Parliament%20National%20Assembly%20and%20Provincial%20Legislatures%202024"
+        },
+        {
+          "label": "Parliament · 6th Parliament composition",
+          "url": "https://www.parliament.gov.za/press-releases/current-composition-newly-sworn-6th-parliament"
+        }
+      ]
+    },
+    {
+      "id": "lge-2021",
+      "name": "2021 Local Government Elections",
+      "kind": "municipal",
+      "date": "2021-11-01",
+      "results_declared_at": "2021-11-04",
+      "measure": "Ward + PR vote share, all municipalities",
+      "shares": {
+        "ANC": 45.59,
+        "DA": 21.62,
+        "EFF": 10.32,
+        "IFP": 5.65,
+        "FF PLUS": 2.34,
+        "ActionSA": 2.34,
+        "PA": 0.97,
+        "ACDP": 0.79,
+        "GOOD": 0.64,
+        "ATM": 0.57,
+        "UDM": 0.47,
+        "PAC": 0.24,
+        "ALJAMA'AH": 0.24
+      },
+      "turnout": null,
+      "summary": "Elected municipal councils for 2021–2026. First time the ANC fell below 50% nationally.",
+      "source_note": "Shares are a secondary compilation of IEC results; check figures against the IEC results portal.",
+      "sources": [
+        {
+          "label": "Wikipedia · compilation of IEC 2021 results",
+          "url": "https://en.wikipedia.org/wiki/2021_South_African_municipal_elections"
+        },
+        {
+          "label": "IEC · results portal",
+          "url": "https://results.elections.org.za/"
+        }
+      ]
+    },
+    {
+      "id": "npe-2024",
+      "name": "2024 National and Provincial Elections",
+      "kind": "national_provincial",
+      "date": "2024-05-29",
+      "results_declared_at": "2024-06-02",
+      "measure": "National Assembly ballot share",
+      "shares": {
+        "ANC": 40.18,
+        "DA": 21.81,
+        "MK": 14.58,
+        "EFF": 9.52,
+        "IFP": 3.85,
+        "PA": 2.06,
+        "FF PLUS": 1.36,
+        "ActionSA": 1.2,
+        "ACDP": 0.6,
+        "UDM": 0.49,
+        "RISE MZANSI": 0.42,
+        "BOSA": 0.41,
+        "ATM": 0.4,
+        "ALJAMA'AH": 0.24,
+        "NCC": 0.23,
+        "PAC": 0.23,
+        "UAT": 0.22,
+        "GOOD": 0.18
+      },
+      "turnout": 58.64,
+      "summary": "Elected the 7th Parliament and nine provincial legislatures. No party won a majority.",
+      "sources": [
+        {
+          "label": "IEC · national and provincial results report",
+          "url": "https://results.elections.org.za/home/NPEPublicReports/1335/Results%20Report/National.pdf"
+        },
+        {
+          "label": "PMG · 2019 and 2024 results and seat allocation",
+          "url": "https://pmg.org.za/blog/Election%20Results%20and%20Allocation%20of%20Seats%20in%20Parliament%20National%20Assembly%20and%20Provincial%20Legislatures%202024"
+        }
+      ]
+    },
+    {
+      "id": "lge-2026",
+      "name": "2026 Local Government Elections",
+      "kind": "municipal",
+      "date": "2026-11-04",
+      "results_declared_at": null,
+      "special_votes": [
+        "2026-11-02",
+        "2026-11-03"
+      ],
+      "polls_open": "07:00",
+      "polls_close": "21:00",
+      "registered_voters": 29200000,
+      "voting_stations": 23696,
+      "summary": "Elects all municipal councils. Wards and proportional-representation seats are contested in every municipality.",
+      "sources": [
+        {
+          "label": "IEC · LGE 2026",
+          "url": "https://www.elections.org.za/pw/"
+        },
+        {
+          "label": "Government · election date announcement",
+          "url": "https://www.gov.za/news/media-statements/electoral-commission-welcomes-announcement-4-november-2026-date-upcoming"
+        }
+      ]
+    },
+    {
+      "id": "npe-2029",
+      "name": "2029 National and Provincial Elections",
+      "kind": "national_provincial",
+      "date": null,
+      "due_year": 2029,
+      "results_declared_at": null,
+      "summary": "Parliament and provincial legislatures serve five-year terms; the date is proclaimed closer to the time.",
+      "sources": [
+        {
+          "label": "Constitution · Chapter 4, Parliament",
+          "url": "https://www.gov.za/documents/constitution/chapter-4-parliament"
+        }
+      ]
+    }
+  ],
+  "elections_captured_at": "2026-11-04T11:45:00+00:00"
 }

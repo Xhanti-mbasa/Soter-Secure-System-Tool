@@ -39,6 +39,34 @@ class AnalyticsTests(unittest.TestCase):
             invalid=copy.deepcopy(self.data);invalid['polls'][0].update(change)
             with self.assertRaises(ValueError):validate(invalid)
 
+    def test_election_calendar_covers_previous_current_and_upcoming(self):
+        elections={e['id']:e for e in self.data['elections']}
+        self.assertEqual(set(elections),{'npe-2019','lge-2021','npe-2024','lge-2026','npe-2029'})
+        self.assertEqual(elections['npe-2024']['shares']['ANC'],40.18)
+        self.assertEqual(elections['npe-2024']['shares']['MK'],14.58)
+        self.assertEqual(elections['npe-2019']['shares']['ANC'],57.5)
+        self.assertEqual(elections['lge-2021']['shares']['DA'],21.62)
+        lge=elections['lge-2026']
+        self.assertEqual((lge['kind'],lge['date'],lge['polls_open'],lge['polls_close']),('municipal','2026-11-04','07:00','21:00'))
+        self.assertIsNone(lge['results_declared_at']);self.assertNotIn('shares',lge)
+        self.assertIsNone(elections['npe-2029']['date']);self.assertEqual(elections['npe-2029']['due_year'],2029)
+
+    def test_invalid_election_entries_are_rejected(self):
+        changes=[('lge-2026',dict(shares={'ANC':40})),('lge-2026',dict(kind='provincial_only')),('lge-2026',dict(special_votes=['2026-11-05'])),
+                 ('lge-2026',dict(polls_open='21:00',polls_close='07:00')),('npe-2024',dict(results_declared_at='2024-05-01')),
+                 ('npe-2024',dict(shares={'ANC':80,'DA':30})),('npe-2024',dict(sources=[{'label':'x','url':'http://insecure.example'}])),
+                 ('npe-2029',dict(due_year=None)),('npe-2024',dict(win_probability=40)),('npe-2024',dict(date='2024-05-30'))]
+        for eid,change in changes:
+            invalid=copy.deepcopy(self.data);next(e for e in invalid['elections'] if e['id']==eid).update(change)
+            with self.subTest(eid=eid,change=change),self.assertRaises(ValueError):validate(invalid)
+        duplicate=copy.deepcopy(self.data);duplicate['elections'].append(copy.deepcopy(duplicate['elections'][0]))
+        with self.assertRaises(ValueError):validate(duplicate)
+
+    def test_declared_results_can_be_added_to_the_current_election(self):
+        data=copy.deepcopy(self.data);lge=next(e for e in data['elections'] if e['id']=='lge-2026')
+        lge.update(results_declared_at='2026-11-07',measure='Ward + PR vote share, all municipalities',shares={'ANC':40.0,'DA':22.0})
+        validate(data)
+
     def test_snapshot_reads_updated_results_without_process_restart(self):
         with tempfile.TemporaryDirectory() as tmp:
             p=Path(tmp)/'evidence.json';p.write_text(json.dumps(self.data));self.assertEqual(snapshot(p)['national_elections'][-1]['seats']['ANC'],159)
