@@ -1,0 +1,125 @@
+name: Build Sothis APK release
+
+# Builds the APK on GitHub, signs it with the release key held in repository
+# secrets, then commits it, registers it and publishes the GitHub Release.
+# Bump versionName/versionCode and add sothis/releases/<version>.md first.
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Commit the signed APK to main, register it and publish the GitHub Release
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sothis-apk-releases
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      SDK_PLATFORM: android-36
+      SDK_BUILD_TOOLS: 36.0.0
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Check version
+        run: |
+          VERSION=$(sed -n "s/.*versionName '\([0-9][0-9.]*\)'.*/\1/p" sothis/android/app/build.gradle)
+          test -n "$VERSION" || { echo "::error::versionName not found in build.gradle"; exit 1; }
+          grep -q "android:versionName=\"$VERSION\"" sothis/android/app/src/main/AndroidManifest.xml || { echo "::error::AndroidManifest.xml is not at $VERSION"; exit 1; }
+          python3 - "$VERSION" <<'PY'
+          import json, sys
+          v = sys.argv[1]
+          if any(r['version'] == v for r in json.load(open('sothis/releases/manifest.json'))['releases']):
+              sys.exit(f'::error::{v} is already registered; bump versionName and versionCode first')
+          PY
+          test -s "sothis/releases/$VERSION.md" || { echo "::error::Add release notes in sothis/releases/$VERSION.md"; exit 1; }
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "APK=sothis/releases/sothis-$VERSION.apk" >> "$GITHUB_ENV"
+          echo "TOOLS=$ANDROID_HOME/build-tools/$SDK_BUILD_TOOLS" >> "$GITHUB_ENV"
+      - name: Run tests
+        run: |
+          python3 -m pip install -q -r sothis/requirements-web.txt
+          cd sothis && python3 -m unittest discover -s tests -q
+      - name: Install Android SDK packages and compiler
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;$SDK_PLATFORM" "build-tools;$SDK_BUILD_TOOLS" > /dev/null
+          ECJ_VERSION=$(curl -fsSL https://repo1.maven.org/maven2/org/eclipse/jdt/ecj/maven-metadata.xml | sed -n 's:.*<release>\(.*\)</release>.*:\1:p')
+          curl -fsSL -o "$RUNNER_TEMP/ecj.jar" "https://repo1.maven.org/maven2/org/eclipse/jdt/ecj/$ECJ_VERSION/ecj-$ECJ_VERSION.jar"
+          echo "Build tools $SDK_BUILD_TOOLS, platform $SDK_PLATFORM, ECJ $ECJ_VERSION"
+      - name: Build and sign APK
+        env:
+          SOTHIS_KEYSTORE_B64: ${{ secrets.SOTHIS_KEYSTORE_B64 }}
+          SOTHIS_KEYSTORE_PASSWORD: ${{ secrets.SOTHIS_KEYSTORE_PASSWORD }}
+        run: |
+          test -n "$SOTHIS_KEYSTORE_B64" -a -n "$SOTHIS_KEYSTORE_PASSWORD" || { echo "::error::SOTHIS_KEYSTORE_B64 / SOTHIS_KEYSTORE_PASSWORD secrets are missing"; exit 1; }
+          umask 077
+          printf '%s' "$SOTHIS_KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/sothis.p12"
+          ALIAS=$(python3 -c "import json;print(json.load(open('sothis/releases/signing.json'))['alias'])")
+          python3 sothis/scripts/build_apk.py --tools "$TOOLS" --android-jar "$ANDROID_HOME/platforms/$SDK_PLATFORM/android.jar" \
+            --ecj "$RUNNER_TEMP/ecj.jar" --keystore "$RUNNER_TEMP/sothis.p12" --ks-alias "$ALIAS" \
+            --ks-pass-env SOTHIS_KEYSTORE_PASSWORD --output "$APK"
+          rm -f "$RUNNER_TEMP/sothis.p12"
+      - name: Verify signing certificate, version and packaged assets
+        run: |
+          CERT=$(java -jar "$TOOLS/lib/apksigner.jar" verify --print-certs "$APK" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')
+          EXPECTED=$(python3 -c "import json;print(json.load(open('sothis/releases/signing.json'))['sha256'])")
+          echo "Signer: $CERT"
+          [ "$CERT" = "$EXPECTED" ] || { echo "::error::APK signer $CERT does not match releases/signing.json $EXPECTED"; exit 1; }
+          "$TOOLS/aapt2" dump badging "$APK" | grep -q "versionName='$VERSION'" || { echo "::error::APK is not version $VERSION"; exit 1; }
+          python3 - "$APK" <<'PY'
+          import sys, zipfile
+          from pathlib import Path
+          src = Path('sothis/android/app/src/main')
+          with zipfile.ZipFile(sys.argv[1]) as z:
+              assets = [n for n in z.namelist() if n.startswith('assets/') and not n.endswith('/')]
+              bad = [n for n in assets if z.read(n) != (src / n).read_bytes()]
+              expected = sorted('assets/' + str(p.relative_to(src / 'assets')) for p in (src / 'assets').rglob('*') if p.is_file())
+          if bad or sorted(assets) != expected:
+              sys.exit(f'::error::Packaged assets differ from source: {bad[:5]}')
+          print(f'{len(assets)} packaged assets match source')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sothis-${{ env.VERSION }}-apk
+          path: ${{ env.APK }}
+          if-no-files-found: error
+      - name: Commit, register and publish release
+        if: inputs.publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          (cd sothis/releases && sha256sum "sothis-$VERSION.apk") >> sothis/releases/SHA256SUMS
+          git add "$APK" sothis/releases/SHA256SUMS
+          git commit -q -m "Add signed Sothis $VERSION APK"
+          SOURCE=$(git rev-parse HEAD)
+          python3 - "$VERSION" "$SOURCE" <<'PY'
+          import json, sys
+          from pathlib import Path
+          version, commit = sys.argv[1:]
+          p = Path('sothis/releases/manifest.json'); m = json.loads(p.read_text())
+          m['releases'].append({'version': version, 'commit': commit, 'notes': f'{version}.md'}); m['latest'] = version
+          p.write_text(json.dumps(m, indent=2) + '\n')
+          PY
+          git add sothis/releases/manifest.json
+          git commit -q -m "Register verified Sothis $VERSION APK release"
+          python3 sothis/scripts/publish_releases.py --dry-run
+          python3 -m unittest discover -s sothis/tests -p test_releases.py -q
+          git push origin HEAD:main
+          python3 sothis/scripts/publish_releases.py --repo "$GITHUB_REPOSITORY"
+          echo "### Sothis $VERSION released" >> "$GITHUB_STEP_SUMMARY"
+          echo "https://github.com/$GITHUB_REPOSITORY/releases/tag/sothis-v$VERSION" >> "$GITHUB_STEP_SUMMARY"

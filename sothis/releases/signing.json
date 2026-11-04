@@ -1,0 +1,14 @@
+{
+  "alias": "sothis",
+  "sha256": "694afdba37b3a064449e92f92a3692ecaeaec7f36f16b790f815769620a15cd0",
+  "since": "0.8.1",
+  "subject": "CN=Sothis Release, O=Xhanti Daka, L=Cape Town, C=ZA",
+  "previous": [
+    {
+      "sha256": "b981c1a75e2b49360ec80241354760b20c50e1533edbed1b8e1d2febb09f04e3",
+      "alias": "androiddebugkey",
+      "subject": "CN=Android Debug, O=Android, C=US",
+      "until": "0.8.0"
+    }
+  ]
+}

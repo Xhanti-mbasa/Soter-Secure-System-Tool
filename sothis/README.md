@@ -4,6 +4,8 @@
 
 South African public-records research: an Android client and an independent document-collection/search engine. The Android app uses a bundled local interface, with a native bridge for engine connections, browser handoff, sharing, and file export.
 
+Version **0.8.1** adds an Elections section to People & parties: previous, in-progress and upcoming national, provincial and municipal elections, including the 4 November 2026 Local Government Elections with live polling-day status. Party shares appear only once the IEC declares results.
+
 Version **0.8.0** refines the established charcoal/blue interface with compact headings, bundled regular-weight vectors, contextual controls, grouped Profile and Settings, and keyboard-safe dialogs. Home owns a direct public-records search, Regions retains its layout switch, and Jobs remembers its filters. Provider and export reliability fixes are documented in [refinement validation](docs/REFINEMENT_VALIDATION.md).
 
 Version **0.7.2** corrects the shared navigation dock, removes redundant Back and Search controls, hides the dock while typing, and restores employment metrics in exported share cards. Home, Regions, Jobs and Profile use fixed-size icons with only the active tab labelled. Native Android Back and browser history retain the research routes.
@@ -18,7 +20,7 @@ Live search, sourced Party dossiers, alerts, local evidence saving, investigatio
 
 ## Install and use
 
-Install the APK attached to [Sothis 0.8.0](https://github.com/Xhanti-mbasa/Soter-Secure-System-Tool/releases/tag/sothis-v0.8.0) on Android 8.0+. [Sothis 0.7.0](https://github.com/Xhanti-mbasa/Soter-Secure-System-Tool/releases/tag/sothis-v0.7.0) is retained as the feature baseline. It uses the same package and development signing key as previous Sothis releases, so it can update that installation while retaining app data. The signing key is excluded from Git. Every new Android version must have an attached APK GitHub Release; see [RELEASING.md](docs/RELEASING.md).
+Install the APK attached to [Sothis 0.8.1](https://github.com/Xhanti-mbasa/Soter-Secure-System-Tool/releases/tag/sothis-v0.8.1) on Android 8.0+. [Sothis 0.7.0](https://github.com/Xhanti-mbasa/Soter-Secure-System-Tool/releases/tag/sothis-v0.7.0) is retained as the feature baseline. **0.8.1 is signed with a new release key**: the key behind 0.1.0–0.8.0 is no longer available, so uninstall an existing Sothis first (its local app data is removed), then install 0.8.1. Later versions update over 0.8.1 normally. The key is excluded from Git and held in GitHub Actions secrets; its fingerprint is recorded in `releases/signing.json`. Every new Android version must have an attached APK GitHub Release; see [RELEASING.md](docs/RELEASING.md).
 
 - **Search:** choose Live public web, Social profiles, Live government web, Companies / CIPC, or Saved government collection. Live results show retrieved unique hits, profile candidates, name-match ranking, provider availability, retrieval dates and a platform footprint. Account ownership requires a saved researcher decision. Posts, share links and TikTok discovery pages are not counted as accounts.
 - **Party:** search ANC, DA, EFF or another listed party from Search or the Party tab. Browse the captured Parliament roster, filter representatives by name, refresh the official directory, and open member dossiers. Profiles retrieve current public member pages and group live mentions into government, news, remuneration, education, business and social categories. Pin/export a sourced dossier or create a mention alert.
@@ -159,7 +161,7 @@ gradle -p android :app:assembleDebug
 python3 -m unittest discover -s tests -v
 ```
 
-`scripts/build_apk.py` accepts paths to Android SDK build tools 35, `android.jar`, and the Eclipse Java compiler jar. It invokes aapt2, Java compilation, D8, zipalign, and apksigner. A private development signing key is generated only if the supplied path does not exist; keep that key for subsequent compatible updates and use a protected release key for production.
+`scripts/build_apk.py` accepts paths to Android SDK build tools 35, `android.jar`, and the Eclipse Java compiler jar. It invokes aapt2, Java compilation, D8, zipalign, and apksigner. It refuses to sign without an existing key. Releases from 0.8.1 are built and signed by the **Build Sothis APK release** GitHub workflow with the release key in repository secrets (`--ks-alias` / `--ks-pass-env`); see [RELEASING.md](docs/RELEASING.md).
 
 See `VALIDATION.md` for the checks completed for this version. Project code uses the repository's MIT license. Public source records retain their publishers' rights and source terms; they are not relicensed by this project's code license.
 

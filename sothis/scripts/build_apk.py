@@ -18,10 +18,16 @@ def main():
     p.add_argument('--android-jar',required=True,type=Path)
     p.add_argument('--ecj',required=True,type=Path)
     p.add_argument('--keystore',required=True,type=Path)
+    p.add_argument('--ks-alias',default='androiddebugkey',help='Key alias (default: the pre-0.8.1 debug alias)')
+    p.add_argument('--ks-pass-env',help='Environment variable holding the keystore and key password; default is the debug password')
     p.add_argument('--output',required=True,type=Path)
     args=p.parse_args()
     if not args.keystore.is_file():
         raise SystemExit('Existing signing key is required. Refusing to generate a different update identity.')
+    if args.ks_pass_env and not os.environ.get(args.ks_pass_env):
+        raise SystemExit(f'{args.ks_pass_env} is empty; refusing to sign without the keystore password.')
+    # apksigner reads env:NAME itself, so the password never appears in the process list.
+    password=f'env:{args.ks_pass_env}' if args.ks_pass_env else 'pass:android'
     source=ROOT/'android/app/src/main';build=ROOT/'android/app/build/manual'
     # Do not carry anonymous/removed class files from a previous release into DEX.
     if build.exists():shutil.rmtree(build)
@@ -38,7 +44,7 @@ def main():
         for entry in dex.glob('*.dex'):out.write(entry,entry.name)
     run([args.tools/'zipalign','-f','4',unsigned,aligned])
     args.output.parent.mkdir(parents=True,exist_ok=True)
-    run(['java','-jar',args.tools/'lib/apksigner.jar','sign','--v4-signing-enabled','false','--ks',args.keystore,'--ks-pass','pass:android','--key-pass','pass:android','--ks-key-alias','androiddebugkey','--out',args.output,aligned])
+    run(['java','-jar',args.tools/'lib/apksigner.jar','sign','--v4-signing-enabled','false','--ks',args.keystore,'--ks-pass',password,'--key-pass',password,'--ks-key-alias',args.ks_alias,'--out',args.output,aligned])
     run(['java','-jar',args.tools/'lib/apksigner.jar','verify','--verbose',args.output])
     run([args.tools/'aapt2','dump','badging',args.output])
     print('APK written:',args.output)

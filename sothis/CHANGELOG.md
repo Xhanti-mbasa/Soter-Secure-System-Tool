@@ -1,10 +1,12 @@
 # Changes
 
-## Unreleased
+## 0.8.1 — 2026-11-04
 
 - Replaced the party page's "Next national election" card with an Elections section (Now / Upcoming / Previous) covering national, provincial and municipal elections; the Assembly overview shows the same timeline.
 - Added the 2026 Local Government Elections (4 Nov 2026) with SAST-derived status: special voting, polling day, voting now, counting, then final results once declared. Added 2019/2024 national ballot shares, 2021 municipal shares and the 2029 national and provincial elections.
 - Validated election entries in the engine; source recapture keeps the reviewed calendar.
+- New release signing key (the key used for 0.1.0–0.8.0 is no longer available): uninstall 0.8.0 before installing 0.8.1. Later versions update normally. Android versionCode 12, same package.
+- Added the Build Sothis APK release workflow: builds, signs with the key in GitHub secrets, verifies the certificate against `releases/signing.json`, then commits, registers and publishes.
 
 ## 0.7.1 — 2026-10-10
 

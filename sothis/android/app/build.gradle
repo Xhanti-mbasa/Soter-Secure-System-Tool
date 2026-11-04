@@ -2,7 +2,7 @@ plugins { id 'com.android.application' }
 android {
     namespace 'za.co.zalens'
     compileSdk 36
-    defaultConfig { applicationId 'za.co.zalens'; minSdk 26; targetSdk 36; versionCode 11; versionName '0.8.0' }
+    defaultConfig { applicationId 'za.co.zalens'; minSdk 26; targetSdk 36; versionCode 12; versionName '0.8.1' }
     compileOptions { sourceCompatibility JavaVersion.VERSION_1_8; targetCompatibility JavaVersion.VERSION_1_8 }
     buildTypes { release { minifyEnabled false } }
 }
