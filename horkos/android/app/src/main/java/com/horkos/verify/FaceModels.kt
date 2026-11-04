@@ -29,10 +29,8 @@ object ImageUtils {
     /** Square crop around a face box with some margin, clamped to the image. */
     fun cropFace(src: Bitmap, box: Rect, margin: Float = 0.2f): Bitmap {
         val size = (max(box.width(), box.height()) * (1 + 2 * margin)).toInt()
-        val cx = box.centerX()
-        val cy = box.centerY()
-        var left = cx - size / 2
-        var top = cy - size / 2
+        var left = box.centerX() - size / 2
+        var top = box.centerY() - size / 2
         left = left.coerceIn(0, max(0, src.width - 1))
         top = top.coerceIn(0, max(0, src.height - 1))
         val w = min(size, src.width - left)
@@ -42,7 +40,7 @@ object ImageUtils {
 }
 
 /**
- * MobileFaceNet (face embeddings) + FaceAntiSpoofing (passive liveness) TFLite models.
+ * MobileFaceNet (192-d face embeddings) + FaceAntiSpoofing (passive liveness) TFLite models.
  * Models: github.com/syaringan357/Android-MobileFaceNet-MTCNN-FaceAntiSpoofing (MIT).
  */
 class FaceModels(context: Context) {
@@ -73,40 +71,21 @@ class FaceModels(context: Context) {
         }
     }
 
-    /** Cosine similarity (-1..1) between the faces in two crops. Higher = more alike. */
+    /** 192-d face embedding for one face crop. */
     @Synchronized
-    fun similarity(face1: Bitmap, face2: Bitmap): Float {
-        val inShape = faceNet.getInputTensor(0).shape()     // expected [2,112,112,3]
+    fun embedding(face: Bitmap): FloatArray {
+        val inShape = faceNet.getInputTensor(0).shape()
         val size = inShape[1]
         val batch = inShape[0]
         val dim = faceNet.getOutputTensor(0).shape()[1]
-        val a = toInput(face1, size, 127.5f, 128f)
-        val b = toInput(face2, size, 127.5f, 128f)
-
-        val e1: FloatArray
-        val e2: FloatArray
-        if (batch >= 2) {
-            val input = Array(batch) { i -> if (i == 0) a else b }
-            val out = Array(batch) { FloatArray(dim) }
-            faceNet.run(input, out)
-            e1 = out[0]; e2 = out[1]
-        } else {
-            val o1 = Array(1) { FloatArray(dim) }
-            val o2 = Array(1) { FloatArray(dim) }
-            faceNet.run(arrayOf(a), o1)
-            faceNet.run(arrayOf(b), o2)
-            e1 = o1[0]; e2 = o2[0]
-        }
-        return cosine(e1, e2)
+        val a = toInput(face, size, 127.5f, 128f)
+        val input = Array(batch) { a }
+        val out = Array(batch) { FloatArray(dim) }
+        faceNet.run(input, out)
+        return out[0]
     }
 
-    private fun cosine(a: FloatArray, b: FloatArray): Float {
-        var dot = 0f; var na = 0f; var nb = 0f
-        for (i in a.indices) {
-            dot += a[i] * b[i]; na += a[i] * a[i]; nb += b[i] * b[i]
-        }
-        return dot / (sqrt(na) * sqrt(nb) + 1e-10f)
-    }
+    fun similarity(face1: Bitmap, face2: Bitmap): Float = cosine(embedding(face1), embedding(face2))
 
     /** Spoof score: below [SPOOF_THRESHOLD] looks like a real face, above looks like a photo/screen. */
     @Synchronized
@@ -126,6 +105,18 @@ class FaceModels(context: Context) {
     companion object {
         const val SPOOF_THRESHOLD = 0.2f
         const val MATCH_THRESHOLD = 0.55f
+
+        fun cosine(a: FloatArray, b: FloatArray): Float {
+            var dot = 0f
+            var na = 0f
+            var nb = 0f
+            for (i in a.indices) {
+                dot += a[i] * b[i]
+                na += a[i] * a[i]
+                nb += b[i] * b[i]
+            }
+            return dot / (sqrt(na) * sqrt(nb) + 1e-10f)
+        }
 
         @Volatile private var instance: FaceModels? = null
         fun get(context: Context): FaceModels =
