@@ -407,13 +407,13 @@ class MainActivity : AppCompatActivity() {
         try {
             val models = FaceModels.get(this)
             if (cardFace != null) {
-                Session.cardFaceMesh = try { FaceAnalysis.mesh(cardFace) } catch (e: Exception) { null }
+                Session.cardFaceMesh = try { FaceAnalysis.meshWithFallback(cardFace, android.graphics.Rect(0, 0, cardFace.width, cardFace.height)) } catch (e: Exception) { null }
                 Session.cardAligned = FaceAnalysis.align(cardFace, Session.cardFaceMesh)
                 Session.cardEmbedding = models.embedding(Session.cardAligned ?: cardFace)
             }
             val cardEmb = Session.cardEmbedding
             for (k in Session.keyframes) {
-                k.mesh = try { FaceAnalysis.mesh(k.frame) } catch (e: Exception) { null }
+                k.mesh = try { FaceAnalysis.meshWithFallback(k.frame, k.box) } catch (e: Exception) { null }
                 k.parallax = FaceAnalysis.parallax(k.mesh)
                 val crop = ImageUtils.cropFace(k.frame, k.box)
                 k.aligned = FaceAnalysis.align(k.frame, k.mesh)

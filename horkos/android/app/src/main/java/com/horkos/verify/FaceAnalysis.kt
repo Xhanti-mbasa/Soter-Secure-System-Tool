@@ -34,6 +34,17 @@ object FaceAnalysis {
         return m.allPoints.sortedBy { it.index }.map { floatArrayOf(it.position.x, it.position.y, it.position.z) }
     }
 
+    /** Mesh on the full frame; if that fails, retry on an enlarged (upscaled) face crop and map back. */
+    fun meshWithFallback(frame: Bitmap, box: Rect): List<FloatArray>? {
+        mesh(frame)?.let { return it }
+        val r = ImageUtils.cropRect(frame, box, 0.4f)
+        val crop = Bitmap.createBitmap(frame, r.left, r.top, r.width(), r.height())
+        val up = if (crop.width < 320) Bitmap.createScaledBitmap(crop, crop.width * 2, crop.height * 2, true) else crop
+        val s = crop.width.toFloat() / up.width
+        val m = mesh(up) ?: return null
+        return m.map { p -> floatArrayOf(r.left + p[0] * s, r.top + p[1] * s, p[2] * s) }
+    }
+
     /**
      * Horizontal offset of the nose tip from the midpoint of the cheeks, divided by cheek distance.
      * A real 3D face shifts strongly when the head turns; a flat photo keeps the same ratio.

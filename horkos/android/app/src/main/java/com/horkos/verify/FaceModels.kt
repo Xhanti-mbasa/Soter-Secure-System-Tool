@@ -26,6 +26,25 @@ object ImageUtils {
         return Bitmap.createScaledBitmap(src, (src.width * s).toInt(), (src.height * s).toInt(), true)
     }
 
+    /** Greyscale copy - Smart ID photos are monochrome, so live frames are compared in greyscale too. */
+    fun toGray(src: Bitmap): Bitmap {
+        val out = Bitmap.createBitmap(src.width, src.height, Bitmap.Config.ARGB_8888)
+        val cm = android.graphics.ColorMatrix()
+        cm.setSaturation(0f)
+        val p = android.graphics.Paint(android.graphics.Paint.FILTER_BITMAP_FLAG)
+        p.colorFilter = android.graphics.ColorMatrixColorFilter(cm)
+        android.graphics.Canvas(out).drawBitmap(src, 0f, 0f, p)
+        return out
+    }
+
+    /** The rectangle [cropFace] would cut out. */
+    fun cropRect(src: Bitmap, box: Rect, margin: Float): Rect {
+        val size = (max(box.width(), box.height()) * (1 + 2 * margin)).toInt()
+        val left = (box.centerX() - size / 2).coerceIn(0, max(0, src.width - 1))
+        val top = (box.centerY() - size / 2).coerceIn(0, max(0, src.height - 1))
+        return Rect(left, top, left + max(1, min(size, src.width - left)), top + max(1, min(size, src.height - top)))
+    }
+
     /** Square crop around a face box with some margin, clamped to the image. */
     fun cropFace(src: Bitmap, box: Rect, margin: Float = 0.2f): Bitmap {
         val size = (max(box.width(), box.height()) * (1 + 2 * margin)).toInt()
@@ -78,7 +97,7 @@ class FaceModels(context: Context) {
         val size = inShape[1]
         val batch = inShape[0]
         val dim = faceNet.getOutputTensor(0).shape()[1]
-        val a = toInput(face, size, 127.5f, 128f)
+        val a = toInput(ImageUtils.toGray(face), size, 127.5f, 128f)
         val input = Array(batch) { a }
         val out = Array(batch) { FloatArray(dim) }
         faceNet.run(input, out)
@@ -104,7 +123,7 @@ class FaceModels(context: Context) {
 
     companion object {
         const val SPOOF_THRESHOLD = 0.2f
-        const val MATCH_THRESHOLD = 0.55f
+        const val MATCH_THRESHOLD = 0.5f
 
         fun cosine(a: FloatArray, b: FloatArray): Float {
             var dot = 0f
