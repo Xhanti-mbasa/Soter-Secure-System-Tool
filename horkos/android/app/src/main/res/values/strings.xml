@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Horkos</string>
+
+    <string-array name="sex_options">
+        <item>Select sex</item>
+        <item>Male</item>
+        <item>Female</item>
+    </string-array>
+
+    <string-array name="citizenship_options">
+        <item>Select citizenship</item>
+        <item>South African citizen</item>
+        <item>Permanent resident</item>
+        <item>Foreign national</item>
+    </string-array>
+
+    <string-array name="marital_options">
+        <item>Select marital status</item>
+        <item>Single (never married)</item>
+        <item>Married</item>
+        <item>Living with partner</item>
+        <item>Divorced</item>
+        <item>Separated</item>
+        <item>Widowed</item>
+    </string-array>
+
+    <string-array name="criminal_options">
+        <item>Select criminal record</item>
+        <item>No criminal record</item>
+        <item>Yes, I have a criminal record</item>
+        <item>Pending case</item>
+        <item>Record expunged</item>
+    </string-array>
+
+    <string-array name="qualification_options">
+        <item>Select highest qualification</item>
+        <item>No formal schooling</item>
+        <item>Grade 9 or lower</item>
+        <item>Grade 10 - 11</item>
+        <item>Matric / Grade 12 (NSC)</item>
+        <item>Higher Certificate (NQF 5)</item>
+        <item>Diploma / Advanced Certificate (NQF 6)</item>
+        <item>Bachelor\'s Degree / Advanced Diploma (NQF 7)</item>
+        <item>Honours / Postgraduate Diploma (NQF 8)</item>
+        <item>Master\'s Degree (NQF 9)</item>
+        <item>Doctorate (NQF 10)</item>
+    </string-array>
+</resources>

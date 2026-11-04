@@ -1,0 +1,11 @@
+.gradle/
+build/
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/app/*.jks
+android/app/src/main/assets/*.tflite
+*.apk
+.idea/
+*.iml

@@ -1,0 +1,86 @@
+name: Build Horkos APK release
+
+# Builds the Horkos (ID verification) Android app with Gradle and publishes the
+# signed APK as a GitHub pre-release. Runs on every push that touches horkos/.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "horkos/**"
+      - ".github/workflows/horkos-apk-build.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: horkos-apk-releases
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: horkos/android
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.14.3"
+
+      - name: Download face models (MobileFaceNet + FaceAntiSpoofing, MIT)
+        run: |
+          SRC=https://raw.githubusercontent.com/syaringan357/Android-MobileFaceNet-MTCNN-FaceAntiSpoofing/d635649e711f5e16e6cd3dc06cbb329cd8d1d3b7/app/src/main/assets
+          mkdir -p app/src/main/assets
+          curl -fsSL -o app/src/main/assets/MobileFaceNet.tflite "$SRC/MobileFaceNet.tflite"
+          curl -fsSL -o app/src/main/assets/FaceAntiSpoofing.tflite "$SRC/FaceAntiSpoofing.tflite"
+          cd app/src/main/assets
+          echo "d8ba40c0127fb8ca9917e8fddc79bbbda063657bc92a496d34da0bc8a760443b  MobileFaceNet.tflite" | sha256sum -c
+          echo "a980757d55e2835aff69f2fa9b04914e21d426dd8a43588c2982d50e8038ec02  FaceAntiSpoofing.tflite" | sha256sum -c
+
+      - name: Prepare signing key
+        env:
+          HORKOS_KEYSTORE_B64: ${{ secrets.HORKOS_KEYSTORE_B64 }}
+        run: |
+          if [ -n "$HORKOS_KEYSTORE_B64" ]; then
+            printf '%s' "$HORKOS_KEYSTORE_B64" | base64 -d > app/horkos-test.jks
+          else
+            echo "::warning::No HORKOS_KEYSTORE_B64 secret - generating a throwaway TEST key (uninstall before installing a new build)"
+            keytool -genkeypair -keystore app/horkos-test.jks -storepass horkos-test -keypass horkos-test -alias horkos -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Horkos Test, O=Horkos, C=ZA"
+          fi
+
+      - name: Build release APK
+        run: gradle :app:assembleRelease --stacktrace --no-daemon
+
+      - name: Rename APK
+        run: |
+          VERSION=0.1.${{ github.run_number }}
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          cp app/build/outputs/apk/release/app-release.apk "horkos-$VERSION.apk"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: horkos-${{ env.VERSION }}-apk
+          path: horkos/android/horkos-${{ env.VERSION }}.apk
+          if-no-files-found: error
+
+      - name: Publish pre-release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: horkos-v${{ env.VERSION }}
+          name: Horkos ${{ env.VERSION }} (test build)
+          prerelease: true
+          make_latest: false
+          body: |
+            Horkos test build - ID barcode scan, ID front OCR, live selfie (blink + head turn),
+            anti-spoof check and ID-photo-to-selfie face match. Runs fully offline.
+            Signed with a TEST key. Do not use for production.
+          files: horkos/android/horkos-${{ env.VERSION }}.apk
