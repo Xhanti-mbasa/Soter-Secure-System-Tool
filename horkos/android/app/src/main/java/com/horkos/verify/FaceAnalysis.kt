@@ -4,11 +4,13 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.Matrix
 import android.graphics.Rect
 import com.google.android.gms.tasks.Tasks
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.facemesh.FaceMeshDetection
 import com.google.mlkit.vision.facemesh.FaceMeshDetectorOptions
+import kotlin.math.atan2
 import kotlin.math.hypot
 import kotlin.math.max
 import kotlin.math.min
@@ -95,6 +97,62 @@ object FaceAnalysis {
                 x += 3
             }
             y += 3
+        }
+        if (n == 0) return floatArrayOf(0f, 0f, 0f)
+        return floatArrayOf((sr / n).toFloat(), (sg / n).toFloat(), (sb / n).toFloat())
+    }
+
+    /**
+     * Rotates and scales the face so the eye centres land where MobileFaceNet/ArcFace expect them
+     * in a 112x112 crop (eyes level, 35.2 px apart, centred at (56, 51.6)).
+     */
+    fun align(frame: Bitmap, mesh: List<FloatArray>?): Bitmap? {
+        if (mesh == null || mesh.size <= 362) return null
+        val e1x = (mesh[33][0] + mesh[133][0]) / 2f
+        val e1y = (mesh[33][1] + mesh[133][1]) / 2f
+        val e2x = (mesh[263][0] + mesh[362][0]) / 2f
+        val e2y = (mesh[263][1] + mesh[362][1]) / 2f
+        val firstIsLeft = e1x <= e2x
+        val lx = if (firstIsLeft) e1x else e2x
+        val ly = if (firstIsLeft) e1y else e2y
+        val rx = if (firstIsLeft) e2x else e1x
+        val ry = if (firstIsLeft) e2y else e1y
+        val dist = hypot(rx - lx, ry - ly)
+        if (dist < 6f) return null
+        val angle = Math.toDegrees(atan2((ry - ly).toDouble(), (rx - lx).toDouble())).toFloat()
+        val scale = 35.2f / dist
+        val m = Matrix()
+        m.postTranslate(-(lx + rx) / 2f, -(ly + ry) / 2f)
+        m.postRotate(-angle)
+        m.postScale(scale, scale)
+        m.postTranslate(56f, 51.6f)
+        val out = Bitmap.createBitmap(112, 112, Bitmap.Config.ARGB_8888)
+        Canvas(out).drawBitmap(frame, m, Paint(Paint.FILTER_BITMAP_FLAG))
+        return out
+    }
+
+    /** Mean RGB of a whole rectangle (no inset), sampled every 4 px. */
+    fun meanRgbRect(frame: Bitmap, rect: Rect): FloatArray {
+        val l = max(0, rect.left)
+        val t = max(0, rect.top)
+        val rgt = min(frame.width - 1, rect.right)
+        val b = min(frame.height - 1, rect.bottom)
+        var sr = 0.0
+        var sg = 0.0
+        var sb = 0.0
+        var n = 0
+        var y = t
+        while (y < b) {
+            var x = l
+            while (x < rgt) {
+                val p = frame.getPixel(x, y)
+                sr += Color.red(p)
+                sg += Color.green(p)
+                sb += Color.blue(p)
+                n++
+                x += 4
+            }
+            y += 4
         }
         if (n == 0) return floatArrayOf(0f, 0f, 0f)
         return floatArrayOf((sr / n).toFloat(), (sg / n).toFloat(), (sb / n).toFloat())

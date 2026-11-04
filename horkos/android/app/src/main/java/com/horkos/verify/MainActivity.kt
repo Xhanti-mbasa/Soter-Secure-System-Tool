@@ -6,12 +6,14 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
 import java.time.LocalDate
@@ -39,6 +41,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var spCriminal: Spinner
     private lateinit var spQualification: Spinner
     private lateinit var btnInspector: MaterialButton
+    private lateinit var btnExport: MaterialButton
 
     private val worker = Executors.newSingleThreadExecutor()
     private var pending: (() -> Unit)? = null
@@ -95,6 +98,16 @@ class MainActivity : AppCompatActivity() {
         findViewById<MaterialButton>(R.id.btnReset).setOnClickListener { reset() }
         btnInspector.setOnClickListener { openInspector() }
         btnInspector.isEnabled = false
+        btnExport = MaterialButton(this)
+        btnExport.text = "Export data (ID number removed)"
+        btnExport.isEnabled = false
+        btnExport.setOnClickListener { exportData() }
+        val parentLayout = btnInspector.parent as LinearLayout
+        parentLayout.addView(
+            btnExport,
+            parentLayout.indexOfChild(btnInspector) + 1,
+            LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+        )
 
         worker.execute { runCatching { FaceModels.get(this) } }
         refresh()
@@ -178,6 +191,7 @@ class MainActivity : AppCompatActivity() {
         listOf(spSex, spCitizenship, spMarital, spCriminal, spQualification).forEach { it.setSelection(0) }
         tvResults.text = "Results will appear here"
         btnInspector.isEnabled = false
+        btnExport.isEnabled = false
         refresh()
     }
 
@@ -188,6 +202,26 @@ class MainActivity : AppCompatActivity() {
                 .putExtra("names", etNames.text?.toString()?.trim())
                 .putExtra("surname", etSurname.text?.toString()?.trim())
         )
+    }
+
+    private fun exportData() {
+        val id = etId.text?.toString()?.trim().orEmpty()
+        val names = etNames.text?.toString()?.trim().orEmpty()
+        val surname = etSurname.text?.toString()?.trim().orEmpty()
+        Toast.makeText(this, "Preparing export...", Toast.LENGTH_SHORT).show()
+        worker.execute {
+            try {
+                val file = Exporter.export(this, id, names, surname)
+                val uri = FileProvider.getUriForFile(this, "$packageName.export", file)
+                val share = Intent(Intent.ACTION_SEND)
+                    .setType("application/zip")
+                    .putExtra(Intent.EXTRA_STREAM, uri)
+                    .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                runOnUiThread { startActivity(Intent.createChooser(share, "Export Horkos data")) }
+            } catch (e: Exception) {
+                runOnUiThread { Toast.makeText(this, "Export failed: ${e.message}", Toast.LENGTH_LONG).show() }
+            }
+        }
     }
 
     // ---------------- Verification ----------------
@@ -231,6 +265,7 @@ class MainActivity : AppCompatActivity() {
 
         tvResults.text = "Checking... (running face mesh and models)"
         btnInspector.isEnabled = false
+        btnExport.isEnabled = false
         worker.execute {
             val text = try {
                 runChecks(names, surname, id, dobField, sexField, citizenship, missing)
@@ -242,6 +277,7 @@ class MainActivity : AppCompatActivity() {
             runOnUiThread {
                 tvResults.text = full
                 btnInspector.isEnabled = true
+                btnExport.isEnabled = true
                 refresh()
             }
         }
@@ -255,13 +291,14 @@ class MainActivity : AppCompatActivity() {
         val doc = "ID document"
         val nameSec = "Name verification"
         val faceSec = "Face & liveness"
+        val formSec = "Form"
         fun add(sec: String, lv: Level, label: String, detail: String) {
             checks.add(Check(sec, lv, label, detail))
         }
         val digits = id.filter { it.isDigit() }
 
         // ---- ID document ----
-        add(doc, if (missing.isEmpty()) Level.PASS else Level.FAIL, "Form complete",
+        add(formSec, if (missing.isEmpty()) Level.PASS else Level.FAIL, "Form complete",
             if (missing.isEmpty()) "All fields filled" else "Missing: ${missing.joinToString()}")
 
         val info = SaId.analyse(id)
@@ -278,7 +315,7 @@ class MainActivity : AppCompatActivity() {
         val idSex = info.sex
         if (idSex != null && sexField != null) {
             add(doc, if (idSex == sexField) Level.PASS else Level.FAIL, "Sex vs ID digits 7-10",
-                "Digits ${digits.substring(6, 10)} -> $idSex, form says $sexField")
+                "Digits 7-10 " + (if (idSex == "M") ">= 5000" else "< 5000") + " -> $idSex, form says $sexField")
         }
         val idCitizen = info.citizen
         if (idCitizen != null && citizenship != 0) {
@@ -371,14 +408,16 @@ class MainActivity : AppCompatActivity() {
             val models = FaceModels.get(this)
             if (cardFace != null) {
                 Session.cardFaceMesh = try { FaceAnalysis.mesh(cardFace) } catch (e: Exception) { null }
-                Session.cardEmbedding = models.embedding(cardFace)
+                Session.cardAligned = FaceAnalysis.align(cardFace, Session.cardFaceMesh)
+                Session.cardEmbedding = models.embedding(Session.cardAligned ?: cardFace)
             }
             val cardEmb = Session.cardEmbedding
             for (k in Session.keyframes) {
                 k.mesh = try { FaceAnalysis.mesh(k.frame) } catch (e: Exception) { null }
                 k.parallax = FaceAnalysis.parallax(k.mesh)
                 val crop = ImageUtils.cropFace(k.frame, k.box)
-                val emb = models.embedding(crop)
+                k.aligned = FaceAnalysis.align(k.frame, k.mesh)
+                val emb = models.embedding(k.aligned ?: crop)
                 k.embedding = emb
                 if (cardEmb != null) k.similarity = FaceModels.cosine(cardEmb, emb)
                 if (k.label in frontal) k.spoof = models.spoofScore(crop)
@@ -407,16 +446,20 @@ class MainActivity : AppCompatActivity() {
             add(faceSec, Level.WARN, "Screen-flash reflection", "Not enough flash frames captured (${Session.flashes.size})")
         } else {
             val b0 = FaceAnalysis.chroma(base.rgb)
+            val g0 = FaceAnalysis.chroma(base.bg)
             val parts = mutableListOf<String>()
             var hits = 0
             for ((name, ch) in listOf("RED" to 0, "GREEN" to 1, "BLUE" to 2)) {
                 val s = Session.flashes.firstOrNull { it.color == name } ?: continue
-                val d = FaceAnalysis.chroma(s.rgb)[ch] - b0[ch]
-                if (d > 0.01f) hits++
-                parts.add("$name " + (if (d >= 0f) "+" else "") + f(d, 3))
+                val faceShift = FaceAnalysis.chroma(s.rgb)[ch] - b0[ch]
+                val rel = faceShift - (FaceAnalysis.chroma(s.bg)[ch] - g0[ch])
+                if (rel > 0.01f || faceShift > 0.02f) hits++
+                parts.add(name + " face " + f(faceShift, 3) + " rel " + f(rel, 3))
             }
+            val white = Session.flashes.firstOrNull { it.color == "WHITE" }
+            val gain = if (white == null) null else FaceAnalysis.luminance(white.rgb) / (FaceAnalysis.luminance(base.rgb) + 0.001f)
             add(faceSec, if (hits >= 2) Level.PASS else Level.FAIL, "Screen-flash reflection",
-                "$hits/3 colours reflected on the face (${parts.joinToString()})")
+                "$hits/3 colours reflected (" + parts.joinToString() + "), white flash brightness x" + f(gain))
         }
 
         val spoofs = Session.keyframes.filter { it.label == "CENTER" || it.label == "FINAL" }.mapNotNull { it.spoof }
@@ -435,7 +478,7 @@ class MainActivity : AppCompatActivity() {
             val best = sims.max()
             val mean = sims.average().toFloat()
             add(faceSec, if (best >= FaceModels.MATCH_THRESHOLD) Level.PASS else Level.FAIL, "Face match vs ID photo",
-                "best ${f(best)}, mean ${f(mean)} over ${sims.size} frames (pass at ${FaceModels.MATCH_THRESHOLD})")
+                "best ${f(best)}, mean ${f(mean)} over ${sims.size} frames (pass at ${FaceModels.MATCH_THRESHOLD}), eye-aligned ID photo: " + yn(Session.cardAligned != null))
         }
 
         val embs = Session.keyframes.filter { it.label in frontal }.mapNotNull { it.embedding }
@@ -454,10 +497,11 @@ class MainActivity : AppCompatActivity() {
         val nameVerified = checks.any { it.label == "Name on proof of account" && it.level == Level.PASS }
         return buildString {
             appendLine(if (fails == 0) "✅ PASSED LOCAL CHECKS ($warns warnings)" else "❌ NOT VERIFIED ($fails failed, $warns warnings)")
+            appendLine("Form complete: ${yn(sectionOk(formSec))}")
             appendLine("ID document consistent: ${yn(sectionOk(doc))}")
             appendLine("Name verified by bank statement: ${yn(nameVerified)}")
             appendLine("Live person matches ID photo: ${yn(sectionOk(faceSec) && lv != null)}")
-            for (sec in listOf(doc, nameSec, faceSec)) {
+            for (sec in listOf(formSec, doc, nameSec, faceSec)) {
                 appendLine()
                 appendLine("--- $sec ---")
                 checks.filter { it.section == sec }.forEach { appendLine("${icon(it.level)} ${it.label}: ${it.detail}") }

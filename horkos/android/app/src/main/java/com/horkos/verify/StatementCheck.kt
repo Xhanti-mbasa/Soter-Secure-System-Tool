@@ -183,7 +183,7 @@ object StatementCheck {
         if (sTokens.isEmpty() || fTokens.isEmpty()) return false to "Fill in first name and surname first"
         val surnameOk = sTokens.all { t.contains(" $it ") }
         val firstFound = fTokens.filter { t.contains(" $it ") }
-        val initialRegex = Regex("((?:[A-Z] ){1,4})" + Regex.escape(sTokens.joinToString(" ")) + " ")
+        val initialRegex = Regex("(?<= )((?:[A-Z] ){1,4})" + Regex.escape(sTokens.joinToString(" ")) + " ")
         val initials = initialRegex.findAll(t).map { it.groupValues[1].replace(" ", "") }.toList()
         val initialsOk = initials.any { it.isNotEmpty() && it[0] == fTokens[0][0] }
         val ok = surnameOk && (firstFound.isNotEmpty() || initialsOk)

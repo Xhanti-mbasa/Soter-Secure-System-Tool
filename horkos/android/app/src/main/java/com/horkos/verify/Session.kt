@@ -21,10 +21,11 @@ class Keyframe(
     var similarity: Float? = null
     var spoof: Float? = null
     var embedding: FloatArray? = null
+    var aligned: Bitmap? = null
 }
 
 /** A frame captured while the screen showed one colour. */
-class FlashSample(val color: String, val rgb: FloatArray, val frame: Bitmap, val box: Rect)
+class FlashSample(val color: String, val rgb: FloatArray, val frame: Bitmap, val box: Rect, val bg: FloatArray)
 
 class LivenessResult(val completed: Boolean, val steps: List<String>, val message: String)
 
@@ -43,6 +44,7 @@ object Session {
     var liveness: LivenessResult? = null
     var cardFaceMesh: List<FloatArray>? = null
     var cardEmbedding: FloatArray? = null
+    var cardAligned: Bitmap? = null
     var report: String? = null
 
     fun clearFace() {
@@ -63,6 +65,7 @@ object Session {
         statement = null
         cardFaceMesh = null
         cardEmbedding = null
+        cardAligned = null
         clearFace()
     }
 }

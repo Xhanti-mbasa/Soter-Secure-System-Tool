@@ -62,7 +62,7 @@ jobs:
 
       - name: Rename APK
         run: |
-          VERSION=0.2.${{ github.run_number }}
+          VERSION=0.3.${{ github.run_number }}
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
           cp app/build/outputs/apk/release/app-release.apk "horkos-$VERSION.apk"
 

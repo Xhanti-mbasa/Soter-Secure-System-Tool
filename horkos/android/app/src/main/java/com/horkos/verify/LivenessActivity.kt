@@ -1,6 +1,12 @@
 package com.horkos.verify
 
 import android.app.Activity
+import android.hardware.camera2.CaptureRequest
+import androidx.annotation.OptIn
+import androidx.camera.camera2.interop.Camera2CameraControl
+import androidx.camera.camera2.interop.CaptureRequestOptions
+import androidx.camera.camera2.interop.ExperimentalCamera2Interop
+import androidx.camera.core.Camera
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.Rect
@@ -59,6 +65,7 @@ class LivenessActivity : AppCompatActivity() {
     private lateinit var executor: ExecutorService
     private val main = Handler(Looper.getMainLooper())
     private val finished = AtomicBoolean(false)
+    private var camera: Camera? = null
 
     private val detector by lazy {
         FaceDetection.getClient(
@@ -135,7 +142,7 @@ class LivenessActivity : AppCompatActivity() {
             analysis.setAnalyzer(executor) { proxy -> analyse(proxy) }
             provider.unbindAll()
             try {
-                provider.bindToLifecycle(this, CameraSelector.DEFAULT_FRONT_CAMERA, preview, analysis)
+                camera = provider.bindToLifecycle(this, CameraSelector.DEFAULT_FRONT_CAMERA, preview, analysis)
             } catch (e: Exception) {
                 Toast.makeText(this, "Camera error: ${e.message}", Toast.LENGTH_LONG).show()
                 finish()
@@ -276,7 +283,9 @@ class LivenessActivity : AppCompatActivity() {
 
     private fun runFlash(i: Int) {
         if (finished.get()) return
+        if (i == 0) lock3A(true)
         if (i >= flashSequence.size) {
+            lock3A(false)
             flashView.visibility = View.GONE
             complete(true, "All challenges completed")
             return
@@ -293,13 +302,29 @@ class LivenessActivity : AppCompatActivity() {
         main.postDelayed({ runFlash(i + 1) }, 900)
     }
 
+    /** Locks auto-exposure and auto-white-balance so the camera does not cancel out the flash colours. */
+    @OptIn(ExperimentalCamera2Interop::class)
+    private fun lock3A(lock: Boolean) {
+        val cam = camera ?: return
+        try {
+            Camera2CameraControl.from(cam.cameraControl).setCaptureRequestOptions(
+                CaptureRequestOptions.Builder()
+                    .setCaptureRequestOption(CaptureRequest.CONTROL_AE_LOCK, lock)
+                    .setCaptureRequestOption(CaptureRequest.CONTROL_AWB_LOCK, lock)
+                    .build()
+            )
+        } catch (e: Exception) {
+        }
+    }
+
     private fun handleFlash(frame: Bitmap) {
         val name = flashColor ?: return
         if (name in flashCaptured) return
         if (SystemClock.elapsedRealtime() - flashSetAt < 450) return
         val box = lastBox ?: return
         flashCaptured.add(name)
-        Session.flashes.add(FlashSample(name, FaceAnalysis.meanRgb(frame, box), frame, Rect(box)))
+        val bg = FaceAnalysis.meanRgbRect(frame, Rect(0, 0, frame.width, frame.height / 6))
+        Session.flashes.add(FlashSample(name, FaceAnalysis.meanRgb(frame, box), frame, Rect(box), bg))
     }
 
     private fun complete(ok: Boolean, msg: String) {

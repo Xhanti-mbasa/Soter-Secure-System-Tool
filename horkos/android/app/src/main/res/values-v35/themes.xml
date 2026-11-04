@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 15+: keep content below the status bar / action bar instead of drawing edge-to-edge. -->
+<resources>
+    <style name="Theme.Horkos" parent="Theme.MaterialComponents.Light.DarkActionBar">
+        <item name="colorPrimary">@color/horkos_navy</item>
+        <item name="colorPrimaryVariant">@color/horkos_navy</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="colorSecondary">@color/horkos_gold</item>
+        <item name="colorOnSecondary">#000000</item>
+        <item name="android:windowBackground">@color/horkos_bg</item>
+        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
+    </style>
+
+    <style name="Theme.Horkos.NoActionBar" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <item name="colorPrimary">@color/horkos_navy</item>
+        <item name="colorSecondary">@color/horkos_gold</item>
+        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
+    </style>
+</resources>

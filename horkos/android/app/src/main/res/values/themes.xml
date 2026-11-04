@@ -12,4 +12,8 @@
         <item name="colorOnSecondary">#000000</item>
         <item name="android:windowBackground">@color/horkos_bg</item>
     </style>
+    <style name="Theme.Horkos.NoActionBar" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <item name="colorPrimary">@color/horkos_navy</item>
+        <item name="colorSecondary">@color/horkos_gold</item>
+    </style>
 </resources>

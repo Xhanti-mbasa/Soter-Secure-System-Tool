@@ -80,6 +80,32 @@ object SaId {
         return sum % 10 == 0
     }
 
+    /** Same facts as [explain] without revealing any digit of the ID number (used for export). */
+    fun explainRedacted(id: String?): String {
+        val clean = id?.filter { it.isDigit() } ?: ""
+        if (clean.length != 13) return "ID number missing or not 13 digits."
+        val info = analyse(clean)
+        var sum = 0
+        for (i in 12 downTo 0) {
+            val d = clean[i] - '0'
+            var v = if ((12 - i) % 2 == 1) d * 2 else d
+            if (v > 9) v -= 9
+            sum += v
+        }
+        val citizen = when (info.citizen) {
+            true -> "SA citizen"
+            false -> "permanent resident"
+            null -> "INVALID"
+        }
+        return buildString {
+            appendLine("ID number: [removed from export]")
+            appendLine("Date of birth (digits 1-6): ${info.dob ?: "INVALID"}")
+            appendLine("Sex (digits 7-10): ${info.sex}")
+            appendLine("Citizenship (digit 11): $citizen")
+            appendLine("Luhn checksum: weighted total mod 10 = ${sum % 10} -> " + (if (sum % 10 == 0) "VALID" else "INVALID"))
+        }.trim()
+    }
+
     /** Step-by-step breakdown of the ID number and its Luhn checksum, for the inspector. */
     fun explain(id: String?): String {
         val clean = id?.filter { it.isDigit() } ?: ""
