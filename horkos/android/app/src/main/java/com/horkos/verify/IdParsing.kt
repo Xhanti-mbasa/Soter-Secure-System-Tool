@@ -11,13 +11,14 @@ data class IdDetails(
     val source: String,
     val surname: String? = null,
     val names: String? = null,
-    val sex: String? = null,            // "M" / "F"
+    val sex: String? = null,
     val nationality: String? = null,
     val idNumber: String? = null,
     val dob: LocalDate? = null,
     val countryOfBirth: String? = null,
     val status: String? = null,
     val issueDate: LocalDate? = null,
+    val cardNumber: String? = null,
     val raw: String = ""
 ) {
     fun summary(): String = buildString {
@@ -31,6 +32,7 @@ data class IdDetails(
         countryOfBirth?.let { appendLine("Country of birth: $it") }
         status?.let { appendLine("Status: $it") }
         issueDate?.let { appendLine("Date of issue: $it") }
+        cardNumber?.let { appendLine("Card number: $it") }
     }.trim()
 }
 
@@ -39,8 +41,8 @@ data class SaIdInfo(
     val formatOk: Boolean,
     val checksumOk: Boolean,
     val dob: LocalDate?,
-    val sex: String?,          // "M" / "F"
-    val citizen: Boolean?      // true = SA citizen, false = permanent resident
+    val sex: String?,
+    val citizen: Boolean?
 )
 
 object SaId {
@@ -77,15 +79,66 @@ object SaId {
         }
         return sum % 10 == 0
     }
+
+    /** Step-by-step breakdown of the ID number and its Luhn checksum, for the inspector. */
+    fun explain(id: String?): String {
+        val clean = id?.filter { it.isDigit() } ?: ""
+        if (clean.length != 13) return "ID number must be 13 digits (got ${clean.length})."
+        val info = analyse(clean)
+        val g = clean.substring(6, 10).toInt()
+        val sb = StringBuilder()
+        sb.appendLine("ID: ${clean.substring(0, 6)} ${clean.substring(6, 10)} ${clean[10]} ${clean[11]} ${clean[12]}")
+        sb.appendLine("YYMMDD ${clean.substring(0, 6)} -> date of birth ${info.dob ?: "INVALID DATE"}")
+        sb.appendLine("SSSS   ${clean.substring(6, 10)} -> $g " + (if (g < 5000) "(< 5000 = FEMALE)" else "(>= 5000 = MALE)"))
+        val c = when (clean[10]) {
+            '0' -> "SA citizen"
+            '1' -> "permanent resident"
+            else -> "INVALID (must be 0 or 1)"
+        }
+        sb.appendLine("C      ${clean[10]} -> $c")
+        sb.appendLine("A      ${clean[11]} -> legacy digit (usually 8 or 9)")
+        sb.appendLine("Z      ${clean[12]} -> check digit")
+        sb.appendLine()
+        sb.appendLine("Luhn checksum, right to left, every 2nd digit doubled")
+        sb.appendLine("(if doubled value > 9, subtract 9):")
+        sb.appendLine("pos digit x2?  value running")
+        var sum = 0
+        for (i in 12 downTo 0) {
+            val d = clean[i] - '0'
+            val doubled = (12 - i) % 2 == 1
+            var v = if (doubled) d * 2 else d
+            if (v > 9) v -= 9
+            sum += v
+            sb.appendLine(String.format(Locale.ROOT, "%3d   %d   %-4s %5d %7d", i + 1, d, if (doubled) "yes" else "no", v, sum))
+        }
+        sb.appendLine("Total = $sum; $sum mod 10 = ${sum % 10} -> " + (if (sum % 10 == 0) "VALID" else "INVALID"))
+        var s12 = 0
+        for (i in 11 downTo 0) {
+            val d = clean[i] - '0'
+            val doubled = (11 - i) % 2 == 0
+            var v = if (doubled) d * 2 else d
+            if (v > 9) v -= 9
+            s12 += v
+        }
+        val expected = (10 - s12 % 10) % 10
+        sb.appendLine("Expected check digit from first 12 digits = $expected (card has ${clean[12]})")
+        return sb.toString()
+    }
 }
 
 object Dates {
     private val formatters: List<DateTimeFormatter> = listOf(
-        "dd MMM yyyy", "d MMM yyyy", "dd MMMM yyyy", "yyyy-MM-dd", "dd/MM/yyyy",
+        "dd MMM yyyy", "d MMM yyyy", "dd MMMM yyyy", "d MMMM yyyy", "yyyy-MM-dd", "dd/MM/yyyy",
         "dd-MM-yyyy", "yyyy/MM/dd", "dd.MM.yyyy", "yyyyMMdd", "dd-MMM-yyyy"
     ).map {
         DateTimeFormatterBuilder().parseCaseInsensitive().appendPattern(it).toFormatter(Locale.ENGLISH)
     }
+
+    private val patterns = listOf(
+        Regex("\\b\\d{1,2} [A-Za-z]{3,9} \\d{4}\\b"),
+        Regex("\\b\\d{4}[-/]\\d{2}[-/]\\d{2}\\b"),
+        Regex("\\b\\d{2}[-/.]\\d{2}[-/.]\\d{4}\\b")
+    )
 
     fun parse(text: String?): LocalDate? {
         if (text.isNullOrBlank()) return null
@@ -97,26 +150,23 @@ object Dates {
         return null
     }
 
-    /** Finds the first date-looking substring inside free text. */
-    fun find(text: String): LocalDate? {
-        val patterns = listOf(
-            Regex("\\b\\d{1,2} [A-Za-z]{3,9} \\d{4}\\b"),
-            Regex("\\b\\d{4}[-/]\\d{2}[-/]\\d{2}\\b"),
-            Regex("\\b\\d{2}[-/.]\\d{2}[-/.]\\d{4}\\b")
-        )
+    fun find(text: String): LocalDate? = findAll(text).firstOrNull()
+
+    fun findAll(text: String): List<LocalDate> {
+        val out = mutableListOf<LocalDate>()
         for (p in patterns) {
-            p.findAll(text).forEach { m -> parse(m.value)?.let { return it } }
+            p.findAll(text).forEach { m -> parse(m.value)?.let { out.add(it) } }
         }
-        return null
+        return out
     }
 }
 
 object BarcodeParser {
     private val idRegex = Regex("^\\d{13}$")
+    private val cardRegex = Regex("^\\d{9}$")
 
     fun parse(raw: String): IdDetails {
         val trimmed = raw.trim()
-        // Green ID book / Code 39: only the ID number
         if (idRegex.matches(trimmed)) {
             return IdDetails(source = "Barcode (ID number only)", idNumber = trimmed, raw = raw)
         }
@@ -127,8 +177,9 @@ object BarcodeParser {
         }
 
         val idIdx = fields.indexOfFirst { idRegex.matches(it) }
-        val sexIdx = fields.indexOfFirst { it.equals("M", true) || it.equals("F", true) ||
-                it.equals("MALE", true) || it.equals("FEMALE", true) }
+        val sexIdx = fields.indexOfFirst {
+            it.equals("M", true) || it.equals("F", true) || it.equals("MALE", true) || it.equals("FEMALE", true)
+        }
         val dateIdxs = fields.indices.filter { Dates.parse(fields[it]) != null }
         val dobIdx = dateIdxs.firstOrNull { it > idIdx } ?: dateIdxs.firstOrNull()
         val issueIdx = dateIdxs.firstOrNull { dobIdx != null && it > dobIdx }
@@ -147,12 +198,13 @@ object BarcodeParser {
             countryOfBirth = dobIdx?.let { at(it + 1) }?.takeIf { Dates.parse(it) == null },
             status = dobIdx?.let { at(it + 2) }?.takeIf { Dates.parse(it) == null },
             issueDate = issueIdx?.let { Dates.parse(fields[it]) },
+            cardNumber = fields.firstOrNull { cardRegex.matches(it) },
             raw = raw
         )
     }
 }
 
-/** Reads the printed labels on the front of a South African Smart ID card. */
+/** Reads the printed labels on a South African Smart ID card (front or back). */
 object OcrParser {
     private val labels = linkedMapOf(
         "country of birth" to "cob",
@@ -175,7 +227,7 @@ object OcrParser {
         return null
     }
 
-    fun parse(text: Text): IdDetails {
+    fun parse(text: Text, source: String = "OCR (front of card)"): IdDetails {
         val lines = text.textBlocks.flatMap { b -> b.lines.map { it.text.trim() } }.filter { it.isNotBlank() }
         val values = mutableMapOf<String, String>()
         for (i in lines.indices) {
@@ -198,7 +250,7 @@ object OcrParser {
             if (it == 'M') "M" else if (it == 'F') "F" else null
         }
         return IdDetails(
-            source = "OCR (front of card)",
+            source = source,
             surname = values["surname"],
             names = values["names"],
             sex = sex,
@@ -207,17 +259,21 @@ object OcrParser {
             dob = Dates.parse(values["dob"]) ?: values["dob"]?.let { Dates.find(it) },
             countryOfBirth = values["cob"],
             status = values["status"],
-            issueDate = Dates.parse(values["issue"]),
+            issueDate = Dates.parse(values["issue"]) ?: values["issue"]?.let { Dates.find(it) },
             raw = allText
         )
     }
+
+    /** The 9-digit card number printed on the back (not part of the ID number). */
+    fun cardNumber(all: String, id: String?): String? =
+        Regex("(?<!\\d)\\d{9}(?!\\d)").findAll(all).map { it.value }
+            .firstOrNull { id == null || !id.contains(it) }
 }
 
 object Names {
     fun normalise(s: String?): String =
         (s ?: "").uppercase(Locale.ROOT).replace(Regex("[^A-Z ]"), " ").replace(Regex("\\s+"), " ").trim()
 
-    /** True if the two names are the same, ignoring case/punctuation, or one contains the other. */
     fun matches(a: String?, b: String?): Boolean {
         val x = normalise(a)
         val y = normalise(b)

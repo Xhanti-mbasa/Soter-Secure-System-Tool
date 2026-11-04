@@ -30,5 +30,16 @@
             android:name=".ScanActivity"
             android:exported="false"
             android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".LivenessActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.MaterialComponents.NoActionBar" />
+
+        <activity
+            android:name=".InspectorActivity"
+            android:exported="false"
+            android:label="Horkos inspector" />
     </application>
 </manifest>

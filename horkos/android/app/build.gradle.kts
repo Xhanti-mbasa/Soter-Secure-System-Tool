@@ -12,7 +12,7 @@ android {
         minSdk = 26
         targetSdk = 35
         versionCode = (System.getenv("GITHUB_RUN_NUMBER") ?: "1").toInt()
-        versionName = "0.1.${System.getenv("GITHUB_RUN_NUMBER") ?: "0"}"
+        versionName = "0.2.${System.getenv("GITHUB_RUN_NUMBER") ?: "0"}"
     }
 
     signingConfigs {
@@ -61,7 +61,11 @@ dependencies {
     implementation("com.google.mlkit:barcode-scanning:17.3.0")
     implementation("com.google.mlkit:text-recognition:16.0.1")
     implementation("com.google.mlkit:face-detection:16.1.7")
+    implementation("com.google.mlkit:face-mesh-detection:16.0.0-beta1")
 
     // Face embedding + anti-spoofing models
     implementation("org.tensorflow:tensorflow-lite:2.16.1")
+
+    // PDF text, metadata and signature inspection for proof of account
+    implementation("com.tom-roush:pdfbox-android:2.0.27.0")
 }

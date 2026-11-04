@@ -11,61 +11,86 @@
         android:padding="16dp">
 
         <TextView
-            style="@style/TextAppearance.MaterialComponents.Subtitle1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="1. Scan the barcode on the back of the ID"
+            android:text="1. Photograph the FRONT of the ID"
+            android:textSize="16sp"
             android:textStyle="bold" />
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnScanBarcode"
+            android:id="@+id/btnFront"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Scan ID barcode" />
+            android:text="Capture ID front" />
 
         <TextView
-            android:id="@+id/tvBarcode"
+            android:id="@+id/tvFront"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="No barcode scanned yet"
             android:textIsSelectable="true"
             android:textSize="12sp" />
 
         <TextView
-            style="@style/TextAppearance.MaterialComponents.Subtitle1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="2. Photograph the front of the ID"
+            android:text="2. Scan the BACK of the ID (both barcodes)"
+            android:textSize="16sp"
             android:textStyle="bold" />
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnCaptureCard"
+            android:id="@+id/btnBack"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Capture ID front (OCR + photo)" />
+            android:text="Scan ID back" />
 
         <TextView
-            android:id="@+id/tvOcr"
+            android:id="@+id/tvBack"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="No ID photo captured yet"
             android:textIsSelectable="true"
             android:textSize="12sp" />
 
         <TextView
-            style="@style/TextAppearance.MaterialComponents.Subtitle1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="3. Live selfie (blink + turn head)"
+            android:text="3. Proof of account (bank statement PDF)"
+            android:textSize="16sp"
             android:textStyle="bold" />
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnSelfie"
+            android:id="@+id/btnStatement"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Start live selfie" />
+            android:text="Upload bank statement PDF" />
+
+        <TextView
+            android:id="@+id/tvStatement"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textIsSelectable="true"
+            android:textSize="12sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="4. Live face scan"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnFace"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Start face scan" />
+
+        <TextView
+            android:id="@+id/tvFace"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="12sp" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -111,16 +136,16 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Live selfie" />
+                    android:text="Live face" />
             </LinearLayout>
         </LinearLayout>
 
         <TextView
-            style="@style/TextAppearance.MaterialComponents.Subtitle1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="4. Confirm your details"
+            android:text="5. Confirm your details"
+            android:textSize="16sp"
             android:textStyle="bold" />
 
         <com.google.android.material.textfield.TextInputLayout
@@ -213,11 +238,17 @@
             android:textIsSelectable="true" />
 
         <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnInspector"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Open inspector (raw data, maths, face mesh)" />
+
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnReset"
             style="@style/Widget.MaterialComponents.Button.TextButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
             android:text="Start over" />
     </LinearLayout>
 </ScrollView>

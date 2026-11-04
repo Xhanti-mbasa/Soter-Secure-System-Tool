@@ -15,7 +15,7 @@ permissions:
 
 concurrency:
   group: horkos-apk-releases
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -62,7 +62,7 @@ jobs:
 
       - name: Rename APK
         run: |
-          VERSION=0.1.${{ github.run_number }}
+          VERSION=0.2.${{ github.run_number }}
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
           cp app/build/outputs/apk/release/app-release.apk "horkos-$VERSION.apk"
 
@@ -80,7 +80,8 @@ jobs:
           prerelease: true
           make_latest: false
           body: |
-            Horkos test build - ID barcode scan, ID front OCR, live selfie (blink + head turn),
-            anti-spoof check and ID-photo-to-selfie face match. Runs fully offline.
+            Horkos test build: ID front + back (both barcodes, card number, issue date), bank statement
+            name check with PDF forensics, guided face scan (oval, poses, distance, blink, colour flashes),
+            468-point face mesh with 3D parallax test, and an inspector showing all raw data and maths.
             Signed with a TEST key. Do not use for production.
           files: horkos/android/horkos-${{ env.VERSION }}.apk
