@@ -66,7 +66,7 @@ jobs:
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
           cp app/build/outputs/apk/release/app-release.apk "horkos-$VERSION.apk"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: horkos-${{ env.VERSION }}-apk
           path: horkos/android/horkos-${{ env.VERSION }}.apk
